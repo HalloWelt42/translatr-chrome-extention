@@ -1,0 +1,519 @@
+/* Options-spezifisches Layout - Smart Web Translator v3.13.0 */
+/* ==========================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+
+/* Margins */
+.mt-sm { margin-top: 12px; }
+.mt-md { margin-top: 16px; }
+.mt-lg { margin-top: 24px; }
+
+/* Text */
+.text-muted { color: var(--md-on-surface-medium); }
+.hint { font-size: 13px; color: var(--md-on-surface-medium); }
+
+/* ==========================================================================
+   STATUS FEEDBACK
+   ========================================================================== */
+
+.status {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  max-width: 300px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.status.success {
+  background: var(--md-success, #4caf50);
+  color: white;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.status.error {
+  background: var(--md-error, #f44336);
+  color: white;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.status.info {
+  background: var(--md-primary, #2196f3);
+  color: white;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Badges */
+.badge-warning {
+  font-size: 11px;
+  color: var(--md-warning);
+  font-weight: normal;
+}
+
+/* Inputs */
+.input-sm { width: 80px; }
+.input-md { width: 100px; }
+.select-sm { width: 120px; }
+
+/* Cost Input Row */
+.cost-input-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Cache Server Stats */
+.cache-server-stats {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--md-background);
+  border-radius: var(--radius-md);
+}
+
+.stats-mini {
+  display: flex;
+  gap: 24px;
+  font-size: 14px;
+  color: var(--md-on-surface-medium);
+}
+
+.stats-mini strong {
+  color: var(--md-primary);
+}
+
+/* Cache Backend Selector (reuse api-type-selector styles) */
+.cache-backend-option {
+  padding: var(--spacing-md);
+  border: 2px solid var(--md-divider);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.cache-backend-option:hover {
+  border-color: var(--md-primary-light);
+  background: var(--md-background);
+}
+
+.cache-backend-option.active {
+  border-color: var(--md-primary);
+  background: rgba(21, 101, 192, 0.05);
+}
+
+.cache-backend-option h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.cache-backend-option p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--md-on-surface-medium);
+}
+
+/* ==========================================================================
+   OPTIONS-SPEZIFISCHES LAYOUT
+   ========================================================================== */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--md-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+header h1 [data-icon] svg {
+  width: 32px;
+  height: 32px;
+}
+
+header p {
+  color: var(--md-on-surface-medium);
+  margin-top: 8px;
+}
+
+/* API Type Selector */
+.api-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.api-type-option {
+  padding: var(--spacing-lg);
+  border: 2px solid var(--md-divider);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: center;
+}
+
+.api-type-option:hover {
+  border-color: var(--md-primary);
+  background: var(--md-primary-light);
+}
+
+.api-type-option.active {
+  border-color: var(--md-primary);
+  background: var(--md-primary-light);
+}
+
+.api-type-option h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.api-type-option p {
+  font-size: 12px;
+  color: var(--md-on-surface-medium);
+}
+
+/* Settings Panel */
+.settings-panel {
+  display: none;
+}
+
+.settings-panel.active {
+  display: block;
+}
+
+/* Domain List */
+.domain-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 6px);
+  min-height: 40px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: var(--spacing-sm, 8px);
+  background: var(--md-background, #f5f5f5);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--md-outline-variant, #e0e0e0);
+}
+
+.domain-list:empty::before {
+  content: 'Keine Domains konfiguriert';
+  color: var(--md-on-surface-medium, #666);
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* Domain Item - für E-Book Reader Liste */
+.domain-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--md-surface, #fff);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 14px;
+  border: 1px solid var(--md-outline-variant, #e0e0e0);
+}
+
+.domain-item span {
+  font-family: monospace;
+  color: var(--md-on-surface, #333);
+}
+
+.domain-item button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--md-error-light, #ffebee);
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  color: var(--md-error, #f44336);
+  transition: all 0.2s;
+}
+
+.domain-item button:hover {
+  background: var(--md-error, #f44336);
+  color: white;
+}
+
+.domain-item button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* Domain Tag - für Auto-Translate Liste (legacy) */
+.domain-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--md-primary-light);
+  color: var(--md-primary);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.domain-tag button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.domain-tag button:hover {
+  opacity: 1;
+}
+
+.domain-tag button svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.domain-input-row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.domain-input-row input {
+  flex: 1;
+}
+
+/* Shortcut List */
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.shortcut-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--md-background);
+  border-radius: var(--radius-md);
+}
+
+/* Actions Footer */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+footer {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--md-divider);
+  color: var(--md-on-surface-medium);
+  font-size: 13px;
+}
+
+footer a {
+  color: var(--md-primary);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* Test Connection Button */
+.test-connection {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.test-result {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.test-result.success {
+  background: var(--md-success-light);
+  color: var(--md-success);
+}
+
+.test-result.error {
+  background: var(--md-error-light);
+  color: var(--md-error);
+}
+
+/* Model Select Row */
+.model-select-row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.model-select-row select {
+  flex: 1;
+}
+
+.model-select-row .btn {
+  flex-shrink: 0;
+  padding: 10px;
+}
+
+/* Cache Server Stats */
+.cache-server-stats {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--md-surface-variant);
+  border-radius: var(--radius-md);
+}
+
+.cache-server-stats h4 {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 13px;
+  color: var(--md-on-surface-medium);
+}
+
+.stats-mini {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--md-primary);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--md-on-surface-medium);
+}
+
+/* Sync Actions */
+.sync-actions h4 {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  color: var(--md-on-surface);
+}
+
+.btn-group {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .api-type-option {
+    border-color: #505050;
+    background: #3D3D3D;
+  }
+
+  .api-type-option:hover,
+  .api-type-option.active {
+    border-color: var(--md-primary);
+    background: var(--md-primary-light);
+  }
+
+  .domain-tag {
+    background: var(--md-primary-light);
+  }
+
+  .shortcut-item {
+    background: #3D3D3D;
+  }
+}
+
+/* ==========================================================================
+   RANGE SLIDER (v3.11.5)
+   ========================================================================== */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--md-outline-variant, #e0e0e0);
+  outline: none;
+  margin: 12px 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--md-primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--md-primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.range-value {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-primary);
+  margin-top: 4px;
+}
+
+.range-value span {
+  font-size: 20px;
+}

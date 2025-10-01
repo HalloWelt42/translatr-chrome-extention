@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Translator - Einstellungen</title>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>
+        <span data-icon="translate"></span>
+        Smart Translator
+      </h1>
+      <p>Einstellungen v3.13</p>
+    </header>
+
+    <!-- Status-Anzeige für Feedback -->
+    <div id="status" class="status"></div>
+
+    <!-- API Type Selection -->
+    <div class="card">
+      <h2>
+        <span data-icon="globe"></span>
+        Übersetzungs-Backend
+      </h2>
+
+      <div class="api-type-selector">
+        <div class="api-type-option active" data-type="libretranslate">
+          <h3>🌐 LibreTranslate</h3>
+          <p>Open-Source, selbst-gehostet</p>
+        </div>
+        <div class="api-type-option" data-type="lmstudio">
+          <h3>🤖 LM Studio</h3>
+          <p>Lokales LLM, Fachübersetzungen</p>
+        </div>
+      </div>
+
+      <!-- LibreTranslate Settings -->
+      <div class="settings-panel active" id="libretranslate-settings">
+        <div class="form-group">
+          <label for="serviceUrl">Server-URL</label>
+          <div class="description">LibreTranslate API-Endpunkt</div>
+          <input type="url" id="serviceUrl" placeholder="http://localhost:5000/translate">
+        </div>
+
+        <div class="form-group">
+          <label for="apiKey">API-Key (optional)</label>
+          <div class="description">Falls dein Server einen API-Key erfordert</div>
+          <input type="text" id="apiKey" placeholder="Leer lassen wenn nicht benötigt">
+        </div>
+
+        <div class="test-connection">
+          <button class="btn btn-secondary" id="testLibre">Verbindung testen</button>
+          <span class="test-result hidden" id="libreTestResult"></span>
+        </div>
+      </div>
+
+      <!-- LM Studio Settings -->
+      <div class="settings-panel" id="lmstudio-settings">
+        <div class="form-group">
+          <label for="lmStudioUrl">LM Studio Server</label>
+          <div class="description">URL zu deinem LM Studio Server</div>
+          <input type="url" id="lmStudioUrl" placeholder="http://192.168.178.45:1234">
+        </div>
+
+        <div class="form-group">
+          <label for="lmStudioModel">Modell</label>
+          <div class="description">Wähle ein geladenes Modell</div>
+          <div class="model-select-row">
+            <select id="lmStudioModel">
+              <option value="">Modelle laden...</option>
+            </select>
+            <button type="button" class="btn btn-secondary" id="refreshModelsBtn" title="Modelle neu laden">
+              <span data-icon="sync"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label for="lmStudioTemperature">Temperatur</label>
+            <input type="number" id="lmStudioTemperature" min="0" max="2" step="0.1" value="0.1">
+          </div>
+          <div class="form-group">
+            <label for="lmStudioMaxTokens">Max Tokens</label>
+            <input type="number" id="lmStudioMaxTokens" min="100" max="32000" step="100" value="2000">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lmStudioContext">Fachkontext</label>
+          <div class="description">Optimierte Prompts für verschiedene Fachgebiete</div>
+          <select id="lmStudioContext">
+            <option value="general">📝 Allgemein</option>
+            <option value="automotive">🚗 Kfz / Automotive</option>
+            <option value="technical">⚙️ Technisch / IT</option>
+            <option value="medical">🏥 Medizin</option>
+            <option value="legal">⚖️ Recht / Juristisch</option>
+            <option value="custom">✏️ Benutzerdefiniert</option>
+          </select>
+        </div>
+
+        <div class="form-group hidden" id="customPromptGroup">
+          <label for="lmStudioCustomPrompt">Benutzerdefinierter Prompt</label>
+          <div class="description">Verwende {source} und {target} als Platzhalter</div>
+          <textarea id="lmStudioCustomPrompt" placeholder="Du bist ein Übersetzer von {source} nach {target}..."></textarea>
+        </div>
+
+        <div class="test-connection">
+          <button class="btn btn-secondary" id="testLmStudio">Verbindung testen</button>
+          <span class="test-result hidden" id="lmTestResult"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch Settings -->
+    <div class="card">
+      <h2>
+        <span data-icon="copyAll"></span>
+        Batch-Übersetzung
+      </h2>
+
+      <div class="form-group">
+        <label for="pageBatchSize">Middleware Batch-Größe</label>
+        <div class="description">Anzahl Texte die die Middleware sammelt bevor sie als Batch an die API gesendet werden (1 = sofort einzeln, höher = effizienter)</div>
+        <input type="range" id="pageBatchSize" min="1" max="50" value="1">
+        <div class="range-value"><span id="pageBatchSizeValue">1</span> Texte</div>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">True Batch-Modus (LM Studio)</div>
+          <div class="desc">Mehrere Texte in einem API-Call (effizienter)</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enableTrueBatch" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Smart Chunking</div>
+          <div class="desc">Automatische Aufteilung bei Token-Limits</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enableSmartChunking" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Cache zuerst prüfen</div>
+          <div class="desc">Vor Übersetzung gecachte Texte laden (spart Rechenleistung)</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="useCacheFirst" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="row mt-md">
+        <div class="form-group">
+          <label for="lmBatchSize">LM Batch-Größe</label>
+          <input type="number" id="lmBatchSize" min="5" max="50" value="20">
+        </div>
+        <div class="form-group">
+          <label for="lmMaxBatchTokens">Max Batch-Tokens</label>
+          <input type="number" id="lmMaxBatchTokens" min="8000" max="256000" step="1000" value="128000">
+        </div>
+      </div>
+    </div>
+
+    <!-- Language Settings -->
+    <div class="card">
+      <h2>
+        <span data-icon="translate"></span>
+        Sprachen
+      </h2>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="sourceLang">Quellsprache</label>
+          <select id="sourceLang">
+            <option value="auto">Automatisch erkennen</option>
+            <option value="en">Englisch</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Französisch</option>
+            <option value="es">Spanisch</option>
+            <option value="it">Italienisch</option>
+            <option value="pt">Portugiesisch</option>
+            <option value="ru">Russisch</option>
+            <option value="zh">Chinesisch</option>
+            <option value="ja">Japanisch</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="targetLang">Zielsprache</label>
+          <select id="targetLang">
+            <option value="de">Deutsch</option>
+            <option value="en">Englisch</option>
+            <option value="fr">Französisch</option>
+            <option value="es">Spanisch</option>
+            <option value="it">Italienisch</option>
+            <option value="pt">Portugiesisch</option>
+            <option value="ru">Russisch</option>
+            <option value="zh">Chinesisch</option>
+            <option value="ja">Japanisch</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Display Settings -->
+    <div class="card">
+      <h2>
+        <span data-icon="compass"></span>
+        Anzeige & Verhalten
+      </h2>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Selection-Icon anzeigen</div>
+          <div class="desc">Zeigt ein Übersetzungs-Icon bei Textauswahl</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showSelectionIcon" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Text-to-Speech</div>
+          <div class="desc">Vorlesefunktion aktivieren</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enableTTS" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Original im Tooltip</div>
+          <div class="desc">Zeigt den Originaltext im Hover-Bereich</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showOriginalInTooltip" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Alternativen anzeigen</div>
+          <div class="desc">Zeigt alternative Übersetzungen (LM Studio)</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showAlternatives" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Übersetzungen hervorheben</div>
+          <div class="desc">Markiert übersetzte Texte mit Hintergrundfarbe</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="highlightTranslated">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Content Filter -->
+    <div class="card">
+      <h2>
+        <span data-icon="qrcode"></span>
+        Inhaltsfilter
+      </h2>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Code-Blöcke überspringen</div>
+          <div class="desc">Code, Pre, Kbd nicht übersetzen</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="skipCodeBlocks" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Zitate überspringen</div>
+          <div class="desc">Blockquotes nicht übersetzen</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="skipBlockquotes" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Inline-Abstände korrigieren</div>
+          <div class="desc">Fügt Leerzeichen bei Tag-Wechseln ein</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="fixInlineSpacing" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Auto-Translate -->
+    <div class="card">
+      <h2>
+        <span data-icon="globe"></span>
+        Automatische Übersetzung
+      </h2>
+
+      <div class="form-group">
+        <label>Domains automatisch übersetzen</label>
+        <div class="description">Seiten dieser Domains werden beim Laden übersetzt</div>
+        <div id="autoTranslateDomains" class="domain-list"></div>
+        <div class="domain-input-row mt-sm">
+          <input type="text" id="newAutoTranslateDomain" placeholder="z.B. docs.example.com">
+          <button type="button" id="addAutoTranslateDomain" class="btn btn-secondary">Hinzufügen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- E-Book Reader Domains -->
+    <div class="card">
+      <h2>
+        <span data-icon="eye"></span>
+        E-Book Reader
+      </h2>
+
+      <div class="form-group">
+        <label>E-Book Reader Domains</label>
+        <div class="description">Domains die als E-Book-Reader behandelt werden. 
+          Diese nutzen den URL-Hash (#epubcfi) für die Seitenidentifikation.</div>
+        <div id="ebookReaderDomains" class="domain-list"></div>
+        <div class="domain-input-row mt-sm">
+          <input type="text" id="newEbookReaderDomain" placeholder="z.B. books.mac">
+          <button type="button" id="addEbookReaderDomain" class="btn btn-secondary">Hinzufügen</button>
+        </div>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">iframe-Content extrahieren</div>
+          <div class="desc">Texte aus iframes (srcdoc) für E-Book-Reader extrahieren</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="extractIframeContent" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Cache Server -->
+    <div class="card">
+      <h2>
+        <span data-icon="sync"></span>
+        Übersetzungs-Cache
+      </h2>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Server-Cache aktivieren</div>
+          <div class="desc">Nutzt SWT Cache Server für zentrale Speicherung</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="cacheServerEnabled">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Server Settings (nur wenn aktiviert) -->
+      <div class="settings-panel" id="cacheserver-settings">
+        <div class="form-group">
+          <label for="cacheServerUrl">Cache Server URL</label>
+          <div class="description">URL zum SWT Cache Server</div>
+          <input type="url" id="cacheServerUrl" placeholder="http://192.168.178.49:8083">
+        </div>
+
+        <div class="form-group">
+          <label for="cacheServerMode">Cache-Modus</label>
+          <div class="description">Fallback-Reihenfolge bei Übersetzungsabfragen</div>
+          <select id="cacheServerMode">
+            <option value="server-first">Server → Lokal → Übersetzen</option>
+            <option value="local-first">Lokal → Server → Übersetzen</option>
+            <option value="server-only">Nur Server (kein LocalStorage)</option>
+            <option value="local-only">Nur Lokal (komplett offline)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="cacheServerTimeout">Timeout (ms)</label>
+          <div class="description">Max. Wartezeit für Server-Antwort</div>
+          <input type="number" id="cacheServerTimeout" min="1000" max="30000" step="500" value="5000">
+        </div>
+
+        <div class="toggle-group">
+          <div class="toggle-info">
+            <div class="label">Cache automatisch laden</div>
+            <div class="desc">Gecachte Übersetzungen automatisch beim Seitenaufruf anwenden</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="autoLoadCache">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="test-connection">
+          <button class="btn btn-secondary" id="testCacheServer">
+            <span data-icon="sync"></span>
+            Verbindung testen
+          </button>
+          <span class="test-result hidden" id="cacheServerTestResult"></span>
+        </div>
+
+        <div class="cache-server-stats hidden" id="cacheServerStats">
+          <h4>Server-Statistiken</h4>
+          <div class="stats-mini">
+            <div class="stat-item">
+              <span class="stat-value" id="cacheServerTotal">0</span>
+              <span class="stat-label">Übersetzungen</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="cacheServerSize">0</span>
+              <span class="stat-label">MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Token Cost -->
+    <div class="card">
+      <h2>
+        <span data-icon="dollar"></span>
+        Token-Kosten <span class="badge-warning">Experimentell</span>
+      </h2>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <div class="label">Kostenberechnung aktivieren</div>
+          <div class="desc">Berechnet geschätzte Kosten basierend auf Token-Verbrauch</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enableTokenCost">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="form-group mt-md">
+        <label>Kosten pro Token-Einheit</label>
+        <div class="cost-input-row">
+          <input type="number" id="tokenCostAmount" min="0.001" max="100" step="0.001" value="1" class="input-sm">
+          <span class="text-muted">Cent pro</span>
+          <input type="number" id="tokenCostPer" min="100" max="1000000" step="100" value="10000" class="input-md">
+          <span class="text-muted">Tokens</span>
+        </div>
+      </div>
+
+      <div class="form-group mt-md">
+        <label for="tokenCostCurrency">Währung</label>
+        <select id="tokenCostCurrency" class="select-sm">
+          <option value="EUR">€ Euro</option>
+          <option value="USD">$ Dollar</option>
+          <option value="CHF">CHF Franken</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Keyboard Shortcuts -->
+    <div class="card">
+      <h2>
+        <span data-icon="keyboard"></span>
+        Tastenkürzel
+      </h2>
+
+      <div class="shortcut-list">
+        <div class="shortcut-item">
+          <span>Auswahl übersetzen</span>
+          <kbd>Ctrl+Shift+T</kbd>
+        </div>
+        <div class="shortcut-item">
+          <span>Seite übersetzen</span>
+          <kbd>Ctrl+Shift+P</kbd>
+        </div>
+        <div class="shortcut-item">
+          <span>Side Panel öffnen</span>
+          <kbd>Ctrl+Shift+S</kbd>
+        </div>
+      </div>
+
+      <p class="hint mt-sm">
+        Tastenkürzel können unter <strong>chrome://extensions/shortcuts</strong> angepasst werden.
+      </p>
+    </div>
+
+    <!-- Excluded Domains -->
+    <div class="card">
+      <h2>
+        <span data-icon="block"></span>
+        Ausgeschlossene Domains
+      </h2>
+
+      <div class="form-group">
+        <label for="excludedDomains">Domains (eine pro Zeile)</label>
+        <div class="description">Die Extension wird auf diesen Domains nicht aktiv</div>
+        <textarea id="excludedDomains" placeholder="example.com&#10;another-site.org"></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-danger" id="resetBtn">
+        <span data-icon="refresh"></span>
+        Zurücksetzen
+      </button>
+      <button class="btn btn-primary" id="saveBtn">
+        <span data-icon="save"></span>
+        Speichern
+      </button>
+    </div>
+
+    <footer>
+      <p>Smart Translator v3.8 · <a href="https://github.com/LibreTranslate/LibreTranslate" target="_blank">LibreTranslate</a> · <a href="https://lmstudio.ai" target="_blank">LM Studio</a></p>
+    </footer>
+  </div>
+
+  <script src="shared/utils.js"></script>
+  <script src="shared/toast.js"></script>
+  <script src="shared/cache-server.js"></script>
+  <script src="media/icons.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

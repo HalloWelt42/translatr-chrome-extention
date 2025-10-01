@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Translator</title>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-header">
+    <span data-icon="translate"></span>
+    <h1>Smart Translator</h1>
+    <div class="api-badge" id="apiBadge" title="Aktives API-Backend">
+      <span id="apiBadgeText">Libre</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="cache-status hidden" id="cacheStatus">
+      <div class="info">
+        <span class="size" id="cacheSize">0 KB</span>
+        <span class="hint" id="cacheHint">Cache für diese Seite verfügbar</span>
+      </div>
+      <button id="loadCacheBtn" class="cache-load-btn">
+        <span data-icon="download"></span>
+        Cache laden
+      </button>
+    </div>
+
+    <div class="lang-row">
+      <select id="sourceLang">
+        <option value="auto">Automatisch</option>
+        <option value="en">Englisch</option>
+        <option value="de">Deutsch</option>
+        <option value="fr">Französisch</option>
+        <option value="es">Spanisch</option>
+        <option value="it">Italienisch</option>
+        <option value="pt">Portugiesisch</option>
+        <option value="ru">Russisch</option>
+        <option value="zh">Chinesisch</option>
+        <option value="ja">Japanisch</option>
+      </select>
+      <button class="swap-btn" id="swapLangs" title="Sprachen tauschen">
+        <span data-icon="swap"></span>
+      </button>
+      <select id="targetLang">
+        <option value="de">Deutsch</option>
+        <option value="en">Englisch</option>
+        <option value="fr">Französisch</option>
+        <option value="es">Spanisch</option>
+        <option value="it">Italienisch</option>
+        <option value="pt">Portugiesisch</option>
+        <option value="ru">Russisch</option>
+        <option value="zh">Chinesisch</option>
+        <option value="ja">Japanisch</option>
+      </select>
+    </div>
+
+    <textarea id="inputText" placeholder="Text zum Übersetzen eingeben..."></textarea>
+
+    <button class="btn btn-primary fullwidth" id="translateBtn">
+      <span data-icon="translate"></span>
+      Übersetzen
+    </button>
+
+    <div class="result-box" id="resultBox"></div>
+    <div class="result-actions hidden" id="resultActions">
+      <button class="result-action" id="copyResult">
+        <span data-icon="copy"></span>
+        Kopieren
+      </button>
+      <button class="result-action" id="speakResult">
+        <span data-icon="volumeUp"></span>
+        Vorlesen
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="actions-grid">
+      <div class="action-card" id="translatePage">
+        <span data-icon="document"></span>
+        <span>Seite übersetzen</span>
+      </div>
+      <div class="action-card" id="restorePage">
+        <span data-icon="refresh"></span>
+        <span>Original</span>
+      </div>
+      <div class="action-card" id="exportPdf">
+        <span data-icon="pdf"></span>
+        <span>Export</span>
+      </div>
+      <div class="action-card" id="openSidepanel">
+        <span data-icon="panel"></span>
+        <span>Panel</span>
+      </div>
+    </div>
+
+    <div class="shortcuts">
+      <h3>Tastenkürzel</h3>
+      <div class="shortcut-row">
+        <span>Auswahl übersetzen</span>
+        <kbd>Ctrl+Shift+T</kbd>
+      </div>
+      <div class="shortcut-row">
+        <span>Seite übersetzen</span>
+        <kbd>Ctrl+Shift+P</kbd>
+      </div>
+      <div class="shortcut-row">
+        <span>Side Panel</span>
+        <kbd>Ctrl+Shift+S</kbd>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-footer">
+    <a href="#" id="openOptions">⚙️ Einstellungen</a>
+    &nbsp;·&nbsp;
+    <a href="#" id="manageCache">📦 Cache verwalten</a>
+  </div>
+
+  <script src="shared/utils.js"></script>
+  <script src="shared/toast.js"></script>
+  <script src="shared/api-badge.js"></script>
+  <script src="shared/cache-server.js"></script>
+  <script src="media/icons.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

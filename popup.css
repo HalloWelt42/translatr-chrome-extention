@@ -1,0 +1,39 @@
+/* Popup-spezifisches Layout - Smart Web Translator v3.7.0 */
+
+body {
+  width: 380px;
+}
+
+.content {
+  padding: var(--spacing-lg);
+}
+
+.lang-row {
+  margin-bottom: var(--spacing-lg);
+}
+
+textarea {
+  min-height: 100px;
+  max-height: 150px;
+  margin-bottom: var(--spacing-md);
+  overflow-y: auto;
+}
+
+.result-box {
+  margin-top: var(--spacing-lg);
+  max-height: 150px;
+  overflow-y: auto;
+  display: none;
+}
+
+.result-box.show {
+  display: block;
+}
+
+.actions-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.cache-status {
+  margin-bottom: var(--spacing-lg);
+}

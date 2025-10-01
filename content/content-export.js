@@ -1,0 +1,290 @@
+// Content Export Module - Smart Web Translator v3.7.0
+// Export-Funktionen als Prototype-Erweiterung
+
+(function() {
+  'use strict';
+
+  // Guard gegen doppeltes Laden
+  if (window._smtExportLoaded) return;
+  window._smtExportLoaded = true;
+
+  // Warten bis SmartTranslator definiert ist
+  if (typeof SmartTranslator === 'undefined') {
+    console.error('SmartTranslator nicht gefunden - content-export.js muss nach content.js geladen werden');
+    return;
+  }
+
+  /**
+   * Extrahiert vereinfachten Seiteninhalt für Export
+   */
+  SmartTranslator.prototype.extractSimplifiedContent = function(rootElement) {
+    const result = {
+      title: document.title,
+      content: []
+    };
+
+    // Domain-Strategie verwenden falls verfügbar
+    let mainSelector = 'body';
+    if (window.DomainStrategies) {
+      const strategy = window.DomainStrategies.getStrategy(window.location.href);
+      mainSelector = strategy.getMainContentSelector();
+    }
+
+    const mainContent = document.querySelector(mainSelector) || rootElement;
+    const self = this;
+    
+    const processNode = (node) => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = node.tagName.toLowerCase();
+        
+        // Überspringen
+        if (['script', 'style', 'noscript', 'nav', 'header', 'footer', 'aside', 'svg'].includes(tag)) {
+          return;
+        }
+        if (node.closest('.smt-ui')) return;
+        
+        // Überschriften
+        if (/^h[1-6]$/.test(tag)) {
+          const level = parseInt(tag[1]);
+          const text = self.fixInlineTagSpacing(node);
+          if (text) {
+            result.content.push({ type: 'heading', level, text });
+          }
+          return;
+        }
+        
+        // Absätze
+        if (tag === 'p') {
+          const text = self.fixInlineTagSpacing(node);
+          if (text && text.length > 10) {
+            result.content.push({ type: 'paragraph', text });
+          }
+          return;
+        }
+        
+        // Listen
+        if (tag === 'ul' || tag === 'ol') {
+          const items = Array.from(node.querySelectorAll(':scope > li'))
+            .map(li => self.fixInlineTagSpacing(li))
+            .filter(t => t.length > 0);
+          if (items.length > 0) {
+            result.content.push({ type: 'list', ordered: tag === 'ol', items });
+          }
+          return;
+        }
+        
+        // Code-Blöcke
+        if (tag === 'pre' || (tag === 'code' && node.parentElement?.tagName !== 'PRE')) {
+          result.content.push({ type: 'code', text: node.textContent });
+          return;
+        }
+        
+        // Zitate
+        if (tag === 'blockquote') {
+          result.content.push({ type: 'quote', text: self.fixInlineTagSpacing(node) });
+          return;
+        }
+        
+        // Bilder
+        if (tag === 'img') {
+          result.content.push({ 
+            type: 'image', 
+            src: node.src, 
+            alt: node.alt || '' 
+          });
+          return;
+        }
+        
+        // Rekursiv für Container
+        if (['div', 'section', 'article', 'main'].includes(tag)) {
+          node.childNodes.forEach(child => processNode(child));
+        }
+      }
+    };
+
+    mainContent.childNodes.forEach(child => processNode(child));
+    return result;
+  };
+
+  /**
+   * Export als Markdown
+   */
+  SmartTranslator.prototype.exportAsMarkdown = function() {
+    const data = this.extractSimplifiedContent(document.body);
+    let md = `# ${data.title}\n\n`;
+    
+    data.content.forEach(item => {
+      switch (item.type) {
+        case 'heading':
+          md += `${'#'.repeat(item.level)} ${item.text}\n\n`;
+          break;
+        case 'paragraph':
+          md += `${item.text}\n\n`;
+          break;
+        case 'list':
+          item.items.forEach((li, i) => {
+            md += item.ordered ? `${i + 1}. ${li}\n` : `- ${li}\n`;
+          });
+          md += '\n';
+          break;
+        case 'code':
+          md += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
+          break;
+        case 'quote':
+          md += `> ${item.text}\n\n`;
+          break;
+        case 'image':
+          md += `![${item.alt}](${item.src})\n\n`;
+          break;
+      }
+    });
+
+    this.downloadFile(md, 'translation.md', 'text/markdown');
+    this.showNotification('Markdown exportiert', 'success');
+  };
+
+  /**
+   * Export als Text
+   */
+  SmartTranslator.prototype.exportAsText = function() {
+    const data = this.extractSimplifiedContent(document.body);
+    let txt = `${data.title}\n${'='.repeat(data.title.length)}\n\n`;
+    
+    data.content.forEach(item => {
+      switch (item.type) {
+        case 'heading':
+          txt += `\n${item.text}\n${'-'.repeat(item.text.length)}\n\n`;
+          break;
+        case 'paragraph':
+          txt += `${item.text}\n\n`;
+          break;
+        case 'list':
+          item.items.forEach((li, i) => {
+            txt += `  ${item.ordered ? `${i + 1}.` : '•'} ${li}\n`;
+          });
+          txt += '\n';
+          break;
+        case 'code':
+          txt += `---CODE---\n${item.text}\n---/CODE---\n\n`;
+          break;
+        case 'quote':
+          txt += `"${item.text}"\n\n`;
+          break;
+      }
+    });
+
+    this.downloadFile(txt, 'translation.txt', 'text/plain');
+    this.showNotification('Text exportiert', 'success');
+  };
+
+  /**
+   * Export als PDF (vereinfacht oder Seite drucken)
+   */
+  SmartTranslator.prototype.exportAsPdf = async function(simplified = false) {
+    if (simplified && this.settings.simplifyPdfExport) {
+      const data = this.extractSimplifiedContent(document.body);
+      const printWindow = window.open('', '_blank');
+      const self = this;
+      
+      let html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${data.title}</title>
+          <style>
+            body {
+              font-family: Georgia, 'Times New Roman', serif;
+              max-width: 800px;
+              margin: 40px auto;
+              padding: 20px;
+              line-height: 1.8;
+              color: #333;
+            }
+            h1 { font-size: 28px; margin-bottom: 24px; border-bottom: 2px solid #333; padding-bottom: 12px; }
+            h2 { font-size: 22px; margin-top: 32px; }
+            h3 { font-size: 18px; margin-top: 24px; }
+            p { margin-bottom: 16px; text-align: justify; }
+            pre, code {
+              font-family: 'Consolas', 'Monaco', monospace;
+              background: #f5f5f5;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+            }
+            pre { padding: 16px; overflow-x: auto; white-space: pre-wrap; }
+            code { padding: 2px 6px; }
+            blockquote {
+              border-left: 4px solid #ccc;
+              margin: 16px 0;
+              padding: 8px 16px;
+              font-style: italic;
+              color: #555;
+            }
+            ul, ol { margin-bottom: 16px; padding-left: 24px; }
+            li { margin-bottom: 8px; }
+            img { max-width: 100%; height: auto; margin: 16px 0; }
+            @media print {
+              body { margin: 0; }
+              pre { page-break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${this.escapeHtml(data.title)}</h1>
+      `;
+
+      data.content.forEach(item => {
+        switch (item.type) {
+          case 'heading':
+            html += `<h${item.level}>${self.escapeHtml(item.text)}</h${item.level}>`;
+            break;
+          case 'paragraph':
+            html += `<p>${self.escapeHtml(item.text)}</p>`;
+            break;
+          case 'list':
+            const listTag = item.ordered ? 'ol' : 'ul';
+            html += `<${listTag}>${item.items.map(li => `<li>${self.escapeHtml(li)}</li>`).join('')}</${listTag}>`;
+            break;
+          case 'code':
+            html += `<pre><code>${self.escapeHtml(item.text)}</code></pre>`;
+            break;
+          case 'quote':
+            html += `<blockquote>${self.escapeHtml(item.text)}</blockquote>`;
+            break;
+          case 'image':
+            html += `<img src="${item.src}" alt="${self.escapeHtml(item.alt)}">`;
+            break;
+        }
+      });
+
+      html += '</body></html>';
+      
+      printWindow.document.write(html);
+      printWindow.document.close();
+      
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    } else {
+      this.showNotification('PDF wird generiert...', 'info');
+      await new Promise(r => setTimeout(r, 100));
+      window.print();
+    }
+  };
+
+  /**
+   * Datei herunterladen
+   */
+  SmartTranslator.prototype.downloadFile = function(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+})();

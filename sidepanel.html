@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Translator</title>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="container">
+    <div class="app-header">
+      <h1>
+        <span data-icon="translate"></span>
+        <span>Smart Translator</span>
+        <div class="api-badge" id="apiBadge" title="Aktives API-Backend">
+          <span id="apiBadgeText">Libre</span>
+        </div>
+      </h1>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="translate">Übersetzen</div>
+      <div class="tab" data-tab="history">Verlauf</div>
+      <div class="tab" data-tab="cache">Cache</div>
+      <div class="tab" data-tab="stats">Statistik</div>
+    </div>
+
+    <!-- Translate Tab -->
+    <div class="tab-content active" id="translate">
+      <div class="translate-section">
+        <div class="lang-row">
+          <select id="sourceLang">
+            <option value="auto">Automatisch</option>
+            <option value="en">Englisch</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Französisch</option>
+            <option value="es">Spanisch</option>
+            <option value="it">Italienisch</option>
+            <option value="pt">Portugiesisch</option>
+            <option value="ru">Russisch</option>
+            <option value="zh">Chinesisch</option>
+            <option value="ja">Japanisch</option>
+          </select>
+          <button class="swap-btn" id="swapLangs">
+            <span data-icon="swap"></span>
+          </button>
+          <select id="targetLang">
+            <option value="de">Deutsch</option>
+            <option value="en">Englisch</option>
+            <option value="fr">Französisch</option>
+            <option value="es">Spanisch</option>
+            <option value="it">Italienisch</option>
+            <option value="pt">Portugiesisch</option>
+            <option value="ru">Russisch</option>
+            <option value="zh">Chinesisch</option>
+            <option value="ja">Japanisch</option>
+          </select>
+        </div>
+
+        <!-- Fachkontext-Schnellwahl -->
+        <div class="context-row" id="contextRow">
+          <label class="context-label">
+            <span data-icon="globe" class="icon-sm"></span>
+            Kontext
+          </label>
+          <select id="contextSelect">
+            <option value="general">📝 Allgemein</option>
+            <option value="automotive">🚗 Kfz / Automotive</option>
+            <option value="technical">⚙️ Technisch / IT</option>
+            <option value="medical">🏥 Medizin</option>
+            <option value="legal">⚖️ Recht / Juristisch</option>
+          </select>
+        </div>
+
+        <div class="text-field-wrapper">
+          <textarea id="sourceText" placeholder="Text eingeben..."></textarea>
+          <button class="field-clear-btn" id="clearSource" title="Leeren">
+            <span data-icon="delete"></span>
+          </button>
+        </div>
+
+        <button class="btn btn-primary fullwidth" id="translateBtn">
+          <span data-icon="translate"></span>
+          Übersetzen
+        </button>
+
+        <div class="text-field-wrapper">
+          <div class="result-box" id="resultBox"><span class="placeholder">Übersetzung erscheint hier...</span></div>
+          <button class="field-clear-btn" id="clearResult" title="Leeren">
+            <span data-icon="delete"></span>
+          </button>
+        </div>
+        <div class="result-actions hidden" id="resultActions">
+          <button class="result-action" id="copyResult">
+            <span data-icon="copy"></span>
+            Kopieren
+          </button>
+          <button class="result-action" id="speakResult">
+            <span data-icon="volumeUp"></span>
+            Vorlesen
+          </button>
+        </div>
+        <div class="context-notes hidden" id="contextNotes">
+          <strong>💡 Fachhinweis:</strong>
+          <span id="contextNotesText"></span>
+        </div>
+      </div>
+
+      <div class="actions-section">
+        <h3>Seitenaktionen</h3>
+        <div class="actions-grid">
+          <div class="action-card" id="translatePage">
+            <span data-icon="document"></span>
+            <span>Seite übersetzen</span>
+          </div>
+          <div class="action-card" id="continuePage">
+            <span data-icon="play"></span>
+            <span>Fortsetzen</span>
+            <span class="action-badge" id="cacheProgress" title="Cache-Abdeckung">–</span>
+          </div>
+          <div class="action-card" id="restorePage">
+            <span data-icon="refresh"></span>
+            <span>Original</span>
+          </div>
+          <div class="action-card" id="loadCache">
+            <span data-icon="download"></span>
+            <span>Cache laden</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div class="tab-content" id="history">
+      <div class="history-section">
+        <div class="history-header">
+          <h2>Übersetzungsverlauf</h2>
+          <button class="clear-btn" id="clearHistory">Löschen</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty">
+            <span data-icon="history"></span>
+            <p>Noch keine Übersetzungen</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cache Tab -->
+    <div class="tab-content" id="cache">
+      <div class="cache-section">
+        <div class="cache-stats">
+          <div class="cache-stat">
+            <div class="value" id="cacheTotalSize">0 KB</div>
+            <div class="label">Gesamtgröße</div>
+          </div>
+          <div class="cache-stat">
+            <div class="value" id="cachePageCount">0</div>
+            <div class="label">Seiten</div>
+          </div>
+        </div>
+
+        <div class="cache-actions">
+          <button class="btn btn-outline" id="refreshCache">
+            <span data-icon="sync"></span>
+            Aktualisieren
+          </button>
+          <button class="btn btn-outline" id="clearPageCache">
+            <span data-icon="delete"></span>
+            Diese Seite
+          </button>
+          <button class="btn btn-danger" id="clearDomainCache">
+            <span data-icon="delete"></span>
+            Domain löschen
+          </button>
+        </div>
+
+        <div class="cache-list" id="cacheList">
+          <div class="cache-empty">Kein Cache vorhanden</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Tab -->
+    <div class="tab-content" id="stats">
+      <div class="stats-section">
+        <div class="stats-card">
+          <h3>
+            <span data-icon="info"></span>
+            Token-Verbrauch
+          </h3>
+          <div class="token-stats-grid">
+            <div class="token-stat">
+              <div class="token-value" id="totalTokens">0</div>
+              <div class="token-label">Gesamt</div>
+            </div>
+            <div class="token-stat">
+              <div class="token-value" id="promptTokens">0</div>
+              <div class="token-label">Prompt</div>
+            </div>
+            <div class="token-stat">
+              <div class="token-value" id="completionTokens">0</div>
+              <div class="token-label">Completion</div>
+            </div>
+            <div class="token-stat">
+              <div class="token-value" id="requestCount">0</div>
+              <div class="token-label">Anfragen</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-card" id="costCard">
+          <h3>
+            <span data-icon="dollar"></span>
+            Geschätzte Kosten
+          </h3>
+          <div class="cost-display">
+            <span class="cost-value" id="totalCost">0,00</span>
+            <span class="cost-currency" id="costCurrency">€</span>
+          </div>
+        </div>
+
+        <div class="stats-actions">
+          <button class="btn btn-outline" id="resetTokens">
+            <span data-icon="refresh"></span>
+            Tokens zurücksetzen
+          </button>
+          <button class="btn btn-outline" id="resetCost">
+            <span data-icon="refresh"></span>
+            Kosten zurücksetzen
+          </button>
+          <button class="btn btn-danger" id="resetAll">
+            <span data-icon="delete"></span>
+            Alles zurücksetzen
+          </button>
+        </div>
+
+        <div class="stats-footer">
+          <span id="statsLastUpdate">Noch keine Daten</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-footer">
+      <a href="#" id="openOptions">⚙️ Einstellungen öffnen</a>
+    </div>
+  </div>
+
+  <script src="shared/utils.js"></script>
+  <script src="shared/toast.js"></script>
+  <script src="shared/api-badge.js"></script>
+  <script src="shared/cache-server.js"></script>
+  <script src="media/icons.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

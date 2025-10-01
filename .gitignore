@@ -1,0 +1,33 @@
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# JetBrains IDEs
+.idea/
+
+# Editor backups and temp files
+*~
+*.swp
+*.swo
+.vscode/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Browser extension packaging
+web-ext-artifacts/
+*.zip
+*.crx
+*.xpi
+/store/
