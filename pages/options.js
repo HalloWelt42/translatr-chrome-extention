@@ -2,6 +2,8 @@
 // Refactored: Nutzt SMT.Toast
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const versionEl = document.getElementById('appVersion');
+  if (versionEl) versionEl.textContent = chrome.runtime.getManifest().version;
   await loadSettings();
   setupEventListeners();
 });

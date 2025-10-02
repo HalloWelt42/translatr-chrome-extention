@@ -1,0 +1,11 @@
+{
+  "appName": {
+    "message": "Smart Translator"
+  },
+  "appDescription": {
+    "message": "Intelligent translator with LibreTranslate, LM Studio, Cache Server & E-Book support"
+  },
+  "appDefaultTitle": {
+    "message": "Smart Translator"
+  }
+}

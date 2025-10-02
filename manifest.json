@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Smart Web Translator",
-  "version": "3.13.45",
-  "description": "Intelligenter Übersetzer mit LibreTranslate, LM Studio, Cache Server & E-Book Support",
+  "name": "__MSG_appName__",
+  "version": "1.0.0",
+  "description": "__MSG_appDescription__",
+  "default_locale": "en",
 
   "permissions": [
     "activeTab",
@@ -18,28 +19,42 @@
   ],
 
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background/service-worker.js"
   },
 
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["media/icons.js", "shared/cache-server.js", "shared/cache-api.js", "domain-strategies.js", "content.js", "content/content-ui.js", "content/content-cache.js", "content/content-dom.js", "content/content-export.js"],
-      "css": ["styles.css"],
+      "js": [
+        "shared/icons.js",
+        "shared/cache-server.js",
+        "shared/cache-api.js",
+        "content/domain-strategies.js",
+        "content/translator.js",
+        "content/translator-ui.js",
+        "content/translator-cache.js",
+        "content/translator-dom.js",
+        "content/translator-export.js"
+      ],
+      "css": ["content/translator.css"],
       "run_at": "document_end"
     }
   ],
 
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "Smart Translator"
+    "default_popup": "popup/popup.html",
+    "default_title": "__MSG_appDefaultTitle__"
   },
 
   "side_panel": {
-    "default_path": "sidepanel.html"
+    "default_path": "pages/sidepanel.html"
   },
 
-  "options_page": "options.html",
+  "options_page": "pages/options.html",
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' https: data:;"
+  },
 
   "commands": {
     "translate-selection": {
@@ -47,27 +62,28 @@
         "default": "Ctrl+Shift+T",
         "mac": "Command+Shift+T"
       },
-      "description": "Markierten Text übersetzen"
+      "description": "Translate selection"
     },
     "translate-page": {
       "suggested_key": {
         "default": "Ctrl+Shift+P",
         "mac": "Command+Shift+P"
       },
-      "description": "Gesamte Seite übersetzen"
+      "description": "Translate page"
     },
     "toggle-sidepanel": {
       "suggested_key": {
         "default": "Ctrl+Shift+S",
         "mac": "Command+Shift+S"
       },
-      "description": "Side Panel öffnen"
+      "description": "Open side panel"
     }
   },
 
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
   }
 }
