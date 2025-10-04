@@ -1,26 +1,29 @@
-/* Popup-spezifisches Layout - Smart Web Translator v3.7.0 */
+/* Popup-spezifisches Layout */
 
 body {
-  width: 380px;
+  width: 360px;
 }
 
 .content {
-  padding: var(--spacing-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .lang-row {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
 }
 
 textarea {
   min-height: 100px;
   max-height: 150px;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
   overflow-y: auto;
 }
 
 .result-box {
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-md);
   max-height: 150px;
   overflow-y: auto;
   display: none;
@@ -35,5 +38,5 @@ textarea {
 }
 
 .cache-status {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
 }

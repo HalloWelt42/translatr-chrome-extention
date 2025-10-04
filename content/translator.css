@@ -1,46 +1,76 @@
-/* Smart Web Translator v3.5.9 - Content Script Styles */
-/* Progress Ring, Token Counter, Material Colors, Dark Mode */
+/* Smart Translator - Content Script Styles */
+/* Progress Ring, Overlay, Dark-first Theming */
 
-/* === Material Design Farben - Einheitliche Akzentfarbe === */
+/* === Design Tokens (Content Script Scope) === */
 :root {
-  /* Primärfarben */
-  --md-primary: #1565C0;          /* Dunkler für besseren Kontrast */
-  --md-primary-dark: #0D47A1;
-  --md-primary-light: #ECEFF1;    /* Neutral statt Hellblau */
-  --md-primary-text: #FFFFFF;     /* Text auf Primary */
-  
-  /* Akzent & Status */
-  --md-accent: #E64A19;           /* Etwas dunkler für Kontrast */
-  --md-success: #2E7D32;          /* Dunkler für Lesbarkeit */
-  --md-success-light: #E8F5E9;
-  --md-error: #C62828;            /* Dunkler */
-  --md-error-light: #FFEBEE;
-  --md-warning: #EF6C00;          /* Dunkler */
-  --md-warning-light: #FFF3E0;
-  
-  /* Oberflächen */
-  --md-surface: #FFFFFF;
-  --md-background: #F5F5F5;
-  
-  /* Text - WCAG AA Konform */
-  --md-on-surface: #212121;       /* Primärer Text */
-  --md-on-surface-medium: #616161; /* Sekundärer Text - WCAG konform */
-  --md-on-surface-disabled: #9E9E9E;
-  
-  /* Trennlinien */
-  --md-divider: #E0E0E0;
-  --md-divider-dark: #BDBDBD;
-  
-  /* Schatten */
-  --md-elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-  --md-elevation-2: 0 3px 6px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.20);
-  --md-elevation-3: 0 10px 20px rgba(0,0,0,0.15), 0 6px 6px rgba(0,0,0,0.18);
+  --bg-base: #2b2a27;
+  --bg-card: #35342f;
+  --bg-elevated: #3e3d37;
+  --bg-track: #504e48;
+  --border: #4a4843;
+  --border-subtle: #403e3a;
+  --text: #ece8e1;
+  --text-secondary: #b0ab9f;
+  --text-muted: #8a867e;
+  --accent: #d97706;
+  --accent-hover: #b45309;
+  --accent-glow: rgba(217, 119, 6, 0.15);
+  --green: #22c55e;
+  --green-glow: rgba(34, 197, 94, 0.15);
+  --yellow: #eab308;
+  --yellow-glow: rgba(234, 179, 8, 0.15);
+  --red: #ef4444;
+  --red-glow: rgba(239, 68, 68, 0.15);
+  --blue: #3b82f6;
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  /* Kompatibilitaet: alte md-Variablen auf neue abbilden */
+  --md-primary: var(--accent);
+  --md-primary-dark: var(--accent-hover);
+  --md-primary-light: var(--bg-elevated);
+  --md-primary-text: #FFFFFF;
+  --md-accent: var(--accent);
+  --md-success: var(--green);
+  --md-success-light: var(--green-glow);
+  --md-error: var(--red);
+  --md-error-light: var(--red-glow);
+  --md-warning: var(--yellow);
+  --md-warning-light: var(--yellow-glow);
+  --md-surface: var(--bg-card);
+  --md-background: var(--bg-base);
+  --md-on-surface: var(--text);
+  --md-on-surface-medium: var(--text-secondary);
+  --md-on-surface-disabled: var(--text-muted);
+  --md-divider: var(--border);
+  --md-divider-dark: var(--border-subtle);
+  --md-elevation-1: none;
+  --md-elevation-2: none;
+  --md-elevation-3: none;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-base: #f5f5f4;
+    --bg-card: #ffffff;
+    --bg-elevated: #fafaf9;
+    --bg-track: #e7e5e4;
+    --border: #d6d3d1;
+    --border-subtle: #e7e5e4;
+    --text: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #a8a29e;
+    --accent-glow: rgba(217, 119, 6, 0.08);
+    --green-glow: rgba(34, 197, 94, 0.08);
+    --yellow-glow: rgba(234, 179, 8, 0.08);
+    --red-glow: rgba(239, 68, 68, 0.08);
+  }
 }
 
 /* === Basis === */
 .smt-ui {
   all: initial;
-  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
   box-sizing: border-box !important;
   line-height: 1.5 !important;
   -webkit-font-smoothing: antialiased;
@@ -824,185 +854,7 @@
   background: #64B5F6;
 }
 
-/* === Dark Mode - Verbesserte Kontraste === */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --md-surface: #2D2D2D;
-    --md-background: #1E1E1E;
-    --md-on-surface: #FFFFFF;
-    --md-on-surface-medium: #BDBDBD;  /* Heller für bessere Lesbarkeit */
-    --md-divider: #404040;
-    --md-primary: #64B5F6;            /* Heller im Dark Mode */
-    --md-primary-light: #1565C0;
-    --md-success: #81C784;
-    --md-error: #EF5350;
-    --md-accent: #FF8A65;
-  }
-
-  .smt-tooltip {
-    background: var(--md-surface);
-    border-color: var(--md-divider);
-  }
-
-  .smt-tooltip-actions {
-    background: #383838;
-    border-bottom-color: var(--md-divider);
-  }
-
-  .smt-action {
-    background: #3D3D3D;
-    border-color: #505050;
-    color: #E0E0E0;
-  }
-
-  .smt-action:hover {
-    background: var(--md-primary);
-    border-color: var(--md-primary);
-    color: white;
-  }
-
-  .smt-tooltip-original {
-    background: var(--md-background);
-    color: var(--md-on-surface-medium);
-    border-bottom-color: var(--md-divider);
-  }
-
-  .smt-tooltip-tabs {
-    background: var(--md-background);
-    border-bottom-color: var(--md-divider);
-  }
-
-  .smt-tab {
-    background: var(--md-surface);
-    border-color: var(--md-divider);
-    color: var(--md-on-surface-medium);
-  }
-
-  .smt-tab:hover {
-    border-color: var(--md-primary);
-    color: var(--md-primary);
-  }
-
-  .smt-tab.active {
-    background: var(--md-primary);
-    border-color: var(--md-primary);
-    color: var(--md-on-surface);
-  }
-
-  .smt-translated {
-    color: #FFFFFF;
-  }
-
-  .smt-alt {
-    background: var(--md-surface);
-    color: var(--md-on-surface-medium);
-    border-color: var(--md-divider);
-  }
-
-  .smt-alt:hover {
-    background: #454545;
-    color: #FFFFFF;
-    border-color: var(--md-primary);
-  }
-
-  .smt-original-tooltip {
-    background: #1E1E1E;
-    border: 1px solid #404040;
-  }
-
-  .smt-original-tooltip::after {
-    border-top-color: #1E1E1E;
-  }
-
-  .smt-translated-text {
-    background: rgba(100, 181, 246, 0.12);
-  }
-
-  .smt-translated-text:hover {
-    background: rgba(100, 181, 246, 0.20);
-  }
-
-  .smt-selection-icon {
-    background: var(--md-primary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  }
-
-  .smt-cache-indicator {
-    background: #C62828;
-  }
-
-  .smt-progress {
-    background: var(--md-surface);
-    border-color: var(--md-divider);
-  }
-
-  .smt-progress-pause {
-    background: #4A3000;
-    color: #FFB74D;
-  }
-
-  .smt-progress-pause:hover {
-    background: var(--md-warning);
-    color: white;
-  }
-
-  .smt-progress-pause.smt-paused {
-    background: var(--md-success);
-    color: white;
-  }
-
-  .smt-progress-stop {
-    background: #4A0000;
-    color: #EF5350;
-  }
-
-  .smt-progress-stop:hover {
-    background: var(--md-error);
-    color: white;
-  }
-
-  .smt-progress-eta {
-    color: var(--md-on-surface-medium);
-  }
-
-  .smt-progress-tokens {
-    background: rgba(100, 181, 246, 0.15);
-  }
-
-  .smt-token-cost {
-    background: rgba(129, 199, 132, 0.2);
-    color: var(--md-success);
-  }
-
-  .smt-notification {
-    background: #424242;
-    border: 1px solid var(--md-divider);
-    color: #FFFFFF;
-  }
-
-  .smt-notification-success {
-    background: #1B5E20;
-  }
-
-  .smt-notification-error {
-    background: #B71C1C;
-  }
-
-  .smt-notification-info {
-    background: #0D47A1;
-  }
-
-  .smt-loading-tooltip {
-    background: var(--md-surface);
-    border-color: var(--md-divider);
-    color: var(--md-on-surface-medium);
-  }
-
-  .smt-spinner {
-    border-color: var(--md-divider);
-    border-top-color: var(--md-primary);
-  }
-}
+/* Dark Mode wird automatisch ueber die CSS-Variablen in :root gesteuert */
 
 /* === Print / PDF === */
 @media print {

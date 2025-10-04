@@ -1,29 +1,11 @@
-/* Sidepanel-spezifisches Layout - Smart Web Translator v3.7.0 */
-/* ==========================================================================
-   SIDEPANEL-SPEZIFISCHES LAYOUT
-   ========================================================================== */
+/* Sidepanel-spezifisches Layout */
 
-/* Translate Button fullwidth */
-#translateBtn {
-  width: 100%;
-}
+#translateBtn { width: 100%; }
+#resultActions { display: none; }
+#costCard { display: block; }
+#costCard.hidden { display: none !important; }
 
-/* Result Actions initial hidden */
-#resultActions {
-  display: none;
-}
-
-/* Cost Card - standardmäßig sichtbar, wird per JS versteckt wenn deaktiviert */
-#costCard {
-  display: block;
-}
-#costCard.hidden {
-  display: none !important;
-}
-
-body {
-  min-height: 100vh;
-}
+body { min-height: 100vh; }
 
 .container {
   display: flex;
@@ -33,13 +15,13 @@ body {
 
 /* Context Notes */
 .context-notes {
-  background: var(--md-warning-light);
-  border: 1px solid var(--md-warning);
-  border-radius: var(--radius-md);
+  background: var(--yellow-glow);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: var(--radius-sm);
   padding: 10px 14px;
   margin-top: var(--spacing-md);
   font-size: 13px;
-  color: var(--md-warning);
+  color: var(--yellow);
   display: none;
 }
 
@@ -65,14 +47,14 @@ body {
 /* Actions Section */
 .actions-section {
   padding: var(--spacing-lg);
-  background: var(--md-surface);
-  border-top: 1px solid var(--md-divider);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .actions-section h3 {
   font-size: 11px;
   font-weight: 500;
-  color: var(--md-on-surface-medium);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: var(--spacing-md);
@@ -89,8 +71,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 14px var(--spacing-lg);
-  background: var(--md-surface);
-  border-bottom: 1px solid var(--md-divider);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-subtle);
   position: sticky;
   top: 0;
 }
@@ -102,9 +84,9 @@ body {
 
 .clear-btn {
   padding: 6px 14px;
-  background: var(--md-error);
-  color: white;
-  border: none;
+  background: transparent;
+  color: var(--red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 500;
@@ -113,8 +95,9 @@ body {
 }
 
 .clear-btn:hover {
-  background: #9B1B1B;
-  box-shadow: var(--md-elevation-1);
+  background: var(--red);
+  color: white;
+  border-color: var(--red);
 }
 
 .history-list {
@@ -124,34 +107,34 @@ body {
 .history-empty {
   text-align: center;
   padding: 40px var(--spacing-lg);
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
 }
 
 .history-empty svg {
   width: 48px;
   height: 48px;
-  fill: var(--md-on-surface-disabled);
+  fill: var(--text-muted);
   margin-bottom: var(--spacing-md);
 }
 
 .history-item {
   padding: var(--spacing-md);
-  background: var(--md-surface);
-  border: 1px solid var(--md-divider);
-  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   margin-bottom: var(--spacing-sm);
   cursor: pointer;
   transition: all var(--transition-normal);
 }
 
 .history-item:hover {
-  border-color: var(--md-primary);
-  background: var(--md-primary-light);
+  border-color: var(--accent);
+  background: var(--bg-elevated);
 }
 
 .history-original {
   font-size: 12px;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
   margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -168,7 +151,7 @@ body {
 
 .history-meta {
   font-size: 11px;
-  color: var(--md-on-surface-disabled);
+  color: var(--text-muted);
 }
 
 /* Cache Section */
@@ -192,9 +175,9 @@ body {
 }
 
 .stats-card {
-  background: var(--md-surface);
-  border: 1px solid var(--md-divider);
-  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
   padding: var(--spacing-lg);
 }
 
@@ -205,7 +188,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--md-on-surface);
+  color: var(--text);
 }
 
 .stats-actions {
@@ -222,11 +205,11 @@ body {
 .stats-footer {
   text-align: center;
   font-size: 11px;
-  color: var(--md-on-surface-disabled);
+  color: var(--text-muted);
   padding-top: var(--spacing-md);
 }
 
-/* Token Stats Card - jetzt in stats-card */
+/* Token Stats */
 .token-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -236,19 +219,20 @@ body {
 .token-stat {
   text-align: center;
   padding: var(--spacing-md);
-  background: var(--md-background);
-  border-radius: var(--radius-md);
+  background: var(--bg-base);
+  border-radius: var(--radius-sm);
 }
 
 .token-value {
   font-size: 20px;
   font-weight: 700;
-  color: var(--md-primary);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
 }
 
 .token-label {
   font-size: 10px;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
   text-transform: uppercase;
   margin-top: 4px;
 }
@@ -256,20 +240,21 @@ body {
 .cost-display {
   text-align: center;
   padding: var(--spacing-lg);
-  background: var(--md-success-light);
-  border-radius: var(--radius-md);
+  background: var(--green-glow);
+  border-radius: var(--radius-sm);
 }
 
 .cost-value {
   font-size: 32px;
   font-weight: 700;
-  color: var(--md-success);
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
 }
 
 .cost-currency {
   font-size: 20px;
   font-weight: 500;
-  color: var(--md-success);
+  color: var(--green);
   margin-left: 4px;
 }
 
@@ -283,9 +268,9 @@ body {
 }
 
 .cache-stat {
-  background: var(--md-surface);
-  border: 1px solid var(--md-divider);
-  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   padding: var(--spacing-sm);
   text-align: center;
 }
@@ -293,12 +278,13 @@ body {
 .cache-stat .value {
   font-size: 18px;
   font-weight: 700;
-  color: var(--md-primary);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
 }
 
 .cache-stat .label {
   font-size: 10px;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
 }
 
 .cache-actions {
@@ -326,7 +312,7 @@ body {
 .cache-empty {
   text-align: center;
   padding: var(--spacing-md);
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
   font-size: 12px;
 }
 
@@ -335,21 +321,19 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 4px 8px;
-  background: var(--md-surface);
-  border: 1px solid var(--md-divider);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   gap: 4px;
   flex-shrink: 0;
 }
 
-.cache-item.server {
-  padding: 3px 6px;
-}
+.cache-item.server { padding: 3px 6px; }
 
 .cache-item.current {
-  border-color: var(--md-success);
+  border-color: var(--green);
   border-width: 2px;
-  background: var(--md-success-light);
+  background: var(--green-glow);
 }
 
 .cache-item-info {
@@ -361,7 +345,7 @@ body {
 .cache-item-text {
   font-size: 11px;
   font-weight: 500;
-  color: var(--md-on-surface);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -372,36 +356,32 @@ body {
   display: block;
   font-size: 11px;
   font-weight: 500;
-  color: var(--md-primary);
+  color: var(--accent);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.cache-item-url:hover {
-  text-decoration: underline;
-}
+.cache-item-url:hover { text-decoration: underline; }
 
 .cache-item-meta {
   font-size: 10px;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.2;
 }
 
-.cache-item-actions {
-  flex-shrink: 0;
-}
+.cache-item-actions { flex-shrink: 0; }
 
 .cache-item-btn {
   width: 20px;
   height: 20px;
   border: none;
   border-radius: 3px;
-  background: var(--md-error);
+  background: var(--red);
   color: white;
   cursor: pointer;
   display: flex;
@@ -411,9 +391,7 @@ body {
   padding: 0;
 }
 
-.cache-item-btn:hover {
-  background: #9B1B1B;
-}
+.cache-item-btn:hover { background: #dc2626; }
 
 .cache-item-btn svg {
   width: 12px;
@@ -421,41 +399,10 @@ body {
   fill: white;
 }
 
-/* Dark Mode Anpassungen */
-@media (prefers-color-scheme: dark) {
-  .history-item {
-    background: #3D3D3D;
-    border-color: #505050;
-  }
-
-  .history-item:hover {
-    background: #4A4A4A;
-    border-color: var(--md-primary);
-  }
-
-  .cache-item {
-    background: #3D3D3D;
-    border-color: #505050;
-  }
-
-  .stats-card {
-    background: #3D3D3D;
-    border-color: #505050;
-  }
-
-  .token-stat {
-    background: #2D2D2D;
-  }
-
-  .cost-display {
-    background: rgba(46, 125, 50, 0.2);
-  }
-}
-
 /* Server Cache Info */
 .cache-server-info {
-  background: var(--md-surface);
-  border: 1px solid var(--md-divider);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   padding: var(--spacing-sm);
   flex-shrink: 0;
@@ -469,22 +416,15 @@ body {
 }
 
 .server-stat:not(:last-child) {
-  border-bottom: 1px solid var(--md-divider);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.stat-label {
-  color: var(--md-on-surface-medium);
-}
-
-.stat-value {
-  font-weight: 600;
-  color: var(--md-primary);
-}
-
+.stat-label { color: var(--text-secondary); }
+.stat-value { font-weight: 600; color: var(--accent); }
 
 /* Current Page Cache Info */
 .cache-current-page {
-  background: var(--md-primary-light);
+  background: var(--accent-glow);
   border-radius: var(--radius-sm);
   padding: var(--spacing-sm);
   margin-bottom: var(--spacing-sm);
@@ -494,7 +434,7 @@ body {
 .cache-current-page h4 {
   font-size: 11px;
   font-weight: 600;
-  color: var(--md-primary);
+  color: var(--accent);
   margin-bottom: 4px;
 }
 
@@ -506,14 +446,14 @@ body {
 
 .cache-page-url {
   font-size: 10px;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
   word-break: break-all;
   line-height: 1.2;
 }
 
 .cache-page-status {
   font-size: 10px;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
 }
 
 .cache-status {
@@ -525,24 +465,24 @@ body {
 }
 
 .cache-status.available {
-  background: var(--md-success-light);
-  color: var(--md-success);
+  background: var(--green-glow);
+  color: var(--green);
 }
 
 .cache-status.none {
-  background: var(--md-error-light);
-  color: var(--md-error);
+  background: var(--red-glow);
+  color: var(--red);
 }
 
-/* Server Cache Section */
+/* Section Headers */
 .cache-server-info h4,
 .cache-local-section h4 {
   font-size: 11px;
   font-weight: 600;
-  color: var(--md-on-surface);
+  color: var(--text);
   margin-bottom: var(--spacing-xs);
   padding-bottom: 2px;
-  border-bottom: 1px solid var(--md-divider);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .cache-server-entries {
@@ -555,10 +495,10 @@ body {
 .cache-server-entries h4 {
   font-size: 11px;
   font-weight: 600;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
   margin-bottom: 4px;
   padding-bottom: 2px;
-  border-bottom: 1px solid var(--md-divider);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .cache-local-section {
