@@ -1,4 +1,4 @@
-// Shared API Badge - Smart Web Translator v3.7.0
+// API Badge
 // Einheitliche API-Badge Aktualisierung für Popup und Sidepanel
 
 window.SMT = window.SMT || {};

@@ -1,4 +1,4 @@
-// Content DOM Module - Smart Web Translator v3.7.0
+// Content DOM
 // DOM-Manipulation und Text-Node-Verwaltung
 
 (function() {
@@ -9,7 +9,7 @@
   window._smtDOMLoaded = true;
 
   if (typeof SmartTranslator === 'undefined') {
-    console.error('SmartTranslator nicht gefunden - content-dom.js muss nach content.js geladen werden');
+    console.warn('SmartTranslator nicht gefunden - content-dom.js muss nach content.js geladen werden');
     return;
   }
 

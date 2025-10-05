@@ -1,12 +1,7 @@
-// Content Script - Smart Web Translator v3.11.6
-// Mit LocalStorage Cache, Hover-Original, Toggle
-// v3.11.6: Middleware-Batching - Content sendet sequentiell, Background sammelt & batcht
-// v3.11.5: Konfigurierbare Batch-Größe (1-50) mit exakter Reihenfolge
-// v3.11.1: Abstrakte Cache-API (SMT.Cache), async loadCachedTranslation
-// v3.8: Cache Server Integration
-// v3.7: Export-Funktionen ausgelagert nach content/content-export.js
-// v3.6: Pin-Funktion entfernt, TTS-Toggle, Abbruch-Logik überarbeitet
-// v3.5: Echte Batch-Übersetzung, Smart Chunking, URL-Tracking für SPAs
+(function() {
+  'use strict';
+  if (window.__swtTranslatorGuard) return;
+  window.__swtTranslatorGuard = true;
 
 class SmartTranslator {
   constructor() {
@@ -914,7 +909,7 @@ class SmartTranslator {
       // Nur Fehler anzeigen wenn noch aktuelle Anfrage
       if (requestId === this.translationRequestId) {
         this.hideLoadingTooltip();
-        console.error('translateSelection error:', error);
+        console.warn('translateSelection error:', error);
         this.showNotification('Fehler: ' + error.message, 'error');
       }
     }
@@ -1149,7 +1144,7 @@ class SmartTranslator {
     } catch (error) {
       this.showProgress(false);
       if (!this.translationAborted) {
-        console.error('translatePage error:', error);
+        console.warn('translatePage error:', error);
         this.showNotification('Fehler bei Seitenübersetzung', 'error');
       }
     }
@@ -1698,7 +1693,7 @@ class SmartTranslator {
   }
 }
 
-// Initialisieren (mit Guard gegen doppelte Instanziierung)
+// Initialisieren
 if (!window.smartTranslatorInstance) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
@@ -1710,3 +1705,5 @@ if (!window.smartTranslatorInstance) {
     window.smartTranslatorInstance = new SmartTranslator();
   }
 }
+
+})();

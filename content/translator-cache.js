@@ -1,7 +1,5 @@
-// Content Cache Module - Smart Web Translator v3.12.0
+// Content Cache
 // Cache-Verwaltung für Übersetzungen (Lokal + Server)
-// v3.12.0: Abstrakte Cache-Löschung mit SMT.Cache.clearCache()
-// v3.11.2: Bereinigung - deprecated Funktionen entfernt, konsistente Keys
 
 (function() {
   'use strict';
@@ -11,7 +9,7 @@
   window._smtCacheLoaded = true;
 
   if (typeof SmartTranslator === 'undefined') {
-    console.error('SmartTranslator nicht gefunden - content-cache.js muss nach content.js geladen werden');
+    console.warn('SmartTranslator nicht gefunden - content-cache.js muss nach content.js geladen werden');
     return;
   }
 

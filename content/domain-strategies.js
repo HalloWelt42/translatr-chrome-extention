@@ -40,7 +40,7 @@ const DomainStrategies = {
       console.log('[SWT Strategy] Fallback zu default für', hostname);
       return this.strategies.default;
     } catch (e) {
-      console.error('[SWT Strategy] Fehler:', e);
+      console.warn('[SWT Strategy] Fehler:', e);
       return this.strategies.default;
     }
   },
@@ -576,7 +576,7 @@ DomainStrategies.register('ebook', {
             console.log('[SWT E-Book] ⚠ srcdoc-parsed hinzugefügt (read-only!)');
           }
         } catch (e) {
-          console.error('[SWT E-Book] srcdoc Parse-Fehler:', e);
+          console.warn('[SWT E-Book] srcdoc Parse-Fehler:', e);
         }
       } else {
         console.log('[SWT E-Book] Kein srcdoc-Attribut');

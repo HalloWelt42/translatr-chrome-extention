@@ -1,4 +1,4 @@
-// Options JavaScript - Smart Web Translator v3.7.0
+// Options
 // Refactored: Nutzt SMT.Toast
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -165,7 +165,7 @@ async function loadSettings() {
     
     console.log('Smart Translator: Settings loaded', settings.apiType);
   } catch (e) {
-    console.error('Smart Translator: Error loading settings', e);
+    console.warn('Smart Translator: Error loading settings', e);
   }
 }
 
@@ -264,7 +264,7 @@ function renderEbookReaderDomains(domains) {
 async function addEbookReaderDomain() {
   const input = document.getElementById('newEbookReaderDomain');
   if (!input) {
-    console.error('[SWT] E-Book Domain Input nicht gefunden');
+    console.warn('[SWT] E-Book Domain Input nicht gefunden');
     return;
   }
   
@@ -551,7 +551,7 @@ async function loadLMStudioModels() {
       modelSelect.innerHTML = '<option value="">Keine Modelle</option>';
     }
   } catch (error) {
-    console.error('LM Studio:', error);
+    console.warn('LM Studio:', error);
     modelSelect.innerHTML = '<option value="">Nicht erreichbar</option>';
     if (error.name === 'AbortError') {
       SMT.Toast.show('Timeout - Server nicht erreichbar');
@@ -652,7 +652,7 @@ async function saveSettings() {
     console.log('Smart Translator: Settings saved', settings);
   } catch (error) {
     SMT.Toast.show('Fehler beim Speichern: ' + error.message, 'error');
-    console.error('Smart Translator: Error saving settings', error);
+    console.warn('Smart Translator: Error saving settings', error);
   }
 }
 

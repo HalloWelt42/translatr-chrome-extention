@@ -1,4 +1,4 @@
-// Content Export Module - Smart Web Translator v3.7.0
+// Content Export
 // Export-Funktionen als Prototype-Erweiterung
 
 (function() {
@@ -10,7 +10,7 @@
 
   // Warten bis SmartTranslator definiert ist
   if (typeof SmartTranslator === 'undefined') {
-    console.error('SmartTranslator nicht gefunden - content-export.js muss nach content.js geladen werden');
+    console.warn('SmartTranslator nicht gefunden - content-export.js muss nach content.js geladen werden');
     return;
   }
 

@@ -1,4 +1,4 @@
-// Shared Toast - Smart Web Translator v3.7.0
+// Toast Notifications
 // Einheitliche Toast-Benachrichtigungen für alle Komponenten
 // Benötigt: components.css mit .toast Klassen
 

@@ -1,4 +1,4 @@
-// Content UI Module - Smart Web Translator v3.7.0
+// Content UI
 // Progress, Notifications, TTS und Formatierung
 
 (function() {
@@ -9,7 +9,7 @@
   window._smtUILoaded = true;
 
   if (typeof SmartTranslator === 'undefined') {
-    console.error('SmartTranslator nicht gefunden - content-ui.js muss nach content.js geladen werden');
+    console.warn('SmartTranslator nicht gefunden - content-ui.js muss nach content.js geladen werden');
     return;
   }
 

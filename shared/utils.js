@@ -1,4 +1,4 @@
-// Shared Utilities - Smart Web Translator v3.7.0
+// Shared Utilities
 // Gemeinsame Hilfsfunktionen für alle Komponenten
 
 window.SMT = window.SMT || {};
@@ -28,7 +28,7 @@ window.SMT.Utils = {
     if (diff < 60000) return 'Gerade eben';
     if (diff < 3600000) return `vor ${Math.floor(diff / 60000)} Min.`;
     if (diff < 86400000) return `vor ${Math.floor(diff / 3600000)} Std.`;
-    return date.toLocaleDateString('de-DE');
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
   },
 
   /**

@@ -1,4 +1,4 @@
-// Popup JavaScript - Smart Web Translator v3.7.0
+// Popup
 // Refactored: Nutzt SMT.Utils, SMT.Toast, SMT.ApiBadge
 
 document.addEventListener('DOMContentLoaded', async () => {

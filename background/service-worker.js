@@ -1,6 +1,6 @@
-// Background Script - Smart Web Translator v3.12.1 mit Queue-Batching
-// v3.12.1: Middleware-Batching mit Index-basierter Reihenfolge-Garantie
-// v3.12.0: Zwei-Hash-System (url_hash + translation_hash), neues API-Format
+
+
+
 
 // ==========================================================================
 // CACHE SERVER INTEGRATION
@@ -469,7 +469,7 @@ const CacheServer = {
           totalCreated += result.created || Object.keys(items).length;
           console.log('[CacheServer] Gespeichert:', result.created || Object.keys(items).length);
         } else {
-          console.error('[CacheServer] Speichern fehlgeschlagen:', response.status);
+          console.warn('[CacheServer] Speichern fehlgeschlagen:', response.status);
         }
       }
       
@@ -986,7 +986,7 @@ class TranslatorBackground {
         this.handleContextMenuClick(info, tab);
       });
     } catch (e) {
-      console.error('Context menu error:', e);
+      console.warn('Context menu error:', e);
     }
   }
 
@@ -1031,7 +1031,7 @@ class TranslatorBackground {
           break;
       }
     } catch (e) {
-      console.error('Context menu click error:', e);
+      console.warn('Context menu click error:', e);
     }
   }
 
@@ -1055,7 +1055,7 @@ class TranslatorBackground {
           break;
       }
     } catch (e) {
-      console.error('Command error:', e);
+      console.warn('Command error:', e);
     }
   }
 
@@ -1192,7 +1192,7 @@ class TranslatorBackground {
           sendResponse({ success: false, error: 'Unknown action' });
       }
     } catch (e) {
-      console.error('Message handler error:', e);
+      console.warn('Message handler error:', e);
       sendResponse({ success: false, error: e.message });
     }
   }
@@ -1325,7 +1325,7 @@ class TranslatorBackground {
         tokens: 0 // LibreTranslate hat keine Token-Info
       };
     } catch (e) {
-      console.error('LibreTranslate error:', e);
+      console.warn('LibreTranslate error:', e);
       return { success: false, error: e.message };
     }
   }
@@ -1427,7 +1427,7 @@ class TranslatorBackground {
         };
       }
     } catch (e) {
-      console.error('LM Studio error:', e);
+      console.warn('LM Studio error:', e);
       return { success: false, error: e.message };
     }
   }
@@ -1692,7 +1692,7 @@ class TranslatorBackground {
       }
       
     } catch (e) {
-      console.error('[Queue] Kritischer Fehler:', e);
+      console.warn('[Queue] Kritischer Fehler:', e);
       
       // Alle entries mit Fehler auflösen (nicht ablehnen, damit Content-Script weiterarbeitet)
       for (const entry of entries) {
@@ -1831,7 +1831,7 @@ class TranslatorBackground {
         
         if (toStore.length > 0) {
           console.log('[Background] toStore:', toStore.length, 'Items, erster Text:', toStore[0].original.substring(0, 50));
-          CacheServer.bulkStore(toStore, langPair).catch((e) => console.error('[Background] bulkStore Fehler:', e));
+          CacheServer.bulkStore(toStore, langPair).catch((e) => console.warn('[Background] bulkStore Fehler:', e));
         }
       }
     }
@@ -2045,7 +2045,7 @@ class TranslatorBackground {
         }
       };
     } catch (e) {
-      console.error('LM Studio batch error:', e);
+      console.warn('LM Studio batch error:', e);
       // Fallback: Einzeln übersetzen
       const results = [];
       let fallbackTokens = 0;
@@ -2143,7 +2143,7 @@ class TranslatorBackground {
     try {
       return await chrome.tabs.sendMessage(tabId, message);
     } catch (e) {
-      console.error('Content script unreachable:', e);
+      console.warn('Content script unreachable:', e);
       return null;
     }
   }

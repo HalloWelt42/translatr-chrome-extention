@@ -1,4 +1,4 @@
-// Side Panel JavaScript - Smart Web Translator v3.7.0
+// Side Panel
 // Refactored: Nutzt SMT.Utils, SMT.Toast, SMT.ApiBadge
 
 class SidePanelController {
@@ -515,7 +515,7 @@ class SidePanelController {
         });
       });
     } catch (e) {
-      console.error('History error:', e);
+      console.warn('History error:', e);
     }
   }
 
@@ -672,7 +672,7 @@ class SidePanelController {
         }
       }
     } catch (e) {
-      console.error('Stats error:', e);
+      console.warn('Stats error:', e);
     }
   }
 
@@ -888,7 +888,7 @@ class SidePanelController {
         });
       });
     } catch (e) {
-      console.error('Cache error:', e);
+      console.warn('Cache error:', e);
       document.getElementById('cacheList').innerHTML = '<div class="cache-empty">Fehler beim Laden</div>';
     }
   }

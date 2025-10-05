@@ -223,7 +223,7 @@ SMT.CacheServer = {
         return null;
       }
       
-      throw new Error(`HTTP ${response.status}`);
+      console.warn('[CacheServer] HTTP', response.status); return null;
     } catch (e) {
       console.warn('[CacheServer] Get-Fehler:', e.message);
       return null;
@@ -262,7 +262,7 @@ SMT.CacheServer = {
         return { hash, created: true };
       }
       
-      throw new Error(`HTTP ${response.status}`);
+      console.warn('[CacheServer] HTTP', response.status); return null;
     } catch (e) {
       console.warn('[CacheServer] Store-Fehler:', e.message);
       return null;
@@ -371,7 +371,7 @@ SMT.CacheServer = {
         return { created: count };
       }
       
-      throw new Error(`HTTP ${response.status}`);
+      console.warn('[CacheServer] HTTP', response.status); return null;
     } catch (e) {
       console.warn('[CacheServer] BulkStore-Fehler:', e.message);
       return { created: 0, error: e.message };
