@@ -906,19 +906,19 @@ class TranslatorBackground {
       await chrome.contextMenus.removeAll();
 
       chrome.contextMenus.create({
-        id: 'translate-selection',
+        id: 'TRANSLATE_SELECTION',
         title: '🌐 "%s" übersetzen',
         contexts: ['selection']
       });
 
       chrome.contextMenus.create({
-        id: 'translate-word',
+        id: 'TRANSLATE_WORD',
         title: '🌐 Wort übersetzen',
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
-        id: 'translate-page',
+        id: 'TRANSLATE_PAGE_CMD',
         title: '🌐 Seite übersetzen',
         contexts: ['page']
       });
@@ -931,35 +931,35 @@ class TranslatorBackground {
 
       // Export-Untermenü
       chrome.contextMenus.create({
-        id: 'export-menu',
+        id: 'EXPORT_MENU',
         title: '📥 Exportieren',
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
-        id: 'export-pdf',
-        parentId: 'export-menu',
+        id: 'EXPORT_PDF_CMD',
+        parentId: 'EXPORT_MENU',
         title: 'Als PDF (Standard)',
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
-        id: 'export-pdf-simple',
-        parentId: 'export-menu',
+        id: 'EXPORT_PDF_SIMPLE',
+        parentId: 'EXPORT_MENU',
         title: 'Als PDF (Vereinfacht)',
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
-        id: 'export-markdown',
-        parentId: 'export-menu',
+        id: 'EXPORT_MARKDOWN_CMD',
+        parentId: 'EXPORT_MENU',
         title: 'Als Markdown',
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
-        id: 'export-text',
-        parentId: 'export-menu',
+        id: 'EXPORT_TEXT_CMD',
+        parentId: 'EXPORT_MENU',
         title: 'Als Text',
         contexts: ['page']
       });
@@ -971,13 +971,13 @@ class TranslatorBackground {
       });
 
       chrome.contextMenus.create({
-        id: 'open-sidepanel',
+        id: 'OPEN_SIDEPANEL_CMD',
         title: '📋 Side Panel öffnen',
         contexts: ['page', 'selection']
       });
 
       chrome.contextMenus.create({
-        id: 'open-options',
+        id: 'OPEN_OPTIONS',
         title: '⚙️ Einstellungen',
         contexts: ['page']
       });
@@ -993,40 +993,40 @@ class TranslatorBackground {
   async handleContextMenuClick(info, tab) {
     try {
       switch (info.menuItemId) {
-        case 'translate-selection':
+        case 'TRANSLATE_SELECTION':
           await this.translateAndShowResult(info.selectionText, tab);
           break;
-        case 'translate-word':
+        case 'TRANSLATE_WORD':
           await this.sendToContentScript(tab.id, { 
-            action: 'translateWordAtCursor',
+            action: 'TRANSLATE_WORD_AT_CURSOR',
             x: info.pageX || 0,
             y: info.pageY || 0
           });
           break;
-        case 'translate-page':
-          await this.sendToContentScript(tab.id, { action: 'translatePage', mode: 'replace' });
+        case 'TRANSLATE_PAGE_CMD':
+          await this.sendToContentScript(tab.id, { action: 'TRANSLATE_PAGE', mode: 'replace' });
           break;
-        case 'export-pdf':
-          await this.sendToContentScript(tab.id, { action: 'exportPdf', simplified: false });
+        case 'EXPORT_PDF_CMD':
+          await this.sendToContentScript(tab.id, { action: 'EXPORT_PDF', simplified: false });
           break;
-        case 'export-pdf-simple':
-          await this.sendToContentScript(tab.id, { action: 'exportPdf', simplified: true });
+        case 'EXPORT_PDF_SIMPLE':
+          await this.sendToContentScript(tab.id, { action: 'EXPORT_PDF', simplified: true });
           break;
-        case 'export-markdown':
-          await this.sendToContentScript(tab.id, { action: 'exportMarkdown' });
+        case 'EXPORT_MARKDOWN_CMD':
+          await this.sendToContentScript(tab.id, { action: 'EXPORT_MARKDOWN' });
           break;
-        case 'export-text':
-          await this.sendToContentScript(tab.id, { action: 'exportText' });
+        case 'EXPORT_TEXT_CMD':
+          await this.sendToContentScript(tab.id, { action: 'EXPORT_TEXT' });
           break;
-        case 'open-sidepanel':
+        case 'OPEN_SIDEPANEL_CMD':
           await chrome.sidePanel.open({ tabId: tab.id });
           if (info.selectionText) {
             setTimeout(() => {
-              chrome.runtime.sendMessage({ action: 'sidepanel-translate', text: info.selectionText });
+              chrome.runtime.sendMessage({ action: 'SIDEPANEL_TRANSLATE', text: info.selectionText });
             }, 300);
           }
           break;
-        case 'open-options':
+        case 'OPEN_OPTIONS':
           chrome.runtime.openOptionsPage();
           break;
       }
@@ -1041,16 +1041,16 @@ class TranslatorBackground {
       if (!tab) return;
 
       switch (command) {
-        case 'translate-selection':
-          const response = await this.sendToContentScript(tab.id, { action: 'getSelection' });
+        case 'TRANSLATE_SELECTION':
+          const response = await this.sendToContentScript(tab.id, { action: 'GET_SELECTION' });
           if (response?.text) {
             await this.translateAndShowResult(response.text, tab);
           }
           break;
-        case 'translate-page':
-          await this.sendToContentScript(tab.id, { action: 'translatePage', mode: 'replace' });
+        case 'TRANSLATE_PAGE_CMD':
+          await this.sendToContentScript(tab.id, { action: 'TRANSLATE_PAGE', mode: 'replace' });
           break;
-        case 'toggle-sidepanel':
+        case 'TOGGLE_SIDEPANEL':
           await chrome.sidePanel.open({ tabId: tab.id });
           break;
       }
@@ -1062,12 +1062,12 @@ class TranslatorBackground {
   async handleMessage(request, sender, sendResponse) {
     try {
       switch (request.action) {
-        case 'translate':
+        case 'TRANSLATE':
           const result = await this.translateText(request.text, request.source, request.target, request.pageUrl);
           sendResponse(result);
           break;
 
-        case 'translateBatch':
+        case 'TRANSLATE_BATCH':
           const batchResult = await this.translateBatch(
             request.texts, 
             request.source, 
@@ -1078,112 +1078,112 @@ class TranslatorBackground {
           sendResponse(batchResult);
           break;
 
-        case 'getSettings':
+        case 'GET_SETTINGS':
           const settings = await chrome.storage.sync.get();
           sendResponse({ success: true, settings });
           break;
 
-        case 'getHistory':
+        case 'GET_HISTORY':
           const history = await this.getHistory();
           sendResponse({ success: true, history });
           break;
 
-        case 'clearHistory':
+        case 'CLEAR_HISTORY':
           await this.clearHistory();
           sendResponse({ success: true });
           break;
 
-        case 'addToHistory':
+        case 'ADD_TO_HISTORY':
           await this.addToHistory(request.entry);
           sendResponse({ success: true });
           break;
 
-        case 'openSidePanel':
+        case 'OPEN_SIDE_PANEL':
           const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
           if (tab) await chrome.sidePanel.open({ tabId: tab.id });
           sendResponse({ success: true });
           break;
 
-        case 'getApiType':
+        case 'GET_API_TYPE':
           const apiSettings = await chrome.storage.sync.get(['apiType']);
           sendResponse({ success: true, apiType: apiSettings.apiType || 'libretranslate' });
           break;
 
-        case 'getTokenStats':
+        case 'GET_TOKEN_STATS':
           const tokenStats = await this.getTokenStats();
           sendResponse({ success: true, stats: tokenStats });
           break;
 
-        case 'updateTokenStats':
+        case 'UPDATE_TOKEN_STATS':
           const updatedStats = await this.updateTokenStats(request.usage);
           sendResponse({ success: true, stats: updatedStats });
           break;
 
-        case 'resetTokenStats':
+        case 'RESET_TOKEN_STATS':
           await this.resetTokenStats();
           sendResponse({ success: true });
           break;
 
-        case 'page-status-changed':
+        case 'PAGE_STATUS_CHANGED':
           // Status-Änderung an alle Extension-Pages weiterleiten
-          chrome.runtime.sendMessage({ action: 'page-status-changed' }).catch(() => {});
+          chrome.runtime.sendMessage({ action: 'PAGE_STATUS_CHANGED' }).catch(() => {});
           sendResponse({ success: true });
           break;
 
         // === Cache Server Proxy (für Mixed Content) ===
-        case 'cacheServerBulkGet':
+        case 'CACHE_SERVER_BULK_GET':
           console.log('[Background] cacheServerBulkGet:', request.hashes?.length, 'hashes');
           const bulkGetResult = await CacheServer.bulkGet(request.hashes, request.pageUrl);
           console.log('[Background] bulkGet result:', Object.keys(bulkGetResult?.translations || {}).length, 'translations');
           sendResponse({ success: true, result: bulkGetResult });
           break;
 
-        case 'cacheServerBulkStore':
+        case 'CACHE_SERVER_BULK_STORE':
           const storeResult = await CacheServer.bulkStore(request.translations, request.langPair);
           sendResponse({ success: true, result: storeResult });
           break;
 
-        case 'cacheServerBulkDelete':
+        case 'CACHE_SERVER_BULK_DELETE':
           const deleteResult = await CacheServer.bulkDelete(request.hashes);
           sendResponse({ success: true, result: deleteResult });
           break;
 
-        case 'cacheServerDeleteByUrl':
+        case 'CACHE_SERVER_DELETE_BY_URL':
           const urlDeleteResult = await CacheServer.deleteByUrl(request.pageUrl);
           sendResponse({ success: true, result: urlDeleteResult });
           break;
 
-        case 'cacheServerGetUrlStats':
+        case 'CACHE_SERVER_GET_URL_STATS':
           const urlStatsResult = await CacheServer.getUrlStats(request.pageUrl);
           sendResponse({ success: true, result: urlStatsResult });
           break;
 
-        case 'cacheServerGetAllByUrl':
+        case 'CACHE_SERVER_GET_ALL_BY_URL':
           const allByUrlResult = await CacheServer.getAllByUrl(request.pageUrl);
           sendResponse({ success: true, result: allByUrlResult });
           break;
 
-        case 'cacheServerDeleteByHash':
+        case 'CACHE_SERVER_DELETE_BY_HASH':
           const deleteByHashResult = await CacheServer.deleteByHash(request.pageUrl, request.hash);
           sendResponse({ success: true, result: deleteByHashResult });
           break;
 
-        case 'cacheServerDeleteByDomain':
+        case 'CACHE_SERVER_DELETE_BY_DOMAIN':
           const domainDeleteResult = await CacheServer.deleteByDomain(request.domain);
           sendResponse({ success: true, ...domainDeleteResult });
           break;
 
-        case 'cacheServerListUrls':
+        case 'CACHE_SERVER_LIST_URLS':
           const urlsResult = await CacheServer.listCachedUrls();
           sendResponse({ success: true, result: urlsResult });
           break;
 
-        case 'cacheServerClearAll':
+        case 'CACHE_SERVER_CLEAR_ALL':
           const clearResult = await CacheServer.clearAll();
           sendResponse({ success: true, result: clearResult });
           break;
 
-        case 'getCacheServerStats':
+        case 'GET_CACHE_SERVER_STATS':
           const cacheStats = await CacheServer.getStats();
           sendResponse({ success: true, stats: cacheStats });
           break;
@@ -1218,7 +1218,7 @@ class TranslatorBackground {
       });
 
       await this.sendToContentScript(tab.id, {
-        action: 'showTranslation',
+        action: 'SHOW_TRANSLATION',
         original: text.trim(),
         translated: result.translatedText,
         alternatives: result.alternatives,
@@ -1226,7 +1226,7 @@ class TranslatorBackground {
       });
     } else {
       await this.sendToContentScript(tab.id, {
-        action: 'showError',
+        action: 'SHOW_ERROR',
         message: result.error || 'Übersetzungsfehler'
       });
     }

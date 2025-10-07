@@ -65,7 +65,7 @@ class SmartTranslator {
 
   // Status-Änderung an Sidepanel/Popup melden
   notifyStatusChange() {
-    chrome.runtime.sendMessage({ action: 'page-status-changed' }).catch(() => {});
+    chrome.runtime.sendMessage({ action: 'PAGE_STATUS_CHANGED' }).catch(() => {});
   }
 
   generateCacheKey() {
@@ -883,7 +883,7 @@ class SmartTranslator {
 
     try {
       const result = await this.sendMessageSafe({
-        action: 'translate',
+        action: 'TRANSLATE',
         text: text.trim(),
         source: this.settings.sourceLang,
         target: this.settings.targetLang,
@@ -1085,7 +1085,7 @@ class SmartTranslator {
           
           // Request abfeuern - NICHT awaiten!
           return this.sendMessageSafe({
-            action: 'translate',
+            action: 'TRANSLATE',
             text: originalText,
             source: this.settings.sourceLang,
             target: this.settings.targetLang,
@@ -1170,7 +1170,7 @@ class SmartTranslator {
       
       // Sidepanel benachrichtigen
       chrome.runtime.sendMessage({
-        action: 'translation-status',
+        action: 'TRANSLATION_STATUS',
         type,      // 'loading', 'cache', 'ai'
         active,
         complete,
@@ -1190,7 +1190,7 @@ class SmartTranslator {
       
       // Cache abfragen (nur Cache, keine Übersetzung)
       const cacheResult = await this.sendMessageSafe({
-        action: 'translateBatch',
+        action: 'TRANSLATE_BATCH',
         texts: allTexts,
         source: this.settings.sourceLang,
         target: this.settings.targetLang,
@@ -1270,7 +1270,7 @@ class SmartTranslator {
         }
         
         return this.sendMessageSafe({
-          action: 'translate',
+          action: 'TRANSLATE',
           text: text,
           source: this.settings.sourceLang,
           target: this.settings.targetLang,
@@ -1372,7 +1372,7 @@ class SmartTranslator {
     try {
       // Über Background-Script den Cache abfragen
       const result = await this.sendMessageSafe({
-        action: 'translateBatch',
+        action: 'TRANSLATE_BATCH',
         texts: texts,
         source: this.settings.sourceLang,
         target: this.settings.targetLang,
@@ -1535,36 +1535,36 @@ class SmartTranslator {
   // === Message Handler ===
   handleMessage(request, sender, sendResponse) {
     switch (request.action) {
-      case 'getSelection':
+      case 'GET_SELECTION':
         sendResponse({ text: window.getSelection().toString().trim() });
         break;
 
-      case 'showTranslation':
+      case 'SHOW_TRANSLATION':
         this.showTooltip(request.original, request.translated, request.alternatives);
         sendResponse({ success: true });
         break;
 
-      case 'showError':
+      case 'SHOW_ERROR':
         this.showNotification(request.message, 'error');
         sendResponse({ success: true });
         break;
 
-      case 'translatePage':
+      case 'TRANSLATE_PAGE':
         this.translatePage(request.mode || 'replace');
         sendResponse({ success: true });
         break;
 
-      case 'restorePage':
+      case 'RESTORE_PAGE':
         this.restorePage();
         sendResponse({ success: true });
         break;
 
-      case 'toggleTranslation':
+      case 'TOGGLE_TRANSLATION':
         this.toggleTranslation();
         sendResponse({ success: true });
         break;
 
-      case 'exportPdf':
+      case 'EXPORT_PDF':
         if (!this._exportLock) {
           this._exportLock = true;
           this.exportAsPdf(request.simplified);
@@ -1573,7 +1573,7 @@ class SmartTranslator {
         sendResponse({ success: true });
         break;
 
-      case 'exportMarkdown':
+      case 'EXPORT_MARKDOWN':
         if (!this._exportLock) {
           this._exportLock = true;
           this.exportAsMarkdown();
@@ -1582,7 +1582,7 @@ class SmartTranslator {
         sendResponse({ success: true });
         break;
 
-      case 'exportText':
+      case 'EXPORT_TEXT':
         if (!this._exportLock) {
           this._exportLock = true;
           this.exportAsText();
@@ -1591,14 +1591,14 @@ class SmartTranslator {
         sendResponse({ success: true });
         break;
 
-      case 'loadCachedTranslation':
+      case 'LOAD_CACHED_TRANSLATION':
         this.loadCachedTranslation().then(loaded => {
           sendResponse({ success: loaded });
         });
         return true; // Async response
         break;
 
-      case 'getCacheInfo':
+      case 'GET_CACHE_INFO':
         sendResponse({
           size: this.getCacheSize(),
           entries: this.getCacheInfo(),
@@ -1606,7 +1606,7 @@ class SmartTranslator {
         });
         break;
 
-      case 'clearCache':
+      case 'CLEAR_CACHE':
         this.clearCache(request.key).then(() => {
           sendResponse({ success: true });
         }).catch(e => {
@@ -1615,7 +1615,7 @@ class SmartTranslator {
         });
         return true; // Async response
 
-      case 'getPageInfo':
+      case 'GET_PAGE_INFO':
         // Schnelle synchrone Antwort - keine teuren Berechnungen
         // serverCacheCount wird aus dem beim Seitenload gesetzten Wert genommen
         // remaining = geplante Nodes - übersetzte Nodes (für "Fortsetzen")
@@ -1634,7 +1634,7 @@ class SmartTranslator {
         });
         break;
 
-      case 'translateWordAtCursor':
+      case 'TRANSLATE_WORD_AT_CURSOR':
         this.translateWordAtPosition(request.x, request.y);
         sendResponse({ success: true });
         break;

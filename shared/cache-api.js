@@ -230,7 +230,7 @@ SMT.Cache = {
         // Server-Cache komplett löschen (braucht Admin-Endpunkt)
         try {
           const response = await chrome.runtime.sendMessage({
-            action: 'cacheServerClearAll'
+            action: 'CACHE_SERVER_CLEAR_ALL'
           });
           results.server = response?.result || { error: 'Nicht unterstützt' };
         } catch (e) {
@@ -240,7 +240,7 @@ SMT.Cache = {
         // Server nutzt URL-Index - effizientes Löschen nach URL/Domain
         try {
           const response = await chrome.runtime.sendMessage({
-            action: 'cacheServerDeleteByUrl',
+            action: 'CACHE_SERVER_DELETE_BY_URL',
             pageUrl: pageUrl
           });
           results.server = response?.result || { deleted: 0 };
@@ -443,7 +443,7 @@ SMT.Cache = {
       if (toStore.length > 0) {
         // Über Background Script speichern
         await chrome.runtime.sendMessage({
-          action: 'cacheServerBulkStore',
+          action: 'CACHE_SERVER_BULK_STORE',
           translations: toStore,
           langPair
         });
@@ -495,7 +495,7 @@ SMT.Cache = {
     // Server-Stats holen
     if (this.config.mode !== 'local-only') {
       try {
-        const response = await chrome.runtime.sendMessage({ action: 'getCacheServerStats' });
+        const response = await chrome.runtime.sendMessage({ action: 'GET_CACHE_SERVER_STATS' });
         if (response?.success) {
           info.serverStats = response.stats;
         }

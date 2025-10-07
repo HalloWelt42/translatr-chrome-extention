@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Auf Status-Änderungen vom Content-Script reagieren
   chrome.runtime.onMessage.addListener((request) => {
-    if (request.action === 'page-status-changed') {
+    if (request.action === 'PAGE_STATUS_CHANGED') {
       updateActionStates();
     }
   });
@@ -33,7 +33,7 @@ async function updateActionStates() {
       return;
     }
     
-    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getPageInfo' }).catch(() => null);
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'GET_PAGE_INFO' }).catch(() => null);
     
     if (!response) {
       translateBtn.classList.remove('disabled', 'active');
@@ -70,7 +70,7 @@ async function checkPageCache() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
 
-    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getCacheInfo' });
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'GET_CACHE_INFO' });
 
     if (response && response.currentPageHasCache) {
       const cacheStatus = document.getElementById('cacheStatus');
@@ -106,7 +106,7 @@ function setupEventListeners() {
 
     try {
       const response = await chrome.runtime.sendMessage({
-        action: 'translate',
+        action: 'TRANSLATE',
         text,
         source: sourceLang,
         target: targetLang
@@ -120,7 +120,7 @@ function setupEventListeners() {
         resultActions.style.display = 'flex';
 
         await chrome.runtime.sendMessage({
-          action: 'addToHistory',
+          action: 'ADD_TO_HISTORY',
           entry: {
             original: text,
             translated: response.translatedText,
@@ -224,7 +224,7 @@ function setupEventListeners() {
   // Cache laden
   document.getElementById('loadCacheBtn')?.addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.tabs.sendMessage(tab.id, { action: 'loadCachedTranslation' });
+    await chrome.tabs.sendMessage(tab.id, { action: 'LOAD_CACHED_TRANSLATION' });
     window.close();
   });
 
@@ -234,7 +234,7 @@ function setupEventListeners() {
     if (btn.classList.contains('disabled')) return;
     
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.tabs.sendMessage(tab.id, { action: 'translatePage', mode: 'replace' });
+    await chrome.tabs.sendMessage(tab.id, { action: 'TRANSLATE_PAGE', mode: 'replace' });
     window.close();
   });
 
@@ -243,13 +243,13 @@ function setupEventListeners() {
     if (btn.classList.contains('disabled')) return;
     
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.tabs.sendMessage(tab.id, { action: 'restorePage' });
+    await chrome.tabs.sendMessage(tab.id, { action: 'RESTORE_PAGE' });
     window.close();
   });
 
   document.getElementById('exportPdf').addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.tabs.sendMessage(tab.id, { action: 'exportPdf' });
+    await chrome.tabs.sendMessage(tab.id, { action: 'EXPORT_PDF' });
     window.close();
   });
 
@@ -271,7 +271,7 @@ function setupEventListeners() {
     await chrome.sidePanel.open({ tabId: tab.id });
     // Signal zum Side Panel, Cache-Tab zu öffnen
     setTimeout(() => {
-      chrome.runtime.sendMessage({ action: 'sidepanel-show-cache' });
+      chrome.runtime.sendMessage({ action: 'SIDEPANEL_SHOW_CACHE' });
     }, 300);
     window.close();
   });

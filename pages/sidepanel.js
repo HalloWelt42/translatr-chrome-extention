@@ -239,7 +239,7 @@ class SidePanelController {
 
     try {
       const result = await chrome.runtime.sendMessage({
-        action: 'translate',
+        action: 'TRANSLATE',
         text: sourceText,
         source: sourceLang,
         target: targetLang
@@ -259,7 +259,7 @@ class SidePanelController {
         }
 
         await chrome.runtime.sendMessage({
-          action: 'addToHistory',
+          action: 'ADD_TO_HISTORY',
           entry: {
             original: sourceText,
             translated: result.translatedText,
@@ -370,7 +370,7 @@ class SidePanelController {
         return;
       }
 
-      const response = await chrome.tabs.sendMessage(tab.id, { action: 'getPageInfo' }).catch(() => null);
+      const response = await chrome.tabs.sendMessage(tab.id, { action: 'GET_PAGE_INFO' }).catch(() => null);
       
       if (!response) {
         // Content-Script nicht bereit - Buttons bleiben im aktuellen Zustand
@@ -473,7 +473,7 @@ class SidePanelController {
   setupHistory() {
     document.getElementById('clearHistory').addEventListener('click', async () => {
       if (confirm('Verlauf wirklich löschen?')) {
-        await chrome.runtime.sendMessage({ action: 'clearHistory' });
+        await chrome.runtime.sendMessage({ action: 'CLEAR_HISTORY' });
         this.loadHistory();
         SMT.Toast.show('Verlauf gelöscht');
       }
@@ -484,7 +484,7 @@ class SidePanelController {
     const historyList = document.getElementById('historyList');
 
     try {
-      const response = await chrome.runtime.sendMessage({ action: 'getHistory' });
+      const response = await chrome.runtime.sendMessage({ action: 'GET_HISTORY' });
       const history = response.history || [];
 
       if (history.length === 0) {
@@ -532,7 +532,7 @@ class SidePanelController {
       
       try {
         // Über Content-Script mit cacheKey der aktuellen Seite löschen
-        await chrome.tabs.sendMessage(tab.id, { action: 'clearCache', key: null });
+        await chrome.tabs.sendMessage(tab.id, { action: 'CLEAR_CACHE', key: null });
         this.loadCache();
         this.updateActionStates();
         SMT.Toast.show('Cache dieser Seite gelöscht');
@@ -553,7 +553,7 @@ class SidePanelController {
         if (confirm(`Cache für "${domain}" löschen?\n(Alle Seiten dieser Domain)`)) {
           // Server-Cache für Domain löschen
           const result = await chrome.runtime.sendMessage({ 
-            action: 'cacheServerDeleteByDomain', 
+            action: 'CACHE_SERVER_DELETE_BY_DOMAIN', 
             domain: domain 
           });
           
@@ -577,7 +577,7 @@ class SidePanelController {
     const resetTokensBtn = document.getElementById('resetTokens');
     if (resetTokensBtn) {
       resetTokensBtn.addEventListener('click', async () => {
-        await chrome.runtime.sendMessage({ action: 'resetTokenStats' });
+        await chrome.runtime.sendMessage({ action: 'RESET_TOKEN_STATS' });
         this.loadStats();
         SMT.Toast.show('Token-Zähler zurückgesetzt');
       });
@@ -587,7 +587,7 @@ class SidePanelController {
     const resetCostBtn = document.getElementById('resetCost');
     if (resetCostBtn) {
       resetCostBtn.addEventListener('click', async () => {
-        await chrome.runtime.sendMessage({ action: 'resetTokenStats' });
+        await chrome.runtime.sendMessage({ action: 'RESET_TOKEN_STATS' });
         this.loadStats();
         SMT.Toast.show('Kosten zurückgesetzt');
       });
@@ -598,7 +598,7 @@ class SidePanelController {
     if (resetAllBtn) {
       resetAllBtn.addEventListener('click', async () => {
         if (confirm('Alle Statistiken (Tokens + Kosten) zurücksetzen?')) {
-          await chrome.runtime.sendMessage({ action: 'resetTokenStats' });
+          await chrome.runtime.sendMessage({ action: 'RESET_TOKEN_STATS' });
           this.loadStats();
           SMT.Toast.show('Alle Statistiken zurückgesetzt');
         }
@@ -609,7 +609,7 @@ class SidePanelController {
   async loadStats() {
     try {
       // Token-Stats laden
-      const response = await chrome.runtime.sendMessage({ action: 'getTokenStats' });
+      const response = await chrome.runtime.sendMessage({ action: 'GET_TOKEN_STATS' });
       
       // Kosten-Einstellungen laden
       const settings = await chrome.storage.sync.get([
@@ -704,7 +704,7 @@ class SidePanelController {
       let serverStats = null;
       if (serverEnabled && mode !== 'local-only') {
         try {
-          serverStats = await chrome.runtime.sendMessage({ action: 'getCacheServerStats' });
+          serverStats = await chrome.runtime.sendMessage({ action: 'GET_CACHE_SERVER_STATS' });
           console.log('[SWT Sidepanel] Server stats:', serverStats);
         } catch (e) {
           console.warn('Server stats error:', e);
@@ -714,7 +714,7 @@ class SidePanelController {
       // Page-Info holen (inkl. Cache-Status für aktuelle Seite)
       let pageInfo = null;
       try {
-        pageInfo = await chrome.tabs.sendMessage(tab.id, { action: 'getPageInfo' });
+        pageInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_PAGE_INFO' });
         console.log('[SWT Sidepanel] Page info:', pageInfo);
       } catch (e) {
         console.warn('Page info error:', e);
@@ -724,7 +724,7 @@ class SidePanelController {
       let localResponse = null;
       if (mode !== 'server-only') {
         try {
-          localResponse = await chrome.tabs.sendMessage(tab.id, { action: 'getCacheInfo' });
+          localResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_CACHE_INFO' });
           console.log('[SWT Sidepanel] Local cache:', localResponse);
         } catch (e) {
           console.warn('Local cache error:', e);
@@ -765,7 +765,7 @@ class SidePanelController {
         let serverEntries = null;
         try {
           serverEntries = await chrome.runtime.sendMessage({ 
-            action: 'cacheServerGetAllByUrl', 
+            action: 'CACHE_SERVER_GET_ALL_BY_URL', 
             pageUrl: tab.url 
           });
         } catch (e) {}
@@ -865,7 +865,7 @@ class SidePanelController {
           e.stopPropagation();
           const item = btn.closest('.cache-item');
           const key = item.dataset.key;
-          await chrome.tabs.sendMessage(tab.id, { action: 'clearCache', key });
+          await chrome.tabs.sendMessage(tab.id, { action: 'CLEAR_CACHE', key });
           item.remove();
           this.loadCache();
           SMT.Toast.show('Cache-Eintrag gelöscht');
@@ -879,7 +879,7 @@ class SidePanelController {
           const item = btn.closest('.cache-item');
           const hash = item.dataset.hash;
           await chrome.runtime.sendMessage({ 
-            action: 'cacheServerDeleteByHash', 
+            action: 'CACHE_SERVER_DELETE_BY_HASH', 
             pageUrl: tab.url, 
             hash 
           });
@@ -906,15 +906,15 @@ class SidePanelController {
 
   setupMessageListener() {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      if (request.action === 'sidepanel-translate') {
+      if (request.action === 'SIDEPANEL_TRANSLATE') {
         document.getElementById('sourceText').value = request.text;
         this.translate();
-      } else if (request.action === 'sidepanel-show-cache') {
+      } else if (request.action === 'SIDEPANEL_SHOW_CACHE') {
         document.querySelector('.tab[data-tab="cache"]').click();
-      } else if (request.action === 'page-status-changed') {
+      } else if (request.action === 'PAGE_STATUS_CHANGED') {
         // Status-Update vom Content-Script
         this.updateActionStates();
-      } else if (request.action === 'translation-status') {
+      } else if (request.action === 'TRANSLATION_STATUS') {
         // Live Status-Update während Übersetzung
         this.updateTranslationStatus(request);
       }

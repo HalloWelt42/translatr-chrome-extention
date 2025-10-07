@@ -441,7 +441,7 @@
       
       // Nur Cache abfragen (cacheOnly)
       const cacheResult = await chrome.runtime.sendMessage({
-        action: 'translateBatch',
+        action: 'TRANSLATE_BATCH',
         texts: totalTexts.slice(0, 500), // Limit für Performance
         source,
         target,

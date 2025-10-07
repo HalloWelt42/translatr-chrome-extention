@@ -339,7 +339,7 @@ function updateEbookDomainStrategies(domains) {
   chrome.tabs.query({}, (tabs) => {
     tabs.forEach(tab => {
       chrome.tabs.sendMessage(tab.id, {
-        action: 'updateEbookDomains',
+        action: 'UPDATE_EBOOK_DOMAINS',
         domains: domains
       }).catch(() => {}); // Ignoriere Fehler für Tabs ohne Content-Script
     });

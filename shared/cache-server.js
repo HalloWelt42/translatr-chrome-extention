@@ -313,7 +313,7 @@ SMT.CacheServer = {
       // Request über Background Script leiten (kein Mixed Content Problem)
       console.log('[CacheServer Content] Sende cacheServerBulkGet an Background...');
       const response = await chrome.runtime.sendMessage({
-        action: 'cacheServerBulkGet',
+        action: 'CACHE_SERVER_BULK_GET',
         hashes: hashes,
         pageUrl: pageUrl
       });
