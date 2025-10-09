@@ -878,10 +878,69 @@ class TranslatorBackground {
     if (details.reason === 'install') {
       await this.setDefaultSettings();
     } else if (details.reason === 'update') {
-      // Migration für bestehende Nutzer
+      // Migration: alte Einzel-Keys -> neues Format (swt-settings / swt-data)
+      await this.migrateToUnifiedStorage();
       await this.migrateSettings();
     }
     await this.setupContextMenu();
+  }
+
+  async migrateToUnifiedStorage() {
+    try {
+      const check = await chrome.storage.sync.get('swt-settings');
+      if (check['swt-settings']) return; // Bereits migriert
+
+      const oldSync = await chrome.storage.sync.get(null);
+      if (!oldSync || Object.keys(oldSync).length === 0) return;
+
+      // Settings-Keys sammeln
+      const settingsKeys = [
+        'apiType', 'serviceUrl', 'apiKey', 'sourceLang', 'targetLang',
+        'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature', 'lmStudioMaxTokens',
+        'lmStudioContext', 'lmStudioCustomPrompt',
+        'showSelectionIcon', 'selectionIconDelay', 'showOriginalInTooltip',
+        'showAlternatives', 'tooltipPosition', 'highlightTranslated',
+        'enableTTS', 'ttsLanguage', 'excludedDomains',
+        'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
+        'simplifyPdfExport', 'useTabsForAlternatives', 'tabWordThreshold',
+        'lmBatchSize', 'lmMaxBatchTokens', 'pageBatchSize',
+        'enableTrueBatch', 'enableSmartChunking', 'useCacheFirst',
+        'autoLoadCache', 'autoTranslateDomains',
+        'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode', 'cacheServerTimeout',
+        'ebookReaderDomains', 'extractIframeContent',
+        'filterEmbeddingModels', 'enableAbortTranslation', 'enableLLMFallback',
+        'enableTokenCost', 'tokenCostAmount', 'tokenCostPer', 'tokenCostCurrency'
+      ];
+
+      const settings = {};
+      for (const key of settingsKeys) {
+        if (key in oldSync) settings[key] = oldSync[key];
+      }
+
+      // Data-Keys aus local
+      const oldLocal = await chrome.storage.local.get(null);
+      const data = {};
+      for (const key of ['translationHistory', 'tokenStats', 'totalCost']) {
+        if (key in oldLocal) data[key] = oldLocal[key];
+      }
+
+      if (Object.keys(settings).length > 0) {
+        await chrome.storage.sync.set({ 'swt-settings': settings });
+      }
+      if (Object.keys(data).length > 0) {
+        await chrome.storage.local.set({ 'swt-data': data });
+      }
+
+      // Alte Keys entfernen
+      const oldSyncKeys = Object.keys(oldSync).filter(k => k !== 'swt-settings');
+      if (oldSyncKeys.length > 0) await chrome.storage.sync.remove(oldSyncKeys);
+      const oldLocalKeys = Object.keys(oldLocal).filter(k => k !== 'swt-data');
+      if (oldLocalKeys.length > 0) await chrome.storage.local.remove(oldLocalKeys);
+
+      console.log('[SWT] Storage-Migration:', Object.keys(settings).length, 'Settings migriert');
+    } catch (e) {
+      console.warn('[SWT] Storage-Migration fehlgeschlagen:', e.message);
+    }
   }
 
   async migrateSettings() {
