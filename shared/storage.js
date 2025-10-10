@@ -76,11 +76,6 @@ SWT.Storage = {
     enableAbortTranslation: true,
     enableLLMFallback: false,
 
-    // Token-Kosten (wird in Phase 6 entfernt)
-    enableTokenCost: true,
-    tokenCostAmount: 1,
-    tokenCostPer: 10000,
-    tokenCostCurrency: 'EUR'
   },
 
   defaultData: {
@@ -92,7 +87,6 @@ SWT.Storage = {
       requestCount: 0,
       lastUpdated: null
     },
-    totalCost: 0
   },
 
   // === Settings (chrome.storage.sync) ===

@@ -2,8 +2,6 @@
 
 #translateBtn { width: 100%; }
 #resultActions { display: none; }
-#costCard { display: block; }
-#costCard.hidden { display: none !important; }
 
 body { min-height: 100vh; }
 
@@ -237,26 +235,6 @@ body { min-height: 100vh; }
   margin-top: 4px;
 }
 
-.cost-display {
-  text-align: center;
-  padding: var(--spacing-lg);
-  background: var(--green-glow);
-  border-radius: var(--radius-sm);
-}
-
-.cost-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--green);
-  font-variant-numeric: tabular-nums;
-}
-
-.cost-currency {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--green);
-  margin-left: 4px;
-}
 
 /* Cache Stats */
 .cache-stats {

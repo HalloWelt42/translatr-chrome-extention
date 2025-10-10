@@ -583,27 +583,6 @@ class SidePanelController {
       });
     }
     
-    // Kosten Reset Button (setzt auch Tokens zurück, da Kosten = Tokens * Rate)
-    const resetCostBtn = document.getElementById('resetCost');
-    if (resetCostBtn) {
-      resetCostBtn.addEventListener('click', async () => {
-        await chrome.runtime.sendMessage({ action: 'RESET_TOKEN_STATS' });
-        this.loadStats();
-        SMT.Toast.show('Kosten zurückgesetzt');
-      });
-    }
-    
-    // Alles Reset Button
-    const resetAllBtn = document.getElementById('resetAll');
-    if (resetAllBtn) {
-      resetAllBtn.addEventListener('click', async () => {
-        if (confirm('Alle Statistiken (Tokens + Kosten) zurücksetzen?')) {
-          await chrome.runtime.sendMessage({ action: 'RESET_TOKEN_STATS' });
-          this.loadStats();
-          SMT.Toast.show('Alle Statistiken zurückgesetzt');
-        }
-      });
-    }
   }
 
   async loadStats() {
@@ -611,58 +590,18 @@ class SidePanelController {
       // Token-Stats laden
       const response = await chrome.runtime.sendMessage({ action: 'GET_TOKEN_STATS' });
       
-      // Kosten-Einstellungen laden
-      const settings = await chrome.storage.sync.get([
-        'enableTokenCost', 'tokenCostAmount', 'tokenCostPer', 'tokenCostCurrency'
-      ]);
-      
       if (response.success && response.stats) {
         const stats = response.stats;
-        
+
         const totalEl = document.getElementById('totalTokens');
         const promptEl = document.getElementById('promptTokens');
         const completionEl = document.getElementById('completionTokens');
         const requestEl = document.getElementById('requestCount');
-        
+
         if (totalEl) totalEl.textContent = this.formatNumber(stats.totalTokens);
         if (promptEl) promptEl.textContent = this.formatNumber(stats.promptTokens);
         if (completionEl) completionEl.textContent = this.formatNumber(stats.completionTokens);
         if (requestEl) requestEl.textContent = this.formatNumber(stats.requestCount);
-        
-        // Kosten-Anzeige
-        const costCard = document.getElementById('costCard');
-        const totalCostEl = document.getElementById('totalCost');
-        const costCurrencyEl = document.getElementById('costCurrency');
-        
-        // Default: enableTokenCost = true
-        const showCost = settings.enableTokenCost !== false;
-        
-        if (showCost && costCard) {
-          costCard.classList.remove('hidden');
-          
-          // Kosten berechnen basierend auf aktuellen Tokens
-          const costAmount = settings.tokenCostAmount || 1;
-          const costPer = settings.tokenCostPer || 10000;
-          const currency = settings.tokenCostCurrency || 'EUR';
-          
-          // Cent pro X Tokens -> Euro/Dollar
-          const costPerToken = (costAmount / 100) / costPer;
-          const totalCost = stats.totalTokens * costPerToken;
-          
-          if (totalCostEl) {
-            totalCostEl.textContent = totalCost.toLocaleString('de-DE', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 4
-            });
-          }
-          
-          if (costCurrencyEl) {
-            const symbols = { 'EUR': '€', 'USD': '$', 'CHF': 'CHF' };
-            costCurrencyEl.textContent = symbols[currency] || '€';
-          }
-        } else if (costCard) {
-          costCard.classList.add('hidden');
-        }
         
         // Letzte Aktualisierung anzeigen
         const lastUpdateEl = document.getElementById('statsLastUpdate');

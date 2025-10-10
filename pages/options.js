@@ -74,8 +74,6 @@ async function loadSettings() {
       'lmBatchSize', 'lmMaxBatchTokens', 'enableTrueBatch', 'enableSmartChunking', 'useCacheFirst',
       // Seiten-Batch-Größe (v3.11.5)
       'pageBatchSize',
-      // Token-Kosten (Experimentell)
-      'enableTokenCost', 'tokenCostAmount', 'tokenCostPer', 'tokenCostCurrency',
       // Cache-Server (v3.8)
       'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode', 'cacheServerTimeout',
       'autoLoadCache',
@@ -138,12 +136,6 @@ async function loadSettings() {
     setChecked('skipCodeBlocks', settings.skipCodeBlocks !== false);
     setChecked('skipBlockquotes', settings.skipBlockquotes !== false);
     setChecked('fixInlineSpacing', settings.fixInlineSpacing !== false);
-    
-    // Token-Kosten
-    setChecked('enableTokenCost', settings.enableTokenCost !== false);
-    setVal('tokenCostAmount', settings.tokenCostAmount || 1);
-    setVal('tokenCostPer', settings.tokenCostPer || 10000);
-    setVal('tokenCostCurrency', settings.tokenCostCurrency || 'EUR');
     
     // Ausgeschlossene Domains
     setVal('excludedDomains', settings.excludedDomains || '');
@@ -633,11 +625,6 @@ async function saveSettings() {
       // Ausgeschlossene Domains
       excludedDomains: getVal('excludedDomains', '').trim(),
       
-      // Token-Kosten (Experimentell)
-      enableTokenCost: getChecked('enableTokenCost', true),
-      tokenCostAmount: getFloat('tokenCostAmount', 1),
-      tokenCostPer: getInt('tokenCostPer', 10000),
-      tokenCostCurrency: getVal('tokenCostCurrency', 'EUR'),
       
       // Cache-Server (v3.8)
       cacheServerEnabled: getChecked('cacheServerEnabled', true),

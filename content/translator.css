@@ -669,19 +669,6 @@
   color: var(--md-on-surface-medium);
 }
 
-.smt-token-cost-divider {
-  color: var(--md-divider-dark);
-  margin: 0 4px;
-}
-
-.smt-token-cost {
-  font-weight: 600;
-  color: var(--md-success);
-  background: var(--md-success-light);
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-}
 
 /* === Progress Ring (Minimiert) === */
 .smt-progress-ring {

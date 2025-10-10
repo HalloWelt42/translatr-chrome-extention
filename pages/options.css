@@ -60,13 +60,6 @@
 .input-md { width: 100px; }
 .select-sm { width: 120px; }
 
-/* Cost Input Row */
-.cost-input-row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
 
 /* Layout */
 .container {

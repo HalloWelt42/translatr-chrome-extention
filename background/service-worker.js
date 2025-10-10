@@ -908,8 +908,7 @@ class TranslatorBackground {
         'autoLoadCache', 'autoTranslateDomains',
         'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode', 'cacheServerTimeout',
         'ebookReaderDomains', 'extractIframeContent',
-        'filterEmbeddingModels', 'enableAbortTranslation', 'enableLLMFallback',
-        'enableTokenCost', 'tokenCostAmount', 'tokenCostPer', 'tokenCostCurrency'
+        'filterEmbeddingModels', 'enableAbortTranslation', 'enableLLMFallback'
       ];
 
       const settings = {};
@@ -920,7 +919,7 @@ class TranslatorBackground {
       // Data-Keys aus local
       const oldLocal = await chrome.storage.local.get(null);
       const data = {};
-      for (const key of ['translationHistory', 'tokenStats', 'totalCost']) {
+      for (const key of ['translationHistory', 'tokenStats']) {
         if (key in oldLocal) data[key] = oldLocal[key];
       }
 
@@ -2245,32 +2244,8 @@ class TranslatorBackground {
     stats.lastUpdated = Date.now();
     
     await chrome.storage.local.set({ tokenStats: stats });
-    
-    // Kosten aktualisieren wenn aktiviert
-    await this.updateCost(usage.total_tokens || 0);
-    
-    return stats;
-  }
 
-  async updateCost(newTokens) {
-    const settings = await chrome.storage.sync.get([
-      'enableTokenCost', 'tokenCostAmount', 'tokenCostPer'
-    ]);
-    
-    // Default: enableTokenCost = true
-    if (settings.enableTokenCost === false) return;
-    
-    const costAmount = settings.tokenCostAmount || 1;
-    const costPer = settings.tokenCostPer || 10000;
-    
-    // Cent pro X Tokens -> Hauptwährung
-    const costPerToken = (costAmount / 100) / costPer;
-    const addedCost = newTokens * costPerToken;
-    
-    const costData = await chrome.storage.local.get(['totalCost']);
-    const newTotalCost = (costData.totalCost || 0) + addedCost;
-    
-    await chrome.storage.local.set({ totalCost: newTotalCost });
+    return stats;
   }
 
   async resetTokenStats() {
