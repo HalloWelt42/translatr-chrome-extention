@@ -57,12 +57,49 @@ async function updateActionStates() {
 }
 
 async function loadSettings() {
-  const settings = await chrome.storage.sync.get(['sourceLang', 'targetLang', 'apiType']);
+  const settings = await chrome.storage.sync.get([
+    'sourceLang', 'targetLang', 'apiType',
+    'cacheServerEnabled', 'cacheServerMode'
+  ]);
   document.getElementById('sourceLang').value = settings.sourceLang || 'auto';
   document.getElementById('targetLang').value = settings.targetLang || 'de';
-  
+
   // API-Badge aktualisieren
   SMT.ApiBadge.update(settings.apiType || 'libretranslate');
+
+  // LED-Status aktualisieren
+  updateLedStatus(settings);
+}
+
+function updateLedStatus(settings) {
+  const apiLed = document.getElementById('apiLed');
+  const cacheLed = document.getElementById('cacheLed');
+  const cacheBadgeText = document.getElementById('cacheBadgeText');
+
+  // API LED: gruen = Typ gesetzt
+  if (apiLed) {
+    apiLed.className = 'led led-green';
+  }
+
+  // Cache LED
+  if (cacheLed && cacheBadgeText) {
+    const mode = settings.cacheServerMode || 'server-only';
+    const enabled = settings.cacheServerEnabled !== false;
+
+    if (!enabled) {
+      cacheLed.className = 'led led-off';
+      cacheBadgeText.textContent = 'Cache aus';
+    } else if (mode === 'local-only') {
+      cacheLed.className = 'led led-green';
+      cacheBadgeText.textContent = 'Lokal';
+    } else if (mode === 'server-only') {
+      cacheLed.className = 'led led-green';
+      cacheBadgeText.textContent = 'Server';
+    } else {
+      cacheLed.className = 'led led-yellow';
+      cacheBadgeText.textContent = 'Hybrid';
+    }
+  }
 }
 
 async function checkPageCache() {

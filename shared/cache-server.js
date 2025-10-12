@@ -301,24 +301,19 @@ SMT.CacheServer = {
     // Auf Init warten
     await this.waitForReady();
     
-    console.log('[CacheServer Content] bulkGet:', hashes.length, 'hashes');
-    console.log('[CacheServer Content] config.enabled:', this.config.enabled, 'mode:', this.config.mode);
     
     if (!this.config.enabled || !hashes.length) {
-      console.log('[CacheServer Content] bulkGet abgebrochen - enabled:', this.config.enabled);
       return { translations: {}, missing: hashes };
     }
     
     try {
       // Request über Background Script leiten (kein Mixed Content Problem)
-      console.log('[CacheServer Content] Sende cacheServerBulkGet an Background...');
       const response = await chrome.runtime.sendMessage({
         action: 'CACHE_SERVER_BULK_GET',
         hashes: hashes,
         pageUrl: pageUrl
       });
       
-      console.log('[CacheServer Content] bulkGet response:', response?.success, 'translations:', Object.keys(response?.result?.translations || {}).length);
       
       if (response && response.success) {
         return response.result;

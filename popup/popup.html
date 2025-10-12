@@ -11,8 +11,13 @@
   <div class="app-header">
     <span data-icon="translate"></span>
     <h1>Smart Translator</h1>
-    <div class="api-badge" id="apiBadge" title="Aktives API-Backend">
+    <div class="api-badge" id="apiBadge">
+      <span class="led led-off" id="apiLed"></span>
       <span id="apiBadgeText">Libre</span>
+    </div>
+    <div class="api-badge" id="cacheBadge">
+      <span class="led led-off" id="cacheLed"></span>
+      <span id="cacheBadgeText">Cache</span>
     </div>
   </div>
 
