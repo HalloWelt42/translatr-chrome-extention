@@ -1,6 +1,5 @@
-
-
-
+// Provider und Prompts laden
+importScripts('prompts.js', 'providers/libre-translate.js', 'providers/lm-studio.js');
 
 // ==========================================================================
 // CACHE SERVER INTEGRATION
@@ -767,59 +766,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // FACHKONTEXT SYSTEM-PROMPTS
 // ==========================================================================
 
-// Fachkontext System-Prompts (identisch mit options.js für Konsistenz)
-const CONTEXT_PROMPTS = {
-  general: `Du bist ein präziser Übersetzer. Übersetze den folgenden Text von {source} nach {target}.
-Gib eine natürliche, flüssige Übersetzung. Behalte die Formatierung bei.
-Antworte NUR mit einem JSON-Objekt im Format: {"translation": "deine Übersetzung", "alternatives": ["alternative1", "alternative2"]}`,
-
-  automotive: `Du bist ein Kfz-Fachübersetzer für {source} nach {target}.
-WICHTIGE REGELN:
-- NIEMALS übersetzen: Teilenummern, OE-Nummern, Codes, Abkürzungen (ABS, ESP, etc.), Markennamen
-- Verwende korrekte deutsche Kfz-Fachbegriffe:
-  • Control arm → Querlenker
-  • Tie rod end → Spurstangenkopf
-  • Ball joint → Traggelenk
-  • Wheel bearing → Radlager
-  • Brake caliper → Bremssattel
-  • Strut mount → Domlager
-- Bei Unsicherheit: technisch korrekte Variante bevorzugen
-Antworte NUR mit JSON: {"translation": "...", "alternatives": ["...", "..."], "context_notes": "Fachhinweise falls relevant"}`,
-
-  technical: `Du bist ein technischer Fachübersetzer {source} → {target}.
-REGELN:
-- Bewahre absolute technische Präzision
-- Belasse etablierte englische Fachbegriffe (API, Cache, Backend, Framework, etc.)
-- Verwende korrekte deutsche IT-Terminologie wo üblich
-- Code-Beispiele und Variablennamen NIEMALS übersetzen
-Antworte NUR mit JSON: {"translation": "...", "alternatives": ["..."]}`,
-
-  medical: `Du bist ein medizinischer Fachübersetzer {source} → {target}.
-REGELN:
-- Verwende exakte medizinische Terminologie
-- Lateinische/griechische Fachbegriffe beibehalten wenn in der Medizin üblich
-- Höchste Präzision bei Dosierungen, Maßeinheiten und Anweisungen
-- Anatomische Begriffe korrekt übersetzen
-Antworte NUR mit JSON: {"translation": "...", "alternatives": ["..."], "context_notes": "Medizinische Hinweise"}`,
-
-  legal: `Du bist ein juristischer Fachübersetzer {source} → {target}.
-REGELN:
-- Verwende exakte juristische Terminologie des Zielrechtssystems
-- Beachte länderspezifische Rechtsbegriffe (deutsches Recht)
-- Gesetzesnamen und Paragraphen korrekt übertragen
-- Im Zweifel: wörtliche Übersetzung mit erklärender Anmerkung
-Antworte NUR mit JSON: {"translation": "...", "alternatives": ["..."], "context_notes": "Rechtliche Anmerkungen"}`,
-
-  custom: ''
-};
-
-// Batch-Übersetzungs-Prompt für Seitenübersetzung
-const BATCH_PROMPT = `Du bist ein Batch-Übersetzer {source} → {target}.
-Du erhältst ein JSON-Array mit Texten.
-Übersetze jeden Text einzeln und behalte die EXAKTE Reihenfolge bei.
-Antworte NUR mit JSON im Format:
-{"items": [{"original": "...", "translation": "..."}, ...]}
-WICHTIG: Die Anzahl der Ausgabe-Items MUSS der Anzahl der Eingabe-Items entsprechen.`;
+// CONTEXT_PROMPTS und BATCH_PROMPT kommen aus prompts.js (via importScripts)
+// LibreTranslateProvider und LMStudioProvider aus providers/ (via importScripts)
 
 class TranslatorBackground {
   constructor() {
@@ -1353,141 +1301,14 @@ class TranslatorBackground {
   }
 
   async translateWithLibreTranslate(text, source, target, settings) {
-    try {
-      const serviceUrl = settings.serviceUrl || 'http://localhost:5000/translate';
-
-      const response = await fetch(serviceUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          q: text,
-          source: source,
-          target: target,
-          format: 'text',
-          alternatives: 3,
-          api_key: settings.apiKey || ''
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return {
-        success: true,
-        translatedText: result.translatedText || text,
-        alternatives: result.alternatives || [],
-        detectedLanguage: result.detectedLanguage,
-        apiType: 'libretranslate',
-        tokens: 0 // LibreTranslate hat keine Token-Info
-      };
-    } catch (e) {
-      console.warn('LibreTranslate error:', e);
-      return { success: false, error: e.message };
-    }
+    return LibreTranslateProvider.translate(text, source, target, settings);
   }
 
   async translateWithLMStudio(text, source, target, settings) {
-    try {
-      const url = settings.lmStudioUrl || 'http://192.168.178.45:1234';
-      const model = settings.lmStudioModel;
-      
-      if (!model) {
-        throw new Error('Kein LM Studio Modell ausgewählt');
-      }
-
-      const systemPrompt = this.buildSystemPrompt(settings, source, target);
-
-      const response = await fetch(`${url}/v1/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: text }
-          ],
-          temperature: settings.lmStudioTemperature || 0.1,
-          max_tokens: settings.lmStudioMaxTokens || 16000,
-          response_format: {
-            type: 'json_schema',
-            json_schema: {
-              name: 'translation',
-              strict: true,
-              schema: {
-                type: 'object',
-                properties: {
-                  translation: { type: 'string' },
-                  alternatives: { 
-                    type: 'array',
-                    items: { type: 'string' }
-                  },
-                  context_notes: { type: 'string' }
-                },
-                required: ['translation'],
-                additionalProperties: false
-              }
-            }
-          }
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-
-      const result = await response.json();
-      
-      if (!result.choices || !result.choices[0]) {
-        throw new Error('Ungültige Antwort vom LM Studio Server');
-      }
-
-      const content = result.choices[0].message.content;
-      
-      // Token-Usage extrahieren und persistent speichern
-      const usage = result.usage || {};
-      const tokens = usage.total_tokens || 
-                    (usage.prompt_tokens || 0) + (usage.completion_tokens || 0);
-      
-      // Globale Token-Stats aktualisieren
-      if (usage.total_tokens) {
-        await this.updateTokenStats(usage);
-      }
-      
-      try {
-        const parsed = JSON.parse(content);
-        // Escaped Newlines zurückwandeln (falls LLM \n statt echtem Newline zurückgibt)
-        let translation = parsed.translation;
-        translation = translation.replace(/\\n/g, '\n');
-        
-        return {
-          success: true,
-          translatedText: translation,
-          alternatives: parsed.alternatives || [],
-          contextNotes: parsed.context_notes,
-          apiType: 'lmstudio',
-          tokens: tokens,
-          usage: usage
-        };
-      } catch (parseError) {
-        // Fallback: Wenn kein JSON, nutze die rohe Antwort
-        // Escaped Newlines zurückwandeln
-        let translation = content.trim().replace(/\\n/g, '\n');
-        return {
-          success: true,
-          translatedText: translation,
-          alternatives: [],
-          apiType: 'lmstudio',
-          tokens: tokens,
-          usage: usage
-        };
-      }
-    } catch (e) {
-      console.warn('LM Studio error:', e);
-      return { success: false, error: e.message };
-    }
+    return LMStudioProvider.translate(
+      text, source, target, settings,
+      (usage) => this.updateTokenStats(usage)
+    );
   }
 
   /**
@@ -1942,8 +1763,8 @@ class TranslatorBackground {
         const chunkWithPlaceholders = chunk.map(text => text.replace(/\n/g, NEWLINE_PLACEHOLDER));
         
         // Batch-Prompt mit Sprachplatzhaltern
-        const sourceLabel = source === 'auto' ? 'der Quellsprache' : this.getLanguageName(source);
-        const targetLabel = this.getLanguageName(target);
+        const sourceLabel = source === 'auto' ? 'der Quellsprache' : LMStudioProvider._getLanguageName(source);
+        const targetLabel = LMStudioProvider._getLanguageName(target);
         const systemPrompt = BATCH_PROMPT
           .replace(/{source}/g, sourceLabel)
           .replace(/{target}/g, targetLabel)
@@ -2160,41 +1981,7 @@ class TranslatorBackground {
   }
 
   buildSystemPrompt(settings, source, target) {
-    const context = settings.lmStudioContext || 'general';
-    const customPrompt = settings.lmStudioCustomPrompt;
-    
-    let prompt = context === 'custom' && customPrompt 
-      ? customPrompt 
-      : CONTEXT_PROMPTS[context] || CONTEXT_PROMPTS.general;
-    
-    // Sprachbezeichnungen ersetzen
-    const sourceLabel = source === 'auto' ? 'der Quellsprache' : this.getLanguageName(source);
-    const targetLabel = this.getLanguageName(target);
-    
-    return prompt
-      .replace(/{source}/g, sourceLabel)
-      .replace(/{target}/g, targetLabel);
-  }
-
-  getLanguageName(code) {
-    const names = {
-      'auto': 'Automatisch',
-      'en': 'Englisch',
-      'de': 'Deutsch',
-      'fr': 'Französisch',
-      'es': 'Spanisch',
-      'it': 'Italienisch',
-      'pt': 'Portugiesisch',
-      'nl': 'Niederländisch',
-      'pl': 'Polnisch',
-      'ru': 'Russisch',
-      'zh': 'Chinesisch',
-      'ja': 'Japanisch',
-      'ko': 'Koreanisch',
-      'ar': 'Arabisch',
-      'tr': 'Türkisch'
-    };
-    return names[code] || code;
+    return LMStudioProvider.buildSystemPrompt(settings, source, target);
   }
 
   async sendToContentScript(tabId, message) {
