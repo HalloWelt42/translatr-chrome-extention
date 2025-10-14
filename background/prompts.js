@@ -54,3 +54,4 @@ Uebersetze jeden Text einzeln und behalte die EXAKTE Reihenfolge bei.
 Antworte NUR mit JSON im Format:
 {"items": [{"original": "...", "translation": "..."}, ...]}
 WICHTIG: Die Anzahl der Ausgabe-Items MUSS der Anzahl der Eingabe-Items entsprechen.`;
+export { CONTEXT_PROMPTS, BATCH_PROMPT };

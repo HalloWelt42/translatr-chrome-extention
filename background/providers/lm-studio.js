@@ -3,6 +3,8 @@
  * Kapselt die Kommunikation mit LM Studio (OpenAI-kompatible API).
  */
 
+import { CONTEXT_PROMPTS, BATCH_PROMPT } from '../prompts.js';
+
 const LMStudioProvider = {
   /**
    * Uebersetzt einen einzelnen Text
@@ -239,3 +241,4 @@ const LMStudioProvider = {
     return names[code] || code;
   }
 };
+export { LMStudioProvider };

@@ -63,3 +63,4 @@ const LibreTranslateProvider = {
     }
   }
 };
+export { LibreTranslateProvider };
