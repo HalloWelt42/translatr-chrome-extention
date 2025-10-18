@@ -3,12 +3,12 @@
  * Orchestriert lokalen und Server-Cache basierend auf Modus-Einstellung.
  *
  * Modi: 'local-only', 'server-only', 'server-first', 'local-first'
- * Delegiert an SMT.CacheLocal und SMT.CacheServer.
+ * Delegiert an SWT.CacheLocal und SWT.CacheServer.
  */
 
-window.SMT = window.SMT || {};
+window.SWT = window.SWT || {};
 
-SMT.Cache = {
+SWT.Cache = {
   config: {
     mode: 'server-only',
     enabled: true
@@ -30,8 +30,8 @@ SMT.Cache = {
         this.config.enabled = stored.cacheServerEnabled;
         this.config.mode = stored.cacheServerMode;
 
-        if (SMT.CacheServer?.init) {
-          await SMT.CacheServer.init();
+        if (SWT.CacheServer?.init) {
+          await SWT.CacheServer.init();
         }
 
         this._ready = true;
@@ -76,7 +76,7 @@ SMT.Cache = {
 
     // Bei local-first oder local-only: Lokal zuerst
     if (this._useLocal()) {
-      const localResult = SMT.CacheLocal.checkCache(cacheKey);
+      const localResult = SWT.CacheLocal.checkCache(cacheKey);
       if (localResult.hasCache) {
         return { ...localResult, source: 'local' };
       }
@@ -105,7 +105,7 @@ SMT.Cache = {
 
     // Lokal laden
     if (this._useLocal()) {
-      const localData = SMT.CacheLocal.loadTranslations(cacheKey);
+      const localData = SWT.CacheLocal.loadTranslations(cacheKey);
       if (localData && Object.keys(localData).length > 0) {
         for (const [original, translated] of Object.entries(localData)) {
           translations.set(original, translated);
@@ -142,7 +142,7 @@ SMT.Cache = {
     if (!this.config.enabled || !items?.length) return;
 
     if (this._useLocal()) {
-      SMT.CacheLocal.saveTranslations(cacheKey, pageUrl, items);
+      SWT.CacheLocal.saveTranslations(cacheKey, pageUrl, items);
     }
 
     if (this._useServer()) {
@@ -168,14 +168,14 @@ SMT.Cache = {
     // Lokaler Cache
     if (this._useLocal()) {
       if (scope === 'all' || scope === 'local-all') {
-        results.local = SMT.CacheLocal.clearCache(null);
+        results.local = SWT.CacheLocal.clearCache(null);
       } else if (scope === 'page' && cacheKey) {
-        results.local = SMT.CacheLocal.clearCache(cacheKey);
+        results.local = SWT.CacheLocal.clearCache(cacheKey);
       }
     }
 
     // Server Cache
-    if (this._useServer() && SMT.CacheServer?.config?.enabled) {
+    if (this._useServer() && SWT.CacheServer?.config?.enabled) {
       if (scope === 'all' || scope === 'server-all') {
         try {
           const response = await chrome.runtime.sendMessage({
@@ -206,7 +206,7 @@ SMT.Cache = {
   // ==========================================================================
 
   async _checkServerCache(pageUrl, settings, sampleTexts) {
-    if (!SMT.CacheServer?.bulkGet) {
+    if (!SWT.CacheServer?.bulkGet) {
       return { hasCache: false, count: 0, percentage: 0 };
     }
 
@@ -217,7 +217,7 @@ SMT.Cache = {
       const hashes = [];
       for (const text of sampleTexts.slice(0, 50)) {
         if (text.length >= 2) {
-          const hash = await SMT.CacheServer.computeHash(pageUrl, text, langPair, isEbook);
+          const hash = await SWT.CacheServer.computeHash(pageUrl, text, langPair, isEbook);
           hashes.push(hash);
         }
       }
@@ -226,7 +226,7 @@ SMT.Cache = {
         return { hasCache: false, count: 0, percentage: 0 };
       }
 
-      const result = await SMT.CacheServer.bulkGet(hashes, pageUrl);
+      const result = await SWT.CacheServer.bulkGet(hashes, pageUrl);
       const count = Object.keys(result.translations || {}).length;
       const percentage = Math.round((count / hashes.length) * 100);
 
@@ -245,7 +245,7 @@ SMT.Cache = {
   async _loadServerCache(pageUrl, settings, allTexts) {
     const translations = new Map();
 
-    if (!SMT.CacheServer?.bulkGet) return translations;
+    if (!SWT.CacheServer?.bulkGet) return translations;
 
     try {
       const langPair = `${settings.sourceLang || 'auto'}:${settings.targetLang || 'de'}`;
@@ -256,7 +256,7 @@ SMT.Cache = {
 
       for (const text of allTexts) {
         if (text.length >= 2) {
-          const hash = await SMT.CacheServer.computeHash(pageUrl, text, langPair, isEbook);
+          const hash = await SWT.CacheServer.computeHash(pageUrl, text, langPair, isEbook);
           if (!hashToText.has(hash)) {
             hashToText.set(hash, text);
             hashes.push(hash);
@@ -266,7 +266,7 @@ SMT.Cache = {
 
       if (hashes.length === 0) return translations;
 
-      const result = await SMT.CacheServer.bulkGet(hashes, pageUrl);
+      const result = await SWT.CacheServer.bulkGet(hashes, pageUrl);
 
       for (const [hash, data] of Object.entries(result.translations || {})) {
         if (data.original && data.translated) {
@@ -281,7 +281,7 @@ SMT.Cache = {
   },
 
   async _saveServerCache(pageUrl, settings, items) {
-    if (!SMT.CacheServer?.bulkStore) return;
+    if (!SWT.CacheServer?.bulkStore) return;
 
     try {
       const langPair = `${settings.sourceLang || 'auto'}:${settings.targetLang || 'de'}`;
@@ -323,8 +323,8 @@ SMT.Cache = {
     };
 
     if (this._useLocal()) {
-      info.localEntries = SMT.CacheLocal.getEntries();
-      info.localUsage = SMT.CacheLocal.getStorageUsage();
+      info.localEntries = SWT.CacheLocal.getEntries();
+      info.localUsage = SWT.CacheLocal.getStorageUsage();
     }
 
     if (this._useServer()) {
@@ -341,13 +341,13 @@ SMT.Cache = {
 };
 
 // Auto-Init
-SMT.Cache.init();
+SWT.Cache.init();
 
 // Bei Settings-Aenderung neu initialisieren
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && (changes.cacheServerEnabled || changes.cacheServerMode)) {
-    SMT.Cache._ready = false;
-    SMT.Cache._initPromise = null;
-    SMT.Cache.init();
+    SWT.Cache._ready = false;
+    SWT.Cache._initPromise = null;
+    SWT.Cache.init();
   }
 });

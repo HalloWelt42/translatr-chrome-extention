@@ -5,8 +5,8 @@
   'use strict';
 
   // Guard gegen doppeltes Laden
-  if (window._smtUILoaded) return;
-  window._smtUILoaded = true;
+  if (window.__swtUIGuard) return;
+  window.__swtUIGuard = true;
 
   if (typeof SmartTranslator === 'undefined') {
     console.warn('SmartTranslator nicht gefunden - content-ui.js muss nach content.js geladen werden');
@@ -28,47 +28,47 @@
         this.processedItems = 0;
         
         this.progressOverlay = document.createElement('div');
-        this.progressOverlay.className = 'smt-ui smt-progress';
+        this.progressOverlay.className = 'swt-ui swt-progress';
         this.progressOverlay.innerHTML = `
-          <div class="smt-progress-content">
-            <div class="smt-progress-header">
-              <div class="smt-progress-title-wrap">
-                <div class="smt-status-dot" id="smtStatusDot" title="Bereit"></div>
-                <span class="smt-progress-title">Übersetze...</span>
-                <span class="smt-progress-eta" title="Geschätzte Restzeit">
-                  ${SMT.Icons.svg('clock', 'smt-eta-icon')}
-                  <span class="smt-eta-text">berechne...</span>
+          <div class="swt-progress-content">
+            <div class="swt-progress-header">
+              <div class="swt-progress-title-wrap">
+                <div class="swt-status-dot" id="smtStatusDot" title="Bereit"></div>
+                <span class="swt-progress-title">Übersetze...</span>
+                <span class="swt-progress-eta" title="Geschätzte Restzeit">
+                  ${SWT.Icons.svg('clock', 'swt-eta-icon')}
+                  <span class="swt-eta-text">berechne...</span>
                 </span>
               </div>
-              <div class="smt-progress-actions">
-                <button class="smt-progress-minimize" title="Minimieren">−</button>
-                <button class="smt-progress-pause" title="Pausieren">
-                  ${SMT.Icons.svg('pause')}
+              <div class="swt-progress-actions">
+                <button class="swt-progress-minimize" title="Minimieren">−</button>
+                <button class="swt-progress-pause" title="Pausieren">
+                  ${SWT.Icons.svg('pause')}
                 </button>
-                <button class="smt-progress-stop" title="Abbrechen">
-                  ${SMT.Icons.svg('stop')}
+                <button class="swt-progress-stop" title="Abbrechen">
+                  ${SWT.Icons.svg('stop')}
                 </button>
               </div>
             </div>
-            <div class="smt-progress-body">
-              <div class="smt-progress-bar"><div class="smt-progress-fill"></div></div>
-              <div class="smt-progress-info">
-                <span class="smt-progress-text">0%</span>
-                <span class="smt-progress-stats">0 / 0</span>
+            <div class="swt-progress-body">
+              <div class="swt-progress-bar"><div class="swt-progress-fill"></div></div>
+              <div class="swt-progress-info">
+                <span class="swt-progress-text">0%</span>
+                <span class="swt-progress-stats">0 / 0</span>
               </div>
-              <div class="smt-progress-tokens">
-                <span class="smt-token-current" title="Tokens letzte Anfrage">0</span>
-                <span class="smt-token-divider">•</span>
-                <span class="smt-token-total" title="Tokens gesamt">0</span>
+              <div class="swt-progress-tokens">
+                <span class="swt-token-current" title="Tokens letzte Anfrage">0</span>
+                <span class="swt-token-divider">•</span>
+                <span class="swt-token-total" title="Tokens gesamt">0</span>
               </div>
             </div>
           </div>
-          <div class="smt-progress-ring">
+          <div class="swt-progress-ring">
             <svg viewBox="0 0 36 36">
-              <path class="smt-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="smt-ring-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-dasharray="0, 100"/>
+              <path class="swt-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="swt-ring-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-dasharray="0, 100"/>
             </svg>
-            <span class="smt-ring-percent">0%</span>
+            <span class="swt-ring-percent">0%</span>
           </div>
         `;
         document.body.appendChild(this.progressOverlay);
@@ -76,25 +76,25 @@
         const self = this;
         
         // Event-Listener: Minimieren
-        this.progressOverlay.querySelector('.smt-progress-minimize').addEventListener('click', () => {
-          self.progressOverlay.classList.toggle('smt-minimized');
+        this.progressOverlay.querySelector('.swt-progress-minimize').addEventListener('click', () => {
+          self.progressOverlay.classList.toggle('swt-minimized');
         });
         
         // Pause/Resume Button
-        const pauseBtn = this.progressOverlay.querySelector('.smt-progress-pause');
+        const pauseBtn = this.progressOverlay.querySelector('.swt-progress-pause');
         pauseBtn.addEventListener('click', () => {
           self.isPaused = !self.isPaused;
           if (self.isPaused) {
-            pauseBtn.innerHTML = SMT.Icons.svg('play');
+            pauseBtn.innerHTML = SWT.Icons.svg('play');
             pauseBtn.title = 'Fortsetzen';
-            pauseBtn.classList.add('smt-paused');
-            self.progressOverlay.classList.add('smt-paused');
+            pauseBtn.classList.add('swt-paused');
+            self.progressOverlay.classList.add('swt-paused');
             self.pauseStartTime = Date.now();
           } else {
-            pauseBtn.innerHTML = SMT.Icons.svg('pause');
+            pauseBtn.innerHTML = SWT.Icons.svg('pause');
             pauseBtn.title = 'Pausieren';
-            pauseBtn.classList.remove('smt-paused');
-            self.progressOverlay.classList.remove('smt-paused');
+            pauseBtn.classList.remove('swt-paused');
+            self.progressOverlay.classList.remove('swt-paused');
             if (self.pauseStartTime) {
               self.translationStartTime += (Date.now() - self.pauseStartTime);
             }
@@ -102,7 +102,7 @@
         });
         
         // Stop Button (Abbruch)
-        const stopBtn = this.progressOverlay.querySelector('.smt-progress-stop');
+        const stopBtn = this.progressOverlay.querySelector('.swt-progress-stop');
         stopBtn.addEventListener('click', () => {
           self.translationAborted = true;
           self.abortController?.abort();
@@ -111,14 +111,14 @@
         });
         
         // Minimierter Ring klickbar
-        this.progressOverlay.querySelector('.smt-progress-ring').addEventListener('click', () => {
-          self.progressOverlay.classList.remove('smt-minimized');
+        this.progressOverlay.querySelector('.swt-progress-ring').addEventListener('click', () => {
+          self.progressOverlay.classList.remove('swt-minimized');
         });
       }
-      requestAnimationFrame(() => this.progressOverlay?.classList.add('smt-visible'));
+      requestAnimationFrame(() => this.progressOverlay?.classList.add('swt-visible'));
     } else {
       if (this.progressOverlay) {
-        this.progressOverlay.classList.remove('smt-visible');
+        this.progressOverlay.classList.remove('swt-visible');
         const overlay = this.progressOverlay;
         setTimeout(() => {
           overlay?.remove();
@@ -147,26 +147,26 @@
     const percent = Math.round((current / total) * 100);
     
     // Balken
-    const fill = this.progressOverlay.querySelector('.smt-progress-fill');
+    const fill = this.progressOverlay.querySelector('.swt-progress-fill');
     if (fill) fill.style.width = `${percent}%`;
     
     // Text
-    const text = this.progressOverlay.querySelector('.smt-progress-text');
+    const text = this.progressOverlay.querySelector('.swt-progress-text');
     if (text) text.textContent = `${percent}%`;
     
     // Stats
-    const stats = this.progressOverlay.querySelector('.smt-progress-stats');
+    const stats = this.progressOverlay.querySelector('.swt-progress-stats');
     if (stats) stats.textContent = `${current} / ${total}`;
     
     // Ring (minimierte Ansicht)
-    const ringFill = this.progressOverlay.querySelector('.smt-ring-fill');
+    const ringFill = this.progressOverlay.querySelector('.swt-ring-fill');
     if (ringFill) ringFill.setAttribute('stroke-dasharray', `${percent}, 100`);
     
-    const ringPercent = this.progressOverlay.querySelector('.smt-ring-percent');
+    const ringPercent = this.progressOverlay.querySelector('.swt-ring-percent');
     if (ringPercent) ringPercent.textContent = `${percent}%`;
     
     // ETA
-    const etaText = this.progressOverlay.querySelector('.smt-eta-text');
+    const etaText = this.progressOverlay.querySelector('.swt-eta-text');
     if (etaText) {
       const eta = this.calculateETA(current, total);
       if (eta !== null) {
@@ -181,8 +181,8 @@
       this.currentTokens = tokenInfo.tokens || 0;
       this.totalTokens += this.currentTokens;
       
-      const currentEl = this.progressOverlay.querySelector('.smt-token-current');
-      const totalEl = this.progressOverlay.querySelector('.smt-token-total');
+      const currentEl = this.progressOverlay.querySelector('.swt-token-current');
+      const totalEl = this.progressOverlay.querySelector('.swt-token-total');
       if (currentEl) currentEl.textContent = this.formatTokens(this.currentTokens, false);
       if (totalEl) totalEl.textContent = this.formatTokens(this.totalTokens, false);
       
@@ -249,22 +249,22 @@
    * Toast-Benachrichtigung anzeigen
    */
   SmartTranslator.prototype.showNotification = function(message, type = 'info') {
-    let container = document.querySelector('.smt-notification-container');
+    let container = document.querySelector('.swt-notification-container');
     if (!container) {
       container = document.createElement('div');
-      container.className = 'smt-ui smt-notification-container';
+      container.className = 'swt-ui swt-notification-container';
       document.body.appendChild(container);
     }
 
     const notification = document.createElement('div');
-    notification.className = `smt-ui smt-notification smt-notification-${type}`;
+    notification.className = `swt-ui swt-notification swt-notification-${type}`;
     notification.textContent = message;
     container.appendChild(notification);
 
-    requestAnimationFrame(() => notification.classList.add('smt-visible'));
+    requestAnimationFrame(() => notification.classList.add('swt-visible'));
 
     setTimeout(() => {
-      notification.classList.remove('smt-visible');
+      notification.classList.remove('swt-visible');
       setTimeout(() => {
         notification.remove();
         if (container.children.length === 0) {
@@ -308,7 +308,7 @@
   SmartTranslator.prototype.updateSourceStatus = function(type, active = true) {
     if (!this.progressOverlay) return;
     
-    const statusDot = this.progressOverlay.querySelector('.smt-status-dot');
+    const statusDot = this.progressOverlay.querySelector('.swt-status-dot');
     
     if (statusDot) {
       // Klassen zurücksetzen

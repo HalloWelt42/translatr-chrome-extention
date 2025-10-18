@@ -2,9 +2,9 @@
 // Einheitliche Toast-Benachrichtigungen für alle Komponenten
 // Benötigt: components.css mit .toast Klassen
 
-window.SMT = window.SMT || {};
+window.SWT = window.SWT || {};
 
-window.SMT.Toast = {
+window.SWT.Toast = {
   /**
    * Zeigt eine Toast-Benachrichtigung
    * @param {string} message - Nachricht

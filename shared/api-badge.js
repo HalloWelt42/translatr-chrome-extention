@@ -1,9 +1,9 @@
 // API Badge
 // Einheitliche API-Badge Aktualisierung für Popup und Sidepanel
 
-window.SMT = window.SMT || {};
+window.SWT = window.SWT || {};
 
-window.SMT.ApiBadge = {
+window.SWT.ApiBadge = {
   /**
    * Aktualisiert das API-Badge (LLM/Libre)
    * @param {string} apiType - 'lmstudio' oder 'libretranslate'

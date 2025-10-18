@@ -5,8 +5,8 @@
   'use strict';
 
   // Guard gegen doppeltes Laden
-  if (window._smtDOMLoaded) return;
-  window._smtDOMLoaded = true;
+  if (window.__swtDOMGuard) return;
+  window.__swtDOMGuard = true;
 
   if (typeof SmartTranslator === 'undefined') {
     console.warn('SmartTranslator nicht gefunden - content-dom.js muss nach content.js geladen werden');
@@ -37,7 +37,7 @@
     const finalTranslation = leadingSpaces + translated.trim() + trailingSpaces;
 
     const wrapper = document.createElement('span');
-    wrapper.className = 'smt-translated-text';
+    wrapper.className = 'swt-translated-text';
     wrapper.textContent = finalTranslation;
     wrapper.dataset.original = original;
     wrapper.dataset.translated = translated;
@@ -62,7 +62,7 @@
     this.hideOriginalTooltip();
 
     const tooltip = document.createElement('div');
-    tooltip.className = 'smt-ui smt-original-tooltip';
+    tooltip.className = 'swt-ui swt-original-tooltip';
     tooltip.textContent = original;
 
     const rect = element.getBoundingClientRect();
@@ -75,7 +75,7 @@
 
     document.body.appendChild(tooltip);
     this._originalTooltip = tooltip;
-    requestAnimationFrame(() => tooltip.classList.add('smt-visible'));
+    requestAnimationFrame(() => tooltip.classList.add('swt-visible'));
   };
 
   /**
@@ -94,17 +94,17 @@
   SmartTranslator.prototype.toggleTranslation = function() {
     if (!this.isTranslated) return;
 
-    document.querySelectorAll('.smt-translated-text').forEach(el => {
+    document.querySelectorAll('.swt-translated-text').forEach(el => {
       const current = el.textContent;
       const original = el.dataset.original;
       const translated = el.dataset.translated;
 
       if (current === translated) {
         el.textContent = original;
-        el.classList.add('smt-showing-original');
+        el.classList.add('swt-showing-original');
       } else {
         el.textContent = translated;
-        el.classList.remove('smt-showing-original');
+        el.classList.remove('swt-showing-original');
       }
     });
 
@@ -115,7 +115,7 @@
    * Seite auf Original zurücksetzen
    */
   SmartTranslator.prototype.restorePage = function() {
-    document.querySelectorAll('.smt-translated-text').forEach(el => {
+    document.querySelectorAll('.swt-translated-text').forEach(el => {
       const textNode = document.createTextNode(el.dataset.original);
       el.parentNode.replaceChild(textNode, el);
     });
@@ -208,11 +208,11 @@
           }
           
           // UI-Elemente
-          if (parent.closest('.smt-ui')) {
-            reasons.push('In .smt-ui Container');
+          if (parent.closest('.swt-ui')) {
+            reasons.push('In .swt-ui Container');
           }
-          if (parent.closest('.smt-translated-text')) {
-            reasons.push('Bereits als übersetzt markiert (.smt-translated-text)');
+          if (parent.closest('.swt-translated-text')) {
+            reasons.push('Bereits als übersetzt markiert (.swt-translated-text)');
           }
           
           // Text-Filter
@@ -345,8 +345,8 @@
             }
 
             // Eigene UI-Elemente
-            if (parent.closest('.smt-ui')) return NodeFilter.FILTER_REJECT;
-            if (parent.closest('.smt-translated-text')) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('.swt-ui')) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('.swt-translated-text')) return NodeFilter.FILTER_REJECT;
 
             const text = node.textContent.trim();
             if (text.length < 3 || /^[\s\d\W]*$/.test(text)) return NodeFilter.FILTER_REJECT;
@@ -390,7 +390,7 @@
     
     // Block-Elemente die als Ganzes übersetzt werden sollen
     const blockSelectors = 'p, h1, h2, h3, h4, h5, h6, li, figcaption, blockquote, td, th';
-    const excludeSelectors = '.smt-translated-text, script, style, noscript';
+    const excludeSelectors = '.swt-translated-text, script, style, noscript';
     
     iframeContents.forEach(content => {
       const body = content.body;
@@ -398,7 +398,7 @@
       
       body.querySelectorAll(blockSelectors).forEach(el => {
         // Bereits übersetzt?
-        if (el.classList.contains('smt-translated-text')) return;
+        if (el.classList.contains('swt-translated-text')) return;
         if (el.closest(excludeSelectors)) return;
         
         // Kompletten Text extrahieren (ignoriert innere Tags)
@@ -510,7 +510,7 @@
     
     inlineTags.forEach(tag => {
       document.querySelectorAll(tag).forEach(el => {
-        if (el.closest('.smt-ui')) return;
+        if (el.closest('.swt-ui')) return;
         
         const prev = el.previousSibling;
         if (prev && prev.nodeType === Node.TEXT_NODE) {

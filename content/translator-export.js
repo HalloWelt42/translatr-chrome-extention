@@ -5,8 +5,8 @@
   'use strict';
 
   // Guard gegen doppeltes Laden
-  if (window._smtExportLoaded) return;
-  window._smtExportLoaded = true;
+  if (window.__swtExportGuard) return;
+  window.__swtExportGuard = true;
 
   // Warten bis SmartTranslator definiert ist
   if (typeof SmartTranslator === 'undefined') {
@@ -41,7 +41,7 @@
         if (['script', 'style', 'noscript', 'nav', 'header', 'footer', 'aside', 'svg'].includes(tag)) {
           return;
         }
-        if (node.closest('.smt-ui')) return;
+        if (node.closest('.swt-ui')) return;
         
         // Überschriften
         if (/^h[1-6]$/.test(tag)) {

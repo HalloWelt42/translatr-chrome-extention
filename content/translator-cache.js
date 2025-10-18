@@ -5,8 +5,8 @@
   'use strict';
 
   // Guard gegen doppeltes Laden
-  if (window._smtCacheLoaded) return;
-  window._smtCacheLoaded = true;
+  if (window.__swtCacheGuard) return;
+  window.__swtCacheGuard = true;
 
   if (typeof SmartTranslator === 'undefined') {
     console.warn('SmartTranslator nicht gefunden - content-cache.js muss nach content.js geladen werden');
@@ -32,10 +32,10 @@
     }
     
     // Auf Cache-API warten
-    if (SMT.Cache?.waitForReady) {
-      await SMT.Cache.waitForReady();
+    if (SWT.Cache?.waitForReady) {
+      await SWT.Cache.waitForReady();
     }
-    console.log('[SWT] Cache-API ready, mode:', SMT.Cache?.config?.mode);
+    console.log('[SWT] Cache-API ready, mode:', SWT.Cache?.config?.mode);
     
     // Strategie und Seitentyp erkennen
     const strategy = this.getActiveStrategy?.();
@@ -90,7 +90,7 @@
     console.log('[SWT] URL für Cache:', currentUrl);
     
     // Cache prüfen - WICHTIG: aktuelle URL verwenden!
-    const cacheResult = await SMT.Cache.checkCache(
+    const cacheResult = await SWT.Cache.checkCache(
       currentUrl,
       this.cacheKey,
       { sourceLang: this.settings.sourceLang, targetLang: this.settings.targetLang },
@@ -167,9 +167,9 @@
       : 'Übersetzung verfügbar';
 
     this.cacheIndicator = document.createElement('div');
-    this.cacheIndicator.className = 'smt-ui smt-cache-indicator';
+    this.cacheIndicator.className = 'swt-ui swt-cache-indicator';
     this.cacheIndicator.innerHTML = `
-      ${SMT.Icons.svg('translate')}
+      ${SWT.Icons.svg('translate')}
       <span>${label}</span>
     `;
     this.cacheIndicator.title = isServer 
@@ -191,7 +191,7 @@
     document.body.appendChild(this.cacheIndicator);
 
     requestAnimationFrame(() => {
-      this.cacheIndicator?.classList.add('smt-visible');
+      this.cacheIndicator?.classList.add('swt-visible');
     });
 
     setTimeout(() => {
@@ -204,7 +204,7 @@
    */
   SmartTranslator.prototype.hideCacheIndicator = function() {
     if (this.cacheIndicator) {
-      this.cacheIndicator.classList.remove('smt-visible');
+      this.cacheIndicator.classList.remove('swt-visible');
       const indicator = this.cacheIndicator;
       setTimeout(() => {
         indicator?.remove();
@@ -221,7 +221,7 @@
    */
   SmartTranslator.prototype.saveToCache = function(translations) {
     // Bei server-only: kein localStorage
-    if (SMT.CacheServer?.config?.mode === 'server-only') {
+    if (SWT.CacheServer?.config?.mode === 'server-only') {
       return;
     }
     
@@ -268,7 +268,7 @@
       console.log('[SWT Cache] Erster Text:', allTexts[0]?.substring(0, 50));
       
       // Übersetzungen aus Cache laden (lokal oder Server)
-      const result = await SMT.Cache.loadTranslations(
+      const result = await SWT.Cache.loadTranslations(
         currentUrl,  // WICHTIG: Aktuelle URL verwenden!
         this.cacheKey,
         { sourceLang: this.settings.sourceLang, targetLang: this.settings.targetLang },
@@ -332,14 +332,14 @@
    */
   SmartTranslator.prototype.getCacheSize = function() {
     // Bei server-only: kein localStorage
-    if (SMT.CacheServer?.config?.mode === 'server-only') {
+    if (SWT.CacheServer?.config?.mode === 'server-only') {
       return 0;
     }
     
     let totalSize = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('smt_cache_')) {
+      if (key && key.startsWith('swt_cache_')) {
         const value = localStorage.getItem(key);
         totalSize += (key.length + (value?.length || 0)) * 2;
       }
@@ -352,14 +352,14 @@
    */
   SmartTranslator.prototype.getCacheInfo = function() {
     // Bei server-only: keine localStorage-Einträge
-    if (SMT.CacheServer?.config?.mode === 'server-only') {
+    if (SWT.CacheServer?.config?.mode === 'server-only') {
       return [];
     }
     
     const entries = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('smt_cache_')) {
+      if (key && key.startsWith('swt_cache_')) {
         try {
           const data = JSON.parse(localStorage.getItem(key));
           const translationCount = Object.keys(data.translations || {}).length;
@@ -392,7 +392,7 @@
     }
     
     // Fallback: Lokalen Cache prüfen (wenn nicht server-only)
-    const mode = SMT.Cache?.config?.mode || SMT.CacheServer?.config?.mode || 'server-only';
+    const mode = SWT.Cache?.config?.mode || SWT.CacheServer?.config?.mode || 'server-only';
     if (mode === 'server-only') {
       return false;
     }
@@ -497,7 +497,7 @@
       cacheKey: key || this.cacheKey
     };
     
-    const results = await SMT.Cache.clearCache(options);
+    const results = await SWT.Cache.clearCache(options);
     console.log('[SWT] Cache gelöscht:', results);
     
     // Cache-Status zurücksetzen

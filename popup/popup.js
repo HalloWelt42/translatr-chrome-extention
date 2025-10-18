@@ -1,5 +1,5 @@
 // Popup
-// Refactored: Nutzt SMT.Utils, SMT.Toast, SMT.ApiBadge
+// Refactored: Nutzt SWT.Utils, SWT.Toast, SWT.ApiBadge
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadSettings();
@@ -65,7 +65,7 @@ async function loadSettings() {
   document.getElementById('targetLang').value = settings.targetLang || 'de';
 
   // API-Badge aktualisieren
-  SMT.ApiBadge.update(settings.apiType || 'libretranslate');
+  SWT.ApiBadge.update(settings.apiType || 'libretranslate');
 
   // LED-Status aktualisieren
   updateLedStatus(settings);
@@ -116,7 +116,7 @@ async function checkPageCache() {
 
       cacheStatus.style.display = 'flex';
       cacheStatus.classList.add('has-cache');
-      cacheSize.textContent = SMT.Utils.formatBytes(response.size);
+      cacheSize.textContent = SWT.Utils.formatBytes(response.size);
       cacheHint.textContent = `${response.entries.length} Seite(n) gecacht`;
     }
   } catch (e) {
@@ -177,7 +177,7 @@ function setupEventListeners() {
 
     translateBtn.disabled = false;
     translateBtn.innerHTML = `
-      ${SMT.Icons.svg('translate')}
+      ${SWT.Icons.svg('translate')}
       Übersetzen
     `;
   });
@@ -209,7 +209,7 @@ function setupEventListeners() {
   // Kopieren
   document.getElementById('copyResult').addEventListener('click', () => {
     navigator.clipboard.writeText(resultBox.textContent);
-    SMT.Toast.show('Kopiert!');
+    SWT.Toast.show('Kopiert!');
   });
 
   // Click-to-Copy auf resultBox
@@ -218,7 +218,7 @@ function setupEventListeners() {
     if (text && !resultBox.classList.contains('error')) {
       navigator.clipboard.writeText(text);
       resultBox.classList.add('copied');
-      SMT.Toast.show('Übersetzung kopiert!');
+      SWT.Toast.show('Übersetzung kopiert!');
       setTimeout(() => resultBox.classList.remove('copied'), 1500);
     }
   });
@@ -231,7 +231,7 @@ function setupEventListeners() {
     if (speechSynthesis.speaking) {
       speechSynthesis.cancel();
       btn.innerHTML = `
-        ${SMT.Icons.svg('volumeUp')}
+        ${SWT.Icons.svg('volumeUp')}
         Vorlesen
       `;
       return;
@@ -239,18 +239,18 @@ function setupEventListeners() {
     
     // Button auf Stop ändern
     btn.innerHTML = `
-      ${SMT.Icons.svg('stop')}
+      ${SWT.Icons.svg('stop')}
       Stoppen
     `;
     
     const targetLang = document.getElementById('targetLang').value;
     const utterance = new SpeechSynthesisUtterance(resultBox.textContent);
-    utterance.lang = SMT.Utils.getLangCode(targetLang);
+    utterance.lang = SWT.Utils.getLangCode(targetLang);
     
     // Wenn fertig, Button zurücksetzen
     utterance.onend = () => {
       btn.innerHTML = `
-        ${SMT.Icons.svg('volumeUp')}
+        ${SWT.Icons.svg('volumeUp')}
         Vorlesen
       `;
     };

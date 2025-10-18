@@ -3,10 +3,10 @@
  * Eigenstaendiges Modul fuer die lokale Cache-Verwaltung.
  */
 
-window.SMT = window.SMT || {};
+window.SWT = window.SWT || {};
 
-SMT.CacheLocal = {
-  PREFIX: 'smt_cache_',
+SWT.CacheLocal = {
+  PREFIX: 'swt_cache_',
 
   /**
    * Prueft ob lokaler Cache fuer eine Seite vorhanden ist

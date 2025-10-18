@@ -10,9 +10,9 @@
  * v1.1.0: Hash mit Sprachrichtung (langPair)
  */
 
-window.SMT = window.SMT || {};
+window.SWT = window.SWT || {};
 
-SMT.CacheServer = {
+SWT.CacheServer = {
   // Konfiguration (wird aus chrome.storage geladen)
   config: {
     enabled: true,  // Default: aktiviert
@@ -414,4 +414,4 @@ SMT.CacheServer = {
 };
 
 // Auto-Init
-SMT.CacheServer.init();
+SWT.CacheServer.init();

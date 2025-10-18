@@ -1,5 +1,5 @@
 // Options
-// Refactored: Nutzt SMT.Toast
+// Refactored: Nutzt SWT.Toast
 
 document.addEventListener('DOMContentLoaded', async () => {
   const versionEl = document.getElementById('appVersion');
@@ -172,7 +172,7 @@ function renderAutoTranslateDomains(domains) {
     item.innerHTML = `
       <span>${domain}</span>
       <button type="button" data-index="${index}" title="Entfernen">
-        ${SMT.Icons.svg('delete')}
+        ${SWT.Icons.svg('delete')}
       </button>
     `;
     container.appendChild(item);
@@ -240,7 +240,7 @@ function renderEbookReaderDomains(domains) {
     item.innerHTML = `
       <span>${domain}</span>
       <button type="button" data-index="${index}" title="Entfernen">
-        ${SMT.Icons.svg('delete')}
+        ${SWT.Icons.svg('delete')}
       </button>
     `;
     container.appendChild(item);
@@ -538,7 +538,7 @@ async function loadLMStudioModels() {
         option.title = model.id;
         modelSelect.appendChild(option);
       });
-      SMT.Toast.show(`${data.data.length} Modell(e) geladen`, 'success');
+      SWT.Toast.show(`${data.data.length} Modell(e) geladen`, 'success');
     } else {
       modelSelect.innerHTML = '<option value="">Keine Modelle</option>';
     }
@@ -546,14 +546,14 @@ async function loadLMStudioModels() {
     console.warn('LM Studio:', error);
     modelSelect.innerHTML = '<option value="">Nicht erreichbar</option>';
     if (error.name === 'AbortError') {
-      SMT.Toast.show('Timeout - Server nicht erreichbar');
+      SWT.Toast.show('Timeout - Server nicht erreichbar');
     }
   }
   
   // Loading-State zurücksetzen
   if (refreshBtn) {
     refreshBtn.disabled = false;
-    refreshBtn.innerHTML = SMT.Icons.svg('sync');
+    refreshBtn.innerHTML = SWT.Icons.svg('sync');
   }
 }
 
@@ -635,10 +635,10 @@ async function saveSettings() {
     };
 
     await chrome.storage.sync.set(settings);
-    SMT.Toast.show('Einstellungen gespeichert!');
+    SWT.Toast.show('Einstellungen gespeichert!');
     console.log('Smart Translator: Settings saved', settings);
   } catch (error) {
-    SMT.Toast.show('Fehler beim Speichern: ' + error.message, 'error');
+    SWT.Toast.show('Fehler beim Speichern: ' + error.message, 'error');
     console.warn('Smart Translator: Error saving settings', error);
   }
 }
@@ -696,9 +696,9 @@ async function resetSettings() {
   try {
     await chrome.storage.sync.set(defaultSettings);
     await loadSettings();
-    SMT.Toast.show('Einstellungen zurückgesetzt!');
+    SWT.Toast.show('Einstellungen zurückgesetzt!');
   } catch (error) {
-    SMT.Toast.show('Fehler beim Zurücksetzen: ' + error.message, 'error');
+    SWT.Toast.show('Fehler beim Zurücksetzen: ' + error.message, 'error');
   }
 }
 
@@ -1016,13 +1016,13 @@ async function syncLocalToServer() {
     }
     
     if (translations.length === 0) {
-      SMT.Toast.show('Kein lokaler Cache vorhanden', 'warning');
+      SWT.Toast.show('Kein lokaler Cache vorhanden', 'warning');
       return;
     }
     
     const url = document.getElementById('cacheServerUrl')?.value?.trim()?.replace(/\/$/, '');
     if (!url) {
-      SMT.Toast.show('Bitte Server-URL eingeben', 'error');
+      SWT.Toast.show('Bitte Server-URL eingeben', 'error');
       return;
     }
     
@@ -1034,12 +1034,12 @@ async function syncLocalToServer() {
     
     if (response.ok) {
       const result = await response.json();
-      SMT.Toast.show(`Upload: ${result.created} neu, ${result.updated} aktualisiert`);
+      SWT.Toast.show(`Upload: ${result.created} neu, ${result.updated} aktualisiert`);
     } else {
       throw new Error(`HTTP ${response.status}`);
     }
   } catch (error) {
-    SMT.Toast.show('Upload fehlgeschlagen: ' + error.message, 'error');
+    SWT.Toast.show('Upload fehlgeschlagen: ' + error.message, 'error');
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -1049,7 +1049,7 @@ async function syncLocalToServer() {
  * Server-Cache lokal speichern (Placeholder - benötigt Search-API)
  */
 async function syncServerToLocal() {
-  SMT.Toast.show('Download-Funktion wird in zukünftiger Version implementiert', 'warning');
+  SWT.Toast.show('Download-Funktion wird in zukünftiger Version implementiert', 'warning');
 }
 
 // CSS für Spinner

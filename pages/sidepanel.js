@@ -1,5 +1,5 @@
 // Side Panel
-// Refactored: Nutzt SMT.Utils, SMT.Toast, SMT.ApiBadge
+// Refactored: Nutzt SWT.Utils, SWT.Toast, SWT.ApiBadge
 
 class SidePanelController {
   constructor() {
@@ -28,7 +28,7 @@ class SidePanelController {
     
     // API-Badge aktualisieren
     const apiType = settings.apiType || 'libretranslate';
-    SMT.ApiBadge.update(apiType);
+    SWT.ApiBadge.update(apiType);
     
     // Kontext-Schalter laden und Sichtbarkeit steuern (v3.5.4)
     const contextRow = document.getElementById('contextRow');
@@ -64,7 +64,7 @@ class SidePanelController {
         'medical': 'Medizin',
         'legal': 'Recht / Juristisch'
       };
-      SMT.Toast.show(`Kontext: ${contextNames[newContext] || newContext}`);
+      SWT.Toast.show(`Kontext: ${contextNames[newContext] || newContext}`);
     });
     
     // Storage-Listener für Änderungen von Options-Seite
@@ -81,7 +81,7 @@ class SidePanelController {
             contextRow.classList.add('hidden');
           }
         }
-        SMT.ApiBadge.update(changes.apiType.newValue);
+        SWT.ApiBadge.update(changes.apiType.newValue);
       }
     });
   }
@@ -138,7 +138,7 @@ class SidePanelController {
       const text = sourceText.value.trim();
       if (text && e.detail === 2) { // Doppelklick
         navigator.clipboard.writeText(text);
-        SMT.Toast.show('Quelltext kopiert!');
+        SWT.Toast.show('Quelltext kopiert!');
       }
     });
 
@@ -147,7 +147,7 @@ class SidePanelController {
       if (this.currentTranslation) {
         navigator.clipboard.writeText(this.currentTranslation);
         resultBox.classList.add('copied');
-        SMT.Toast.show('Übersetzung kopiert!');
+        SWT.Toast.show('Übersetzung kopiert!');
         setTimeout(() => resultBox.classList.remove('copied'), 1500);
       }
     });
@@ -165,7 +165,7 @@ class SidePanelController {
 
     document.getElementById('copyResult').addEventListener('click', () => {
       navigator.clipboard.writeText(this.currentTranslation);
-      SMT.Toast.show('Kopiert!');
+      SWT.Toast.show('Kopiert!');
     });
 
     document.getElementById('speakResult').addEventListener('click', (e) => {
@@ -175,7 +175,7 @@ class SidePanelController {
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
         btn.innerHTML = `
-          ${SMT.Icons.svg('volumeUp')}
+          ${SWT.Icons.svg('volumeUp')}
           Vorlesen
         `;
         return;
@@ -183,18 +183,18 @@ class SidePanelController {
       
       // Button auf Stop ändern
       btn.innerHTML = `
-        ${SMT.Icons.svg('stop')}
+        ${SWT.Icons.svg('stop')}
         Stoppen
       `;
       
       const targetLang = document.getElementById('targetLang').value;
       const utterance = new SpeechSynthesisUtterance(this.currentTranslation);
-      utterance.lang = SMT.Utils.getLangCode(targetLang);
+      utterance.lang = SWT.Utils.getLangCode(targetLang);
       
       // Wenn fertig, Button zurücksetzen
       utterance.onend = () => {
         btn.innerHTML = `
-          ${SMT.Icons.svg('volumeUp')}
+          ${SWT.Icons.svg('volumeUp')}
           Vorlesen
         `;
       };
@@ -280,7 +280,7 @@ class SidePanelController {
 
     translateBtn.disabled = false;
     translateBtn.innerHTML = `
-      ${SMT.Icons.svg('translate')}
+      ${SWT.Icons.svg('translate')}
       Übersetzen
     `;
   }
@@ -463,10 +463,10 @@ class SidePanelController {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab) {
         await chrome.tabs.sendMessage(tab.id, { action, ...data });
-        SMT.Toast.show('Aktion ausgeführt');
+        SWT.Toast.show('Aktion ausgeführt');
       }
     } catch (e) {
-      SMT.Toast.show('Fehler: Seite nicht erreichbar');
+      SWT.Toast.show('Fehler: Seite nicht erreichbar');
     }
   }
 
@@ -475,7 +475,7 @@ class SidePanelController {
       if (confirm('Verlauf wirklich löschen?')) {
         await chrome.runtime.sendMessage({ action: 'CLEAR_HISTORY' });
         this.loadHistory();
-        SMT.Toast.show('Verlauf gelöscht');
+        SWT.Toast.show('Verlauf gelöscht');
       }
     });
   }
@@ -490,7 +490,7 @@ class SidePanelController {
       if (history.length === 0) {
         historyList.innerHTML = `
           <div class="history-empty">
-            ${SMT.Icons.svg('history')}
+            ${SWT.Icons.svg('history')}
             <p>Noch keine Übersetzungen</p>
           </div>
         `;
@@ -498,10 +498,10 @@ class SidePanelController {
       }
 
       historyList.innerHTML = history.map(item => `
-        <div class="history-item" data-original="${SMT.Utils.escapeAttr(item.original)}" data-translated="${SMT.Utils.escapeAttr(item.translated)}">
-          <div class="history-original">${SMT.Utils.escapeHtml(item.original)}</div>
-          <div class="history-translated">${SMT.Utils.escapeHtml(item.translated)}</div>
-          <div class="history-meta">${SMT.Utils.formatDate(item.timestamp)} · ${item.source} → ${item.target}</div>
+        <div class="history-item" data-original="${SWT.Utils.escapeAttr(item.original)}" data-translated="${SWT.Utils.escapeAttr(item.translated)}">
+          <div class="history-original">${SWT.Utils.escapeHtml(item.original)}</div>
+          <div class="history-translated">${SWT.Utils.escapeHtml(item.translated)}</div>
+          <div class="history-meta">${SWT.Utils.formatDate(item.timestamp)} · ${item.source} → ${item.target}</div>
         </div>
       `).join('');
 
@@ -522,7 +522,7 @@ class SidePanelController {
   setupCache() {
     document.getElementById('refreshCache').addEventListener('click', async () => {
       await this.loadCache();
-      SMT.Toast.show('Cache aktualisiert');
+      SWT.Toast.show('Cache aktualisiert');
     });
     
     // Cache dieser Seite löschen
@@ -535,9 +535,9 @@ class SidePanelController {
         await chrome.tabs.sendMessage(tab.id, { action: 'CLEAR_CACHE', key: null });
         this.loadCache();
         this.updateActionStates();
-        SMT.Toast.show('Cache dieser Seite gelöscht');
+        SWT.Toast.show('Cache dieser Seite gelöscht');
       } catch (e) {
-        SMT.Toast.show('Fehler: ' + e.message, 'error');
+        SWT.Toast.show('Fehler: ' + e.message, 'error');
       }
     });
     
@@ -564,10 +564,10 @@ class SidePanelController {
           this.updateActionStates();
           
           const count = result?.deleted || 0;
-          SMT.Toast.show(`${count} Einträge für ${domain} gelöscht`);
+          SWT.Toast.show(`${count} Einträge für ${domain} gelöscht`);
         }
       } catch (e) {
-        SMT.Toast.show('Fehler: ' + e.message, 'error');
+        SWT.Toast.show('Fehler: ' + e.message, 'error');
       }
     });
   }
@@ -579,7 +579,7 @@ class SidePanelController {
       resetTokensBtn.addEventListener('click', async () => {
         await chrome.runtime.sendMessage({ action: 'RESET_TOKEN_STATS' });
         this.loadStats();
-        SMT.Toast.show('Token-Zähler zurückgesetzt');
+        SWT.Toast.show('Token-Zähler zurückgesetzt');
       });
     }
     
@@ -684,7 +684,7 @@ class SidePanelController {
           <div class="cache-current-page">
             <h4>Aktuelle Seite</h4>
             <div class="cache-page-info">
-              <div class="cache-page-url">${SMT.Utils.escapeHtml(this.truncateUrl(tab.url))}</div>
+              <div class="cache-page-url">${SWT.Utils.escapeHtml(this.truncateUrl(tab.url))}</div>
               ${cacheStatus}
               <div class="cache-page-status">
                 ${pageInfo.isTranslated ? 'Übersetzt' : 'Original'}
@@ -697,7 +697,7 @@ class SidePanelController {
       // Server-Stats anzeigen
       if (serverStats && serverStats.success && serverStats.stats) {
         const stats = serverStats.stats;
-        document.getElementById('cacheTotalSize').textContent = SMT.Utils.formatBytes(stats.db_size || 0);
+        document.getElementById('cacheTotalSize').textContent = SWT.Utils.formatBytes(stats.db_size || 0);
         document.getElementById('cachePageCount').textContent = stats.total_entries || 0;
         
         // Server-Einträge für aktuelle Seite laden
@@ -716,7 +716,7 @@ class SidePanelController {
             <h4>Server-Cache</h4>
             <div class="server-stat">
               <span class="stat-label">Gesamt:</span>
-              <span class="stat-value">${stats.total_entries || 0} Einträge · ${SMT.Utils.formatBytes(stats.db_size || 0)}</span>
+              <span class="stat-value">${stats.total_entries || 0} Einträge · ${SWT.Utils.formatBytes(stats.db_size || 0)}</span>
             </div>
             <div class="server-stat">
               <span class="stat-label">Diese Seite:</span>
@@ -734,11 +734,11 @@ class SidePanelController {
             html += `
               <div class="cache-item server" data-hash="${hash}">
                 <div class="cache-item-info">
-                  <div class="cache-item-text" title="${SMT.Utils.escapeAttr(entry.original)}">${SMT.Utils.escapeHtml(orig)}</div>
-                  <div class="cache-item-meta" title="${SMT.Utils.escapeAttr(entry.translated)}">${SMT.Utils.escapeHtml(trans)}</div>
+                  <div class="cache-item-text" title="${SWT.Utils.escapeAttr(entry.original)}">${SWT.Utils.escapeHtml(orig)}</div>
+                  <div class="cache-item-meta" title="${SWT.Utils.escapeAttr(entry.translated)}">${SWT.Utils.escapeHtml(trans)}</div>
                 </div>
                 <div class="cache-item-actions">
-                  <button class="cache-item-btn delete-server" title="Löschen">${SMT.Icons.svg('delete')}</button>
+                  <button class="cache-item-btn delete-server" title="Löschen">${SWT.Icons.svg('delete')}</button>
                 </div>
               </div>
             `;
@@ -777,12 +777,12 @@ class SidePanelController {
             return `
             <div class="cache-item${isCurrentPage ? ' current' : ''}" data-key="${entry.key}">
               <div class="cache-item-info">
-                <a href="${SMT.Utils.escapeAttr(entry.url)}" class="cache-item-url" target="_blank" title="${SMT.Utils.escapeAttr(entry.url)}">${SMT.Utils.escapeHtml(this.truncateUrl(entry.url))}</a>
-                <div class="cache-item-meta">${entry.count} Übersetzungen · ${SMT.Utils.formatBytes(entry.size)} · ${SMT.Utils.formatDate(entry.timestamp)}</div>
+                <a href="${SWT.Utils.escapeAttr(entry.url)}" class="cache-item-url" target="_blank" title="${SWT.Utils.escapeAttr(entry.url)}">${SWT.Utils.escapeHtml(this.truncateUrl(entry.url))}</a>
+                <div class="cache-item-meta">${entry.count} Übersetzungen · ${SWT.Utils.formatBytes(entry.size)} · ${SWT.Utils.formatDate(entry.timestamp)}</div>
               </div>
               <div class="cache-item-actions">
                 <button class="cache-item-btn delete" title="Löschen">
-                  ${SMT.Icons.svg('delete')}
+                  ${SWT.Icons.svg('delete')}
                 </button>
               </div>
             </div>
@@ -807,7 +807,7 @@ class SidePanelController {
           await chrome.tabs.sendMessage(tab.id, { action: 'CLEAR_CACHE', key });
           item.remove();
           this.loadCache();
-          SMT.Toast.show('Cache-Eintrag gelöscht');
+          SWT.Toast.show('Cache-Eintrag gelöscht');
         });
       });
       
@@ -823,7 +823,7 @@ class SidePanelController {
             hash 
           });
           item.remove();
-          SMT.Toast.show('Server-Cache-Eintrag gelöscht');
+          SWT.Toast.show('Server-Cache-Eintrag gelöscht');
         });
       });
     } catch (e) {

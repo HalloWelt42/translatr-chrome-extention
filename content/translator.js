@@ -87,14 +87,14 @@ class SmartTranslator {
       if (strategy && typeof strategy.generateCacheKey === 'function') {
         const customKey = strategy.generateCacheKey(url);
         console.log('[SWT] Custom Cache-Key:', customKey);
-        return 'smt_cache_' + btoa(customKey).replace(/[^a-zA-Z0-9]/g, '').slice(0, 80);
+        return 'swt_cache_' + btoa(customKey).replace(/[^a-zA-Z0-9]/g, '').slice(0, 80);
       }
     } else {
       console.log('[SWT] DomainStrategies nicht verfügbar!');
     }
     
     // Standard: hostname + pathname (ohne Hash)
-    return 'smt_cache_' + btoa(window.location.hostname + window.location.pathname).replace(/[^a-zA-Z0-9]/g, '').slice(0, 50);
+    return 'swt_cache_' + btoa(window.location.hostname + window.location.pathname).replace(/[^a-zA-Z0-9]/g, '').slice(0, 50);
   }
   
   /**
@@ -142,24 +142,24 @@ class SmartTranslator {
     this.checkForCachedTranslation();
 
     // Message Listener nur einmal registrieren (global)
-    if (!window._smtMessageListenerAdded) {
-      window._smtMessageListenerAdded = true;
+    if (!window.__swtMessageGuard) {
+      window.__swtMessageGuard = true;
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         // Immer die aktuelle Instanz verwenden
-        if (window.smartTranslatorInstance) {
-          window.smartTranslatorInstance.handleMessage(request, sender, sendResponse);
+        if (window.swtInstance) {
+          window.swtInstance.handleMessage(request, sender, sendResponse);
         }
         return true;
       });
     }
 
     // Storage Listener auch nur einmal
-    if (!window._smtStorageListenerAdded) {
-      window._smtStorageListenerAdded = true;
+    if (!window.__swtStorageGuard) {
+      window.__swtStorageGuard = true;
       chrome.storage.onChanged.addListener((changes, areaName) => {
         if (areaName !== 'sync') return;
         
-        if (window.smartTranslatorInstance) {
+        if (window.swtInstance) {
           for (const [key, { newValue }] of Object.entries(changes)) {
             // Logging für Debug
             console.log(`[SWT] Setting changed: ${key} =`, newValue, 'Type:', typeof newValue);
@@ -175,9 +175,9 @@ class SmartTranslator {
             
             if (booleanSettings.includes(key)) {
               // Expliziter Boolean-Cast
-              window.smartTranslatorInstance.settings[key] = newValue === true;
+              window.swtInstance.settings[key] = newValue === true;
             } else {
-              window.smartTranslatorInstance.settings[key] = newValue;
+              window.swtInstance.settings[key] = newValue;
             }
             
             // E-Book-Domains dynamisch aktualisieren
@@ -473,7 +473,7 @@ class SmartTranslator {
     
     // Übersetzungs-Wrapper entfernen - auch in iframes!
     const removeWrappers = (doc) => {
-      doc.querySelectorAll('.smt-translated-text').forEach(el => {
+      doc.querySelectorAll('.swt-translated-text').forEach(el => {
         const original = el.dataset.original;
         if (original && el.parentNode) {
           el.parentNode.replaceChild(doc.createTextNode(original), el);
@@ -562,7 +562,7 @@ class SmartTranslator {
   }
 
   handleMouseDown(e) {
-    if (!e.target.closest('.smt-ui')) {
+    if (!e.target.closest('.swt-ui')) {
       this.hideSelectionIcon();
       // Tooltip schließen wenn woanders geklickt
       if (this.tooltip) {
@@ -575,7 +575,7 @@ class SmartTranslator {
   }
 
   handleMouseUp(e) {
-    if (e.target.closest('.smt-ui')) return;
+    if (e.target.closest('.swt-ui')) return;
 
     setTimeout(() => {
       const selection = window.getSelection();
@@ -610,8 +610,8 @@ class SmartTranslator {
     };
 
     this.selectionIcon = document.createElement('div');
-    this.selectionIcon.className = 'smt-ui smt-selection-icon';
-    this.selectionIcon.innerHTML = SMT.Icons.svg('translate');
+    this.selectionIcon.className = 'swt-ui swt-selection-icon';
+    this.selectionIcon.innerHTML = SWT.Icons.svg('translate');
 
     const iconSize = 32;
     let left = rect.right + 8;
@@ -634,7 +634,7 @@ class SmartTranslator {
     });
 
     document.body.appendChild(this.selectionIcon);
-    requestAnimationFrame(() => this.selectionIcon?.classList.add('smt-visible'));
+    requestAnimationFrame(() => this.selectionIcon?.classList.add('swt-visible'));
   }
 
   hideSelectionIcon() {
@@ -652,7 +652,7 @@ class SmartTranslator {
     }
 
     const tooltip = document.createElement('div');
-    tooltip.className = 'smt-ui smt-tooltip';
+    tooltip.className = 'swt-ui swt-tooltip';
 
     const hasAlternatives = this.settings.showAlternatives && alternatives?.length > 0;
     
@@ -665,50 +665,50 @@ class SmartTranslator {
 
     // Aktionsleiste OBEN
     let content = `
-      <div class="smt-tooltip-actions">
-        <button class="smt-action smt-copy" title="Kopieren">
-          ${SMT.Icons.svg('copy')}
+      <div class="swt-tooltip-actions">
+        <button class="swt-action swt-copy" title="Kopieren">
+          ${SWT.Icons.svg('copy')}
         </button>
         ${this.settings.enableTTS ? `
-        <button class="smt-action smt-speak" title="Vorlesen">
-          ${SMT.Icons.svg('volumeUp')}
+        <button class="swt-action swt-speak" title="Vorlesen">
+          ${SWT.Icons.svg('volumeUp')}
         </button>
         ` : ''}
-        <button class="smt-action smt-close" title="Schließen">
-          ${SMT.Icons.svg('close')}
+        <button class="swt-action swt-close" title="Schließen">
+          ${SWT.Icons.svg('close')}
         </button>
       </div>
     `;
 
     // Original anzeigen
     if (this.settings.showOriginalInTooltip && original) {
-      content += `<div class="smt-tooltip-original">${this.escapeHtml(original)}</div>`;
+      content += `<div class="swt-tooltip-original">${this.escapeHtml(original)}</div>`;
     }
 
     // Mit Tabs für Alternativen (bei längeren Texten)
     if (useTabs) {
-      content += `<div class="smt-tooltip-tabs">`;
-      content += `<button class="smt-tab active" data-index="0">1</button>`;
+      content += `<div class="swt-tooltip-tabs">`;
+      content += `<button class="swt-tab active" data-index="0">1</button>`;
       alternatives.slice(0, 3).forEach((_, i) => {
-        content += `<button class="smt-tab" data-index="${i + 1}">${i + 2}</button>`;
+        content += `<button class="swt-tab" data-index="${i + 1}">${i + 2}</button>`;
       });
       content += `</div>`;
 
-      content += `<div class="smt-tooltip-content">`;
-      content += `<div class="smt-tab-panel active" data-index="0">${this.escapeHtml(translated)}</div>`;
+      content += `<div class="swt-tooltip-content">`;
+      content += `<div class="swt-tab-panel active" data-index="0">${this.escapeHtml(translated)}</div>`;
       alternatives.slice(0, 3).forEach((alt, i) => {
-        content += `<div class="smt-tab-panel" data-index="${i + 1}">${this.escapeHtml(alt)}</div>`;
+        content += `<div class="swt-tab-panel" data-index="${i + 1}">${this.escapeHtml(alt)}</div>`;
       });
       content += `</div>`;
     } else {
       // Standard-Layout ohne Tabs
-      content += `<div class="smt-tooltip-content">`;
-      content += `<div class="smt-translated">${this.escapeHtml(translated)}</div>`;
+      content += `<div class="swt-tooltip-content">`;
+      content += `<div class="swt-translated">${this.escapeHtml(translated)}</div>`;
 
       if (hasAlternatives) {
-        content += `<div class="smt-alternatives">`;
+        content += `<div class="swt-alternatives">`;
         alternatives.slice(0, 3).forEach(alt => {
-          content += `<span class="smt-alt">${this.escapeHtml(alt)}</span>`;
+          content += `<span class="swt-alt">${this.escapeHtml(alt)}</span>`;
         });
         content += `</div>`;
       }
@@ -742,19 +742,19 @@ class SmartTranslator {
 
     // Tab-Switching
     if (useTabs) {
-      tooltip.querySelectorAll('.smt-tab').forEach(tab => {
+      tooltip.querySelectorAll('.swt-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           const index = tab.dataset.index;
-          tooltip.querySelectorAll('.smt-tab').forEach(t => t.classList.remove('active'));
-          tooltip.querySelectorAll('.smt-tab-panel').forEach(p => p.classList.remove('active'));
+          tooltip.querySelectorAll('.swt-tab').forEach(t => t.classList.remove('active'));
+          tooltip.querySelectorAll('.swt-tab-panel').forEach(p => p.classList.remove('active'));
           tab.classList.add('active');
-          tooltip.querySelector(`.smt-tab-panel[data-index="${index}"]`)?.classList.add('active');
+          tooltip.querySelector(`.swt-tab-panel[data-index="${index}"]`)?.classList.add('active');
         });
       });
     }
 
     // Alternative klickbar zum Kopieren
-    tooltip.querySelectorAll('.smt-alt').forEach(alt => {
+    tooltip.querySelectorAll('.swt-alt').forEach(alt => {
       alt.addEventListener('click', () => {
         navigator.clipboard.writeText(alt.textContent);
         this.showNotification('Alternative kopiert!', 'success');
@@ -762,47 +762,47 @@ class SmartTranslator {
     });
 
     // Event Listener für Buttons
-    tooltip.querySelector('.smt-copy').addEventListener('click', () => {
+    tooltip.querySelector('.swt-copy').addEventListener('click', () => {
       // Bei Tabs: aktiven Tab kopieren
-      const activePanel = tooltip.querySelector('.smt-tab-panel.active');
+      const activePanel = tooltip.querySelector('.swt-tab-panel.active');
       const textToCopy = activePanel ? activePanel.textContent : translated;
       navigator.clipboard.writeText(textToCopy);
       this.showNotification('Kopiert!', 'success');
     });
 
-    tooltip.querySelector('.smt-speak')?.addEventListener('click', (e) => {
+    tooltip.querySelector('.swt-speak')?.addEventListener('click', (e) => {
       const btn = e.currentTarget;
       
       // Wenn gerade spricht → stoppen
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
-        btn.innerHTML = SMT.Icons.svg('volumeUp');
+        btn.innerHTML = SWT.Icons.svg('volumeUp');
         btn.title = 'Vorlesen';
         return;
       }
       
-      const activePanel = tooltip.querySelector('.smt-tab-panel.active');
+      const activePanel = tooltip.querySelector('.swt-tab-panel.active');
       const textToSpeak = activePanel ? activePanel.textContent : translated;
       
       // Button auf Stop ändern
-      btn.innerHTML = SMT.Icons.svg('stop');
+      btn.innerHTML = SWT.Icons.svg('stop');
       btn.title = 'Stoppen';
       
       this.speak(textToSpeak, () => {
         // Zurück auf Play wenn fertig
-        btn.innerHTML = SMT.Icons.svg('volumeUp');
+        btn.innerHTML = SWT.Icons.svg('volumeUp');
         btn.title = 'Vorlesen';
       });
     });
 
-    tooltip.querySelector('.smt-close').addEventListener('click', () => {
-      tooltip.classList.remove('smt-visible');
+    tooltip.querySelector('.swt-close').addEventListener('click', () => {
+      tooltip.classList.remove('swt-visible');
       setTimeout(() => tooltip.remove(), 200);
     });
 
     this.tooltip = tooltip;
 
-    requestAnimationFrame(() => tooltip.classList.add('smt-visible'));
+    requestAnimationFrame(() => tooltip.classList.add('swt-visible'));
     this.adjustTooltipPosition(tooltip);
   }
 
@@ -810,12 +810,12 @@ class SmartTranslator {
     let isDragging = false;
     let startX, startY, startLeft, startTop;
 
-    const header = element.querySelector('.smt-tooltip-content') || element;
+    const header = element.querySelector('.swt-tooltip-content') || element;
 
     header.style.cursor = 'move';
 
     header.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.smt-tooltip-actions')) return;
+      if (e.target.closest('.swt-tooltip-actions')) return;
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
@@ -855,7 +855,7 @@ class SmartTranslator {
 
   hideTooltip() {
     if (this.tooltip) {
-      this.tooltip.classList.remove('smt-visible');
+      this.tooltip.classList.remove('swt-visible');
       setTimeout(() => {
         this.tooltip?.remove();
         this.tooltip = null;
@@ -912,9 +912,9 @@ class SmartTranslator {
     this.hideLoadingTooltip();
     
     const loader = document.createElement('div');
-    loader.className = 'smt-ui smt-loading-tooltip';
+    loader.className = 'swt-ui swt-loading-tooltip';
     loader.innerHTML = `
-      <div class="smt-spinner"></div>
+      <div class="swt-spinner"></div>
       <span>Übersetze...</span>
     `;
 
@@ -939,7 +939,7 @@ class SmartTranslator {
     document.body.appendChild(loader);
     this._loadingTooltip = loader;
     
-    requestAnimationFrame(() => loader.classList.add('smt-visible'));
+    requestAnimationFrame(() => loader.classList.add('swt-visible'));
   }
 
   hideLoadingTooltip() {
@@ -1323,7 +1323,7 @@ class SmartTranslator {
     
     // Neuen Inhalt setzen - einfacher Text ohne innere Struktur
     // Die komplexen span-Strukturen werden durch die Übersetzung ersetzt
-    el.innerHTML = `<span class="smt-translated-text" data-original="${this.escapeHtml(originalText)}" data-original-html="${this.escapeHtml(originalHtml)}">${this.escapeHtml(translatedText)}</span>`;
+    el.innerHTML = `<span class="swt-translated-text" data-original="${this.escapeHtml(originalText)}" data-original-html="${this.escapeHtml(originalHtml)}">${this.escapeHtml(translatedText)}</span>`;
     
     // Tracking
     this.originalTexts.set(el, originalHtml);
@@ -1436,7 +1436,7 @@ class SmartTranslator {
         }
         
         const span = document.createElement('span');
-        span.className = 'smt-pre-paragraph';
+        span.className = 'swt-pre-paragraph';
         span.textContent = para;
         pre.appendChild(span);
         pre.appendChild(document.createTextNode('\n\n'));
@@ -1678,15 +1678,15 @@ class SmartTranslator {
 }
 
 // Initialisieren
-if (!window.smartTranslatorInstance) {
+if (!window.swtInstance) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      if (!window.smartTranslatorInstance) {
-        window.smartTranslatorInstance = new SmartTranslator();
+      if (!window.swtInstance) {
+        window.swtInstance = new SmartTranslator();
       }
     });
   } else {
-    window.smartTranslatorInstance = new SmartTranslator();
+    window.swtInstance = new SmartTranslator();
   }
 }
 

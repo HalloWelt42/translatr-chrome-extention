@@ -1,9 +1,9 @@
 // Shared Utilities
 // Gemeinsame Hilfsfunktionen für alle Komponenten
 
-window.SMT = window.SMT || {};
+window.SWT = window.SWT || {};
 
-window.SMT.Utils = {
+window.SWT.Utils = {
   /**
    * Formatiert Bytes in lesbares Format (B, KB, MB)
    * @param {number} bytes - Anzahl Bytes
