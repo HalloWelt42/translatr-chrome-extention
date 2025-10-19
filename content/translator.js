@@ -3,7 +3,8 @@
   if (window.__swtTranslatorGuard) return;
   window.__swtTranslatorGuard = true;
 
-class SmartTranslator {
+// Klasse global verfuegbar machen fuer Prototype-Extensions in Sub-Modulen
+window.SmartTranslator = class SmartTranslator {
   constructor() {
     this.settings = {};
     this.originalTexts = new Map();
@@ -133,13 +134,18 @@ class SmartTranslator {
     this.setupEventListeners();
     this.setupUrlTracking();  // NEU: URL-Tracking für SPAs
     
-    // Für E-Books: Warten bis iframes geladen sind
+    // Fuer E-Books: Warten bis iframes geladen sind
     if (strategy?.name === 'E-Book Reader') {
       console.log('[SWT E-Book] Warte auf iframes...');
       await this.waitForEbookIframes();
     }
-    
-    this.checkForCachedTranslation();
+
+    // checkForCachedTranslation kommt aus translator-cache.js (Prototype-Extension)
+    // Kurz warten bis Sub-Module geladen sind
+    await new Promise(r => setTimeout(r, 10));
+    if (typeof this.checkForCachedTranslation === 'function') {
+      this.checkForCachedTranslation();
+    }
 
     // Message Listener nur einmal registrieren (global)
     if (!window.__swtMessageGuard) {
