@@ -397,7 +397,7 @@
 
 /* === Translated Text Wrapper === */
 .swt-translated-text {
-  background: rgba(25, 118, 210, 0.06);
+  background: rgba(217, 119, 6, 0.08);
   border-radius: 2px;
   padding: 0 2px;
   margin: 0 -2px;
@@ -406,7 +406,7 @@
 }
 
 .swt-translated-text:hover {
-  background: rgba(25, 118, 210, 0.15);
+  background: rgba(217, 119, 6, 0.18);
 }
 
 .swt-translated-text.swt-showing-original {
