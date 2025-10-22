@@ -11,7 +11,7 @@
   <div class="container">
     <div class="app-header">
       <h1>
-        <span data-icon="translate"></span>
+        <span data-swt-icon="translate"></span>
         <span>Smart Translator</span>
         <div class="api-badge" id="apiBadge" title="Aktives API-Backend">
           <span id="apiBadgeText">Libre</span>
@@ -43,7 +43,7 @@
             <option value="ja">Japanisch</option>
           </select>
           <button class="swap-btn" id="swapLangs">
-            <span data-icon="swap"></span>
+            <span data-swt-icon="swap"></span>
           </button>
           <select id="targetLang">
             <option value="de">Deutsch</option>
@@ -61,7 +61,7 @@
         <!-- Fachkontext-Schnellwahl -->
         <div class="context-row" id="contextRow">
           <label class="context-label">
-            <span data-icon="globe" class="icon-sm"></span>
+            <span data-swt-icon="globe" class="icon-sm"></span>
             Kontext
           </label>
           <select id="contextSelect">
@@ -76,28 +76,28 @@
         <div class="text-field-wrapper">
           <textarea id="sourceText" placeholder="Text eingeben..."></textarea>
           <button class="field-clear-btn" id="clearSource" title="Leeren">
-            <span data-icon="delete"></span>
+            <span data-swt-icon="delete"></span>
           </button>
         </div>
 
         <button class="btn btn-primary fullwidth" id="translateBtn">
-          <span data-icon="translate"></span>
+          <span data-swt-icon="translate"></span>
           Übersetzen
         </button>
 
         <div class="text-field-wrapper">
           <div class="result-box" id="resultBox"><span class="placeholder">Übersetzung erscheint hier...</span></div>
           <button class="field-clear-btn" id="clearResult" title="Leeren">
-            <span data-icon="delete"></span>
+            <span data-swt-icon="delete"></span>
           </button>
         </div>
         <div class="result-actions hidden" id="resultActions">
           <button class="result-action" id="copyResult">
-            <span data-icon="copy"></span>
+            <span data-swt-icon="copy"></span>
             Kopieren
           </button>
           <button class="result-action" id="speakResult">
-            <span data-icon="volumeUp"></span>
+            <span data-swt-icon="volumeUp"></span>
             Vorlesen
           </button>
         </div>
@@ -111,20 +111,20 @@
         <h3>Seitenaktionen</h3>
         <div class="actions-grid">
           <div class="action-card" id="translatePage">
-            <span data-icon="document"></span>
+            <span data-swt-icon="document"></span>
             <span>Seite übersetzen</span>
           </div>
           <div class="action-card" id="continuePage">
-            <span data-icon="play"></span>
+            <span data-swt-icon="play"></span>
             <span>Fortsetzen</span>
             <span class="action-badge" id="cacheProgress" title="Cache-Abdeckung">–</span>
           </div>
           <div class="action-card" id="restorePage">
-            <span data-icon="refresh"></span>
+            <span data-swt-icon="refresh"></span>
             <span>Original</span>
           </div>
           <div class="action-card" id="loadCache">
-            <span data-icon="download"></span>
+            <span data-swt-icon="download"></span>
             <span>Cache laden</span>
           </div>
         </div>
@@ -140,7 +140,7 @@
         </div>
         <div class="history-list" id="historyList">
           <div class="history-empty">
-            <span data-icon="history"></span>
+            <span data-swt-icon="history"></span>
             <p>Noch keine Übersetzungen</p>
           </div>
         </div>
@@ -163,15 +163,15 @@
 
         <div class="cache-actions">
           <button class="btn btn-outline" id="refreshCache">
-            <span data-icon="sync"></span>
+            <span data-swt-icon="sync"></span>
             Aktualisieren
           </button>
           <button class="btn btn-outline" id="clearPageCache">
-            <span data-icon="delete"></span>
+            <span data-swt-icon="delete"></span>
             Diese Seite
           </button>
           <button class="btn btn-danger" id="clearDomainCache">
-            <span data-icon="delete"></span>
+            <span data-swt-icon="delete"></span>
             Domain löschen
           </button>
         </div>
@@ -187,7 +187,7 @@
       <div class="stats-section">
         <div class="stats-card">
           <h3>
-            <span data-icon="info"></span>
+            <span data-swt-icon="info"></span>
             Token-Verbrauch
           </h3>
           <div class="token-stats-grid">
@@ -212,7 +212,7 @@
 
         <div class="stats-actions">
           <button class="btn btn-outline" id="resetTokens">
-            <span data-icon="refresh"></span>
+            <span data-swt-icon="refresh"></span>
             Tokens zuruecksetzen
           </button>
         </div>

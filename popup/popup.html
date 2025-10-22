@@ -9,7 +9,7 @@
 </head>
 <body>
   <div class="app-header">
-    <span data-icon="translate"></span>
+    <span data-swt-icon="translate"></span>
     <h1>Smart Translator</h1>
     <div class="api-badge" id="apiBadge">
       <span class="led led-off" id="apiLed"></span>
@@ -28,7 +28,7 @@
         <span class="hint" id="cacheHint">Cache für diese Seite verfügbar</span>
       </div>
       <button id="loadCacheBtn" class="cache-load-btn">
-        <span data-icon="download"></span>
+        <span data-swt-icon="download"></span>
         Cache laden
       </button>
     </div>
@@ -47,7 +47,7 @@
         <option value="ja">Japanisch</option>
       </select>
       <button class="swap-btn" id="swapLangs" title="Sprachen tauschen">
-        <span data-icon="swap"></span>
+        <span data-swt-icon="swap"></span>
       </button>
       <select id="targetLang">
         <option value="de">Deutsch</option>
@@ -65,18 +65,18 @@
     <textarea id="inputText" placeholder="Text zum Übersetzen eingeben..."></textarea>
 
     <button class="btn btn-primary fullwidth" id="translateBtn">
-      <span data-icon="translate"></span>
+      <span data-swt-icon="translate"></span>
       Übersetzen
     </button>
 
     <div class="result-box" id="resultBox"></div>
     <div class="result-actions hidden" id="resultActions">
       <button class="result-action" id="copyResult">
-        <span data-icon="copy"></span>
+        <span data-swt-icon="copy"></span>
         Kopieren
       </button>
       <button class="result-action" id="speakResult">
-        <span data-icon="volumeUp"></span>
+        <span data-swt-icon="volumeUp"></span>
         Vorlesen
       </button>
     </div>
@@ -85,19 +85,19 @@
 
     <div class="actions-grid">
       <div class="action-card" id="translatePage">
-        <span data-icon="document"></span>
+        <span data-swt-icon="document"></span>
         <span>Seite übersetzen</span>
       </div>
       <div class="action-card" id="restorePage">
-        <span data-icon="refresh"></span>
+        <span data-swt-icon="refresh"></span>
         <span>Original</span>
       </div>
       <div class="action-card" id="exportPdf">
-        <span data-icon="pdf"></span>
+        <span data-swt-icon="pdf"></span>
         <span>Export</span>
       </div>
       <div class="action-card" id="openSidepanel">
-        <span data-icon="panel"></span>
+        <span data-swt-icon="panel"></span>
         <span>Panel</span>
       </div>
     </div>

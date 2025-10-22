@@ -86,7 +86,7 @@ header h1 {
   gap: 12px;
 }
 
-header h1 [data-icon] svg {
+header h1 [data-swt-icon] svg {
   width: 28px;
   height: 28px;
 }

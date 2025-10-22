@@ -158,30 +158,30 @@ body {
 }
 
 /* ==========================================================================
-   ICON SYSTEM (data-icon)
+   ICON SYSTEM (data-swt-icon)
    ========================================================================== */
 
-[data-icon] svg {
+[data-swt-icon] svg {
   width: 20px;
   height: 20px;
   fill: currentColor;
   vertical-align: middle;
 }
 
-[data-icon].icon-sm svg { width: 16px; height: 16px; }
-[data-icon].icon-lg svg { width: 24px; height: 24px; }
+[data-swt-icon].icon-sm svg { width: 16px; height: 16px; }
+[data-swt-icon].icon-lg svg { width: 24px; height: 24px; }
 
-h1 [data-icon] svg { width: 28px; height: 28px; }
-h2 [data-icon] svg { width: 22px; height: 22px; }
-h3 [data-icon] svg { width: 20px; height: 20px; }
+h1 [data-swt-icon] svg { width: 28px; height: 28px; }
+h2 [data-swt-icon] svg { width: 22px; height: 22px; }
+h3 [data-swt-icon] svg { width: 20px; height: 20px; }
 
-button [data-icon] svg,
-.btn [data-icon] svg {
+button [data-swt-icon] svg,
+.btn [data-swt-icon] svg {
   width: 16px;
   height: 16px;
 }
 
-.action-card [data-icon] svg {
+.action-card [data-swt-icon] svg {
   width: 24px;
   height: 24px;
 }
