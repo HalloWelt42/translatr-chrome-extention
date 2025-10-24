@@ -76,6 +76,7 @@ SWT.Icons = {
     history: null,   // -> clock-rotate-left
     sync: null,      // -> arrows-rotate
     close: null,     // -> xmark
+    clock: null,     // -> clock-rotate-left
     block: null,     // -> ban
     panel: null,     // -> table-columns
     dollar: null,    // -> chart-bar
@@ -96,6 +97,7 @@ SWT.Icons = {
     a.history = a['clock-rotate-left'];
     a.sync = a['arrows-rotate'];
     a.close = a.xmark;
+    a.clock = a['clock-rotate-left'];
     a.block = a.ban;
     a.panel = a['table-columns'];
     a.dollar = a['chart-bar'];
