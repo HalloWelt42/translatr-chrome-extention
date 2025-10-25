@@ -478,6 +478,7 @@ class TranslatorBackground {
   }
 
   async translateText(text, source = 'auto', target = 'de', pageUrl = null) {
+    console.log('[SWT] translateText aufgerufen:', text?.substring(0, 50), 'API:', (await chrome.storage.sync.get(['apiType'])).apiType);
     // Sprachrichtung für Cache-Hash - MUSS mit content-cache.js übereinstimmen
     const langPair = `${source || 'auto'}:${target || 'de'}`;
     
