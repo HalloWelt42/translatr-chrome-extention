@@ -120,38 +120,11 @@ window.SmartTranslator = class SmartTranslator {
   }
 
   async init() {
-    console.log('[SWT] === INIT START ===');
-    console.log('[SWT] URL:', window.location.href);
-    console.log('[SWT] Hostname:', window.location.hostname);
-    
-    await this.loadSettings();
-    await this.loadEbookDomains(); // E-Book-Domains laden
-    
-    // Debug: Strategie prüfen
-    const strategy = this.getActiveStrategy?.();
-    console.log('[SWT] Aktive Strategie nach init:', strategy?.name || 'keine');
-    
-    this.setupEventListeners();
-    this.setupUrlTracking();  // NEU: URL-Tracking für SPAs
-    
-    // Fuer E-Books: Warten bis iframes geladen sind
-    if (strategy?.name === 'E-Book Reader') {
-      console.log('[SWT E-Book] Warte auf iframes...');
-      await this.waitForEbookIframes();
-    }
-
-    // checkForCachedTranslation kommt aus translator-cache.js (Prototype-Extension)
-    // Kurz warten bis Sub-Module geladen sind
-    await new Promise(r => setTimeout(r, 10));
-    if (typeof this.checkForCachedTranslation === 'function') {
-      this.checkForCachedTranslation();
-    }
-
-    // Message Listener nur einmal registrieren (global)
+    // WICHTIG: Message-Listener SOFORT registrieren (vor allen awaits!)
+    // Sonst gehen Messages verloren die waehrend der Init-Phase ankommen.
     if (!window.__swtMessageGuard) {
       window.__swtMessageGuard = true;
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        // Immer die aktuelle Instanz verwenden
         if (window.swtInstance) {
           window.swtInstance.handleMessage(request, sender, sendResponse);
         }
@@ -159,7 +132,6 @@ window.SmartTranslator = class SmartTranslator {
       });
     }
 
-    // Storage Listener auch nur einmal
     if (!window.__swtStorageGuard) {
       window.__swtStorageGuard = true;
       chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -196,7 +168,29 @@ window.SmartTranslator = class SmartTranslator {
         }
       });
     }
-    
+
+    // Ab hier: async Initialisierung (Message-Listener sind bereits aktiv)
+    console.log('[SWT] === INIT START ===');
+    console.log('[SWT] URL:', window.location.href);
+
+    await this.loadSettings();
+    await this.loadEbookDomains();
+
+    const strategy = this.getActiveStrategy?.();
+    this.setupEventListeners();
+    this.setupUrlTracking();
+
+    if (strategy?.name === 'E-Book Reader') {
+      console.log('[SWT E-Book] Warte auf iframes...');
+      await this.waitForEbookIframes();
+    }
+
+    // checkForCachedTranslation aus translator-cache.js (Prototype-Extension)
+    await new Promise(r => setTimeout(r, 10));
+    if (typeof this.checkForCachedTranslation === 'function') {
+      this.checkForCachedTranslation();
+    }
+
     console.log('[SWT] === INIT COMPLETE ===');
   }
   
