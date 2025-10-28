@@ -120,18 +120,7 @@ window.SmartTranslator = class SmartTranslator {
   }
 
   async init() {
-    // WICHTIG: Message-Listener SOFORT registrieren (vor allen awaits!)
-    // Sonst gehen Messages verloren die waehrend der Init-Phase ankommen.
-    if (!window.__swtMessageGuard) {
-      window.__swtMessageGuard = true;
-      chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (window.swtInstance) {
-          window.swtInstance.handleMessage(request, sender, sendResponse);
-        }
-        return true;
-      });
-    }
-
+    // Storage Listener
     if (!window.__swtStorageGuard) {
       window.__swtStorageGuard = true;
       chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -1677,17 +1666,21 @@ window.SmartTranslator = class SmartTranslator {
   }
 }
 
-// Initialisieren
+// 1. Instanz SOFORT erstellen (synchron, vor allem anderen)
 if (!window.swtInstance) {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!window.swtInstance) {
-        window.swtInstance = new SmartTranslator();
-      }
-    });
-  } else {
-    window.swtInstance = new SmartTranslator();
-  }
+  window.swtInstance = new SmartTranslator();
+}
+
+// 2. Message-Listener NACH Instanz-Zuweisung registrieren
+//    window.swtInstance existiert jetzt garantiert
+if (!window.__swtMessageGuard) {
+  window.__swtMessageGuard = true;
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (window.swtInstance) {
+      window.swtInstance.handleMessage(request, sender, sendResponse);
+    }
+    return true;
+  });
 }
 
 })();
