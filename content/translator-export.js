@@ -5,8 +5,9 @@
   'use strict';
 
   // Guard gegen doppeltes Laden
-  if (window.__swtExportGuard) return;
-  window.__swtExportGuard = true;
+  var guardKey = chrome.runtime.id + "_" + chrome.runtime.getManifest().version;
+  if (window.__swtExportGuardKey === guardKey) return;
+  window.__swtExportGuardKey = guardKey;
 
   // Warten bis SmartTranslator definiert ist
   if (typeof SmartTranslator === 'undefined') {

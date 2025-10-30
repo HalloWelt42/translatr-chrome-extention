@@ -5,8 +5,9 @@
   'use strict';
 
   // Guard gegen doppeltes Laden
-  if (window.__swtCacheGuard) return;
-  window.__swtCacheGuard = true;
+  var guardKey = chrome.runtime.id + "_" + chrome.runtime.getManifest().version;
+  if (window.__swtCacheGuardKey === guardKey) return;
+  window.__swtCacheGuardKey = guardKey;
 
   if (typeof SmartTranslator === 'undefined') {
     console.warn('SmartTranslator nicht gefunden - content-cache.js muss nach content.js geladen werden');

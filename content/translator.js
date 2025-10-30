@@ -1,7 +1,17 @@
 (function() {
   'use strict';
-  if (window.__swtTranslatorGuard) return;
-  window.__swtTranslatorGuard = true;
+
+  // Guard gegen Mehrfach-Injektion innerhalb DESSELBEN Extension-Kontexts.
+  // Bei Extension-Reload (neuer Kontext) muss alles neu initialisiert werden,
+  // daher pruefen wir die Extension-ID + Version als Guard-Key.
+  var guardKey = chrome.runtime.id + '_' + chrome.runtime.getManifest().version;
+  if (window.__swtGuardKey === guardKey) return;
+  window.__swtGuardKey = guardKey;
+
+  // Alte Instanz und Guards aufraumen bei Extension-Reload
+  window.swtInstance = null;
+  window.__swtMessageGuard = false;
+  window.__swtStorageGuard = false;
 
 // Klasse global verfuegbar machen fuer Prototype-Extensions in Sub-Modulen
 window.SmartTranslator = class SmartTranslator {
