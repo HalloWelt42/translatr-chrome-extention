@@ -5,8 +5,13 @@
   // Bei Extension-Reload (neuer Kontext) muss alles neu initialisiert werden,
   // daher pruefen wir die Extension-ID + Version als Guard-Key.
   var guardKey = chrome.runtime.id + '_' + chrome.runtime.getManifest().version;
-  if (window.__swtGuardKey === guardKey) return;
+  console.log('[SWT] Guard-Check:', guardKey, 'bisheriger:', window.__swtGuardKey);
+  if (window.__swtGuardKey === guardKey) {
+    console.warn('[SWT] IIFE uebersprungen - Guard aktiv');
+    return;
+  }
   window.__swtGuardKey = guardKey;
+  console.log('[SWT] IIFE startet - neuer Guard gesetzt');
 
   // Alte Instanz und Guards aufraumen bei Extension-Reload
   window.swtInstance = null;
@@ -1676,21 +1681,27 @@ window.SmartTranslator = class SmartTranslator {
   }
 }
 
-// 1. Instanz SOFORT erstellen (synchron, vor allem anderen)
+// 1. Instanz erstellen
 if (!window.swtInstance) {
   window.swtInstance = new SmartTranslator();
+  console.log('[SWT] Instanz erstellt:', !!window.swtInstance);
 }
 
-// 2. Message-Listener NACH Instanz-Zuweisung registrieren
-//    window.swtInstance existiert jetzt garantiert
+// 2. Message-Listener registrieren
 if (!window.__swtMessageGuard) {
   window.__swtMessageGuard = true;
+  console.log('[SWT] Message-Listener wird registriert');
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    console.log('[SWT] MESSAGE EMPFANGEN:', request.action, request);
     if (window.swtInstance) {
       window.swtInstance.handleMessage(request, sender, sendResponse);
+    } else {
+      console.warn('[SWT] KEIN swtInstance!');
     }
     return true;
   });
+} else {
+  console.warn('[SWT] Message-Listener NICHT registriert - Guard war true!');
 }
 
 })();
