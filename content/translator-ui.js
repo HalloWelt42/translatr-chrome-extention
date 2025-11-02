@@ -5,9 +5,8 @@
   'use strict';
 
   // Guard gegen doppeltes Laden
-  var guardKey = chrome.runtime.id + "_" + chrome.runtime.getManifest().version;
-  if (window.__swtUIGuardKey === guardKey) return;
-  window.__swtUIGuardKey = guardKey;
+  if (window.__swtUILoaded) return;
+  window.__swtUILoaded = true;
 
   if (typeof SmartTranslator === 'undefined') {
     console.warn('SmartTranslator nicht gefunden - content-ui.js muss nach content.js geladen werden');

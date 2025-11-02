@@ -1,25 +1,6 @@
-(function() {
-  'use strict';
+// Smart Translator - Content Script
 
-  // Guard gegen Mehrfach-Injektion innerhalb DESSELBEN Extension-Kontexts.
-  // Bei Extension-Reload (neuer Kontext) muss alles neu initialisiert werden,
-  // daher pruefen wir die Extension-ID + Version als Guard-Key.
-  var guardKey = chrome.runtime.id + '_' + chrome.runtime.getManifest().version;
-  console.log('[SWT] Guard-Check:', guardKey, 'bisheriger:', window.__swtGuardKey);
-  if (window.__swtGuardKey === guardKey) {
-    console.warn('[SWT] IIFE uebersprungen - Guard aktiv');
-    return;
-  }
-  window.__swtGuardKey = guardKey;
-  console.log('[SWT] IIFE startet - neuer Guard gesetzt');
-
-  // Alte Instanz und Guards aufraumen bei Extension-Reload
-  window.swtInstance = null;
-  window.__swtMessageGuard = false;
-  window.__swtStorageGuard = false;
-
-// Klasse global verfuegbar machen fuer Prototype-Extensions in Sub-Modulen
-window.SmartTranslator = class SmartTranslator {
+class SmartTranslator {
   constructor() {
     this.settings = {};
     this.originalTexts = new Map();
@@ -135,47 +116,7 @@ window.SmartTranslator = class SmartTranslator {
   }
 
   async init() {
-    // Storage Listener
-    if (!window.__swtStorageGuard) {
-      window.__swtStorageGuard = true;
-      chrome.storage.onChanged.addListener((changes, areaName) => {
-        if (areaName !== 'sync') return;
-        
-        if (window.swtInstance) {
-          for (const [key, { newValue }] of Object.entries(changes)) {
-            // Logging für Debug
-            console.log(`[SWT] Setting changed: ${key} =`, newValue, 'Type:', typeof newValue);
-            
-            // Boolean-Settings explizit casten
-            const booleanSettings = [
-              'showSelectionIcon', 'enableTTS', 'showOriginalInTooltip',
-              'showAlternatives', 'highlightTranslated', 'skipCodeBlocks',
-              'skipBlockquotes', 'fixInlineSpacing', 'useCacheFirst',
-              'autoLoadCache', 'enableTrueBatch',
-              'enableSmartChunking', 'cacheServerEnabled', 'extractIframeContent'
-            ];
-            
-            if (booleanSettings.includes(key)) {
-              // Expliziter Boolean-Cast
-              window.swtInstance.settings[key] = newValue === true;
-            } else {
-              window.swtInstance.settings[key] = newValue;
-            }
-            
-            // E-Book-Domains dynamisch aktualisieren
-            if (key === 'ebookReaderDomains' && typeof DomainStrategies !== 'undefined') {
-              if (DomainStrategies.strategies.ebook) {
-                DomainStrategies.strategies.ebook.ebookDomains = newValue || [];
-              }
-            }
-          }
-        }
-      });
-    }
-
-    // Ab hier: async Initialisierung (Message-Listener sind bereits aktiv)
-    console.log('[SWT] === INIT START ===');
-    console.log('[SWT] URL:', window.location.href);
+    console.log('[SWT] init() gestartet');
 
     await this.loadSettings();
     await this.loadEbookDomains();
@@ -190,14 +131,37 @@ window.SmartTranslator = class SmartTranslator {
     }
 
     // checkForCachedTranslation aus translator-cache.js (Prototype-Extension)
-    await new Promise(r => setTimeout(r, 10));
     if (typeof this.checkForCachedTranslation === 'function') {
       this.checkForCachedTranslation();
     }
 
-    console.log('[SWT] === INIT COMPLETE ===');
+    // Message Listener (nach loadSettings, genau wie im Original)
+    if (!window.__swtMessageListenerAdded) {
+      window.__swtMessageListenerAdded = true;
+      chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (window.swtInstance) {
+          window.swtInstance.handleMessage(request, sender, sendResponse);
+        }
+        return true;
+      });
+    }
+
+    // Storage Listener
+    if (!window.__swtStorageListenerAdded) {
+      window.__swtStorageListenerAdded = true;
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName !== 'sync') return;
+        if (window.swtInstance) {
+          for (const [key, { newValue }] of Object.entries(changes)) {
+            window.swtInstance.settings[key] = newValue;
+          }
+        }
+      });
+    }
+
+    console.log('[SWT] init() abgeschlossen');
   }
-  
+
   /**
    * E-Book-Reader-Domains aus Settings laden und in DomainStrategies setzen
    */
@@ -1681,27 +1645,15 @@ window.SmartTranslator = class SmartTranslator {
   }
 }
 
-// 1. Instanz erstellen
+// Initialisieren (identisch zum Original)
 if (!window.swtInstance) {
-  window.swtInstance = new SmartTranslator();
-  console.log('[SWT] Instanz erstellt:', !!window.swtInstance);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.swtInstance) {
+        window.swtInstance = new SmartTranslator();
+      }
+    });
+  } else {
+    window.swtInstance = new SmartTranslator();
+  }
 }
-
-// 2. Message-Listener registrieren
-if (!window.__swtMessageGuard) {
-  window.__swtMessageGuard = true;
-  console.log('[SWT] Message-Listener wird registriert');
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log('[SWT] MESSAGE EMPFANGEN:', request.action, request);
-    if (window.swtInstance) {
-      window.swtInstance.handleMessage(request, sender, sendResponse);
-    } else {
-      console.warn('[SWT] KEIN swtInstance!');
-    }
-    return true;
-  });
-} else {
-  console.warn('[SWT] Message-Listener NICHT registriert - Guard war true!');
-}
-
-})();
