@@ -1,4 +1,4 @@
-// Content DOM
+// Content DOM Module - Smart Web Translator v3.7.0
 // DOM-Manipulation und Text-Node-Verwaltung
 
 (function() {

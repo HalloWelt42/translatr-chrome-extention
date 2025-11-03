@@ -1,4 +1,4 @@
-// Content Export
+// Content Export Module - Smart Web Translator v3.7.0
 // Export-Funktionen als Prototype-Erweiterung
 
 (function() {

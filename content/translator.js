@@ -1,4 +1,12 @@
-// Smart Translator - Content Script
+// Content Script - Smart Web Translator v3.11.6
+// Mit LocalStorage Cache, Hover-Original, Toggle
+// v3.11.6: Middleware-Batching - Content sendet sequentiell, Background sammelt & batcht
+// v3.11.5: Konfigurierbare Batch-Größe (1-50) mit exakter Reihenfolge
+// v3.11.1: Abstrakte Cache-API (SWT.Cache), async loadCachedTranslation
+// v3.8: Cache Server Integration
+// v3.7: Export-Funktionen ausgelagert nach content/content-export.js
+// v3.6: Pin-Funktion entfernt, TTS-Toggle, Abbruch-Logik überarbeitet
+// v3.5: Echte Batch-Übersetzung, Smart Chunking, URL-Tracking für SPAs
 
 class SmartTranslator {
   constructor() {
@@ -116,52 +124,86 @@ class SmartTranslator {
   }
 
   async init() {
-    console.log('[SWT] init() gestartet');
-
+    console.log('[SWT] === INIT START ===');
+    console.log('[SWT] URL:', window.location.href);
+    console.log('[SWT] Hostname:', window.location.hostname);
+    
     await this.loadSettings();
-    await this.loadEbookDomains();
-
+    await this.loadEbookDomains(); // E-Book-Domains laden
+    
+    // Debug: Strategie prüfen
     const strategy = this.getActiveStrategy?.();
+    console.log('[SWT] Aktive Strategie nach init:', strategy?.name || 'keine');
+    
     this.setupEventListeners();
-    this.setupUrlTracking();
-
+    this.setupUrlTracking();  // NEU: URL-Tracking für SPAs
+    
+    // Für E-Books: Warten bis iframes geladen sind
     if (strategy?.name === 'E-Book Reader') {
       console.log('[SWT E-Book] Warte auf iframes...');
       await this.waitForEbookIframes();
     }
+    
+    this.checkForCachedTranslation();
 
-    // checkForCachedTranslation aus translator-cache.js (Prototype-Extension)
-    if (typeof this.checkForCachedTranslation === 'function') {
-      this.checkForCachedTranslation();
-    }
-
-    // Message Listener (nach loadSettings, genau wie im Original)
+    // Message Listener nur einmal registrieren (global)
     if (!window.__swtMessageListenerAdded) {
       window.__swtMessageListenerAdded = true;
+      console.log('[SWT DEBUG] Message-Listener registriert');
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        console.log('[SWT DEBUG] Message empfangen:', request?.action);
         if (window.swtInstance) {
           window.swtInstance.handleMessage(request, sender, sendResponse);
+        } else {
+          console.log('[SWT DEBUG] FEHLER: swtInstance ist null!');
         }
         return true;
       });
+    } else {
+      console.log('[SWT DEBUG] Listener bereits registriert, uebersprungen');
     }
 
-    // Storage Listener
+    // Storage Listener auch nur einmal
     if (!window.__swtStorageListenerAdded) {
       window.__swtStorageListenerAdded = true;
       chrome.storage.onChanged.addListener((changes, areaName) => {
         if (areaName !== 'sync') return;
+        
         if (window.swtInstance) {
           for (const [key, { newValue }] of Object.entries(changes)) {
-            window.swtInstance.settings[key] = newValue;
+            // Logging für Debug
+            console.log(`[SWT] Setting changed: ${key} =`, newValue, 'Type:', typeof newValue);
+            
+            // Boolean-Settings explizit casten
+            const booleanSettings = [
+              'showSelectionIcon', 'enableTTS', 'showOriginalInTooltip',
+              'showAlternatives', 'highlightTranslated', 'skipCodeBlocks',
+              'skipBlockquotes', 'fixInlineSpacing', 'useCacheFirst',
+              'autoLoadCache', 'enableTokenCost', 'enableTrueBatch',
+              'enableSmartChunking', 'cacheServerEnabled', 'extractIframeContent'
+            ];
+            
+            if (booleanSettings.includes(key)) {
+              // Expliziter Boolean-Cast
+              window.swtInstance.settings[key] = newValue === true;
+            } else {
+              window.swtInstance.settings[key] = newValue;
+            }
+            
+            // E-Book-Domains dynamisch aktualisieren
+            if (key === 'ebookReaderDomains' && typeof DomainStrategies !== 'undefined') {
+              if (DomainStrategies.strategies.ebook) {
+                DomainStrategies.strategies.ebook.ebookDomains = newValue || [];
+              }
+            }
           }
         }
       });
     }
-
-    console.log('[SWT] init() abgeschlossen');
+    
+    console.log('[SWT] === INIT COMPLETE ===');
   }
-
+  
   /**
    * E-Book-Reader-Domains aus Settings laden und in DomainStrategies setzen
    */
@@ -483,6 +525,8 @@ class SmartTranslator {
       'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioContext',
       // Neue v3.1 Settings
       'autoLoadCache', 'autoTranslateDomains', 'enableAbortTranslation',
+      // Token-Kosten (v3.4)
+      'enableTokenCost', 'tokenCostAmount', 'tokenCostPer', 'tokenCostCurrency'
     ]);
 
     // String-Settings mit Defaults
@@ -490,9 +534,13 @@ class SmartTranslator {
     this.settings.targetLang = this.settings.targetLang || 'de';
     this.settings.sourceLang = this.settings.sourceLang || 'auto';
     this.settings.apiType = this.settings.apiType || 'libretranslate';
+    this.settings.tokenCostCurrency = this.settings.tokenCostCurrency || 'EUR';
+    
     // Number-Settings mit Defaults
     this.settings.selectionIconDelay = this.settings.selectionIconDelay || 200;
     this.settings.tabWordThreshold = this.settings.tabWordThreshold || 20;
+    this.settings.tokenCostAmount = this.settings.tokenCostAmount ?? 1;
+    this.settings.tokenCostPer = this.settings.tokenCostPer || 10000;
     
     // Boolean-Settings: Expliziter Cast, Default true
     this.settings.showSelectionIcon = this.settings.showSelectionIcon === true || this.settings.showSelectionIcon === undefined;
@@ -500,6 +548,8 @@ class SmartTranslator {
     this.settings.skipBlockquotes = this.settings.skipBlockquotes === true || this.settings.skipBlockquotes === undefined;
     this.settings.useTabsForAlternatives = this.settings.useTabsForAlternatives === true || this.settings.useTabsForAlternatives === undefined;
     this.settings.fixInlineSpacing = this.settings.fixInlineSpacing === true || this.settings.fixInlineSpacing === undefined;
+    this.settings.enableTokenCost = this.settings.enableTokenCost === true || this.settings.enableTokenCost === undefined;
+    
     // Boolean-Settings: Expliziter Cast, Default false
     this.settings.simplifyPdfExport = this.settings.simplifyPdfExport === true;
     this.settings.autoLoadCache = this.settings.autoLoadCache === true;
@@ -954,14 +1004,22 @@ class SmartTranslator {
       console.log('[SWT] Continue-Mode: Übersetze nur fehlende Texte');
     }
 
-    // API-Typ und Batch-Einstellungen laden
+    // API-Typ, Batch-Einstellungen und Token-Kosten laden
     const apiSettings = await chrome.storage.sync.get([
       'apiType', 'lmStudioContext', 
       'lmBatchSize', 'enableTrueBatch', 'useCacheFirst',
+      // Token-Kosten (v3.5.1)
+      'enableTokenCost', 'tokenCostAmount', 'tokenCostPer', 'tokenCostCurrency'
     ]);
     this.settings.apiType = apiSettings.apiType || 'libretranslate';
     this.settings.lmStudioContext = apiSettings.lmStudioContext || 'general';
+    // Continue-Mode impliziert Cache-First
     this.settings.useCacheFirst = mode === 'continue' ? true : apiSettings.useCacheFirst !== false;
+    // Token-Kosten aktualisieren
+    this.settings.enableTokenCost = apiSettings.enableTokenCost !== false;
+    this.settings.tokenCostAmount = apiSettings.tokenCostAmount ?? 1;
+    this.settings.tokenCostPer = apiSettings.tokenCostPer || 10000;
+    this.settings.tokenCostCurrency = apiSettings.tokenCostCurrency || 'EUR';
 
     this.showProgress(true);
     this.translationMode = mode;
@@ -1486,6 +1544,7 @@ class SmartTranslator {
 
   // === Message Handler ===
   handleMessage(request, sender, sendResponse) {
+    console.log('[SWT DEBUG] handleMessage:', request.action);
     switch (request.action) {
       case 'GET_SELECTION':
         sendResponse({ text: window.getSelection().toString().trim() });
@@ -1502,6 +1561,7 @@ class SmartTranslator {
         break;
 
       case 'TRANSLATE_PAGE':
+        console.log('[SWT DEBUG] TRANSLATE_PAGE empfangen, mode:', request.mode);
         this.translatePage(request.mode || 'replace');
         sendResponse({ success: true });
         break;
@@ -1645,7 +1705,7 @@ class SmartTranslator {
   }
 }
 
-// Initialisieren (identisch zum Original)
+// Initialisieren (mit Guard gegen doppelte Instanziierung)
 if (!window.swtInstance) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {

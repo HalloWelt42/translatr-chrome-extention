@@ -1,5 +1,7 @@
-// Content Cache
+// Content Cache Module - Smart Web Translator v3.12.0
 // Cache-Verwaltung für Übersetzungen (Lokal + Server)
+// v3.12.0: Abstrakte Cache-Löschung mit SWT.Cache.clearCache()
+// v3.11.2: Bereinigung - deprecated Funktionen entfernt, konsistente Keys
 
 (function() {
   'use strict';

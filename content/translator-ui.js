@@ -1,4 +1,4 @@
-// Content UI
+// Content UI Module - Smart Web Translator v3.7.0
 // Progress, Notifications, TTS und Formatierung
 
 (function() {
@@ -60,6 +60,8 @@
                 <span class="swt-token-current" title="Tokens letzte Anfrage">0</span>
                 <span class="swt-token-divider">•</span>
                 <span class="swt-token-total" title="Tokens gesamt">0</span>
+                <span class="swt-token-cost-divider">|</span>
+                <span class="swt-token-cost" title="Geschätzte Kosten">~$0.00</span>
               </div>
             </div>
           </div>
@@ -183,8 +185,15 @@
       
       const currentEl = this.progressOverlay.querySelector('.swt-token-current');
       const totalEl = this.progressOverlay.querySelector('.swt-token-total');
+      const costEl = this.progressOverlay.querySelector('.swt-token-cost');
+      
       if (currentEl) currentEl.textContent = this.formatTokens(this.currentTokens, false);
       if (totalEl) totalEl.textContent = this.formatTokens(this.totalTokens, false);
+      
+      if (costEl) {
+        const cost = this.calculateCost(this.totalTokens);
+        costEl.textContent = this.formatCost(cost);
+      }
       
       // Status-Indikator: Wechselt nur wenn sich der Zustand ändert
       const cacheHits = tokenInfo.cacheHits || 0;
@@ -229,6 +238,60 @@
     return `ca. ${hours}h ${remainingMins}m`;
   };
 
+  /**
+   * Kosten berechnen basierend auf API-Typ
+   */
+  SmartTranslator.prototype.calculateCost = function(tokens) {
+    // Benutzerdefinierte Kosten
+    if (this.settings.enableTokenCost) {
+      const costAmount = this.settings.tokenCostAmount || 1;
+      const costPer = this.settings.tokenCostPer || 10000;
+      const costPerToken = costAmount / costPer;
+      return tokens * costPerToken;
+    }
+    
+    // Standard-Preise pro 1M Tokens
+    const pricing = {
+      'openai': { input: 0.50, output: 1.50 },
+      'claude': { input: 3.00, output: 15.00 },
+      'deepl': { perChar: 0.00002 },
+      'libretranslate': { free: true },
+      'lmstudio': { free: true }
+    };
+    
+    const apiType = this.settings.apiType || 'libretranslate';
+    const price = pricing[apiType];
+    
+    if (!price || price.free) return null;
+    
+    if (price.perChar) {
+      return tokens * 4 * price.perChar * 100;
+    }
+    
+    const avgPrice = (price.input + price.output) / 2;
+    return (tokens / 1000000) * avgPrice * 100;
+  };
+
+  /**
+   * Kosten formatieren (Eingabe in Cent)
+   */
+  SmartTranslator.prototype.formatCost = function(cost) {
+    if (cost === null) return 'kostenlos';
+    
+    const currency = this.settings.tokenCostCurrency || 'EUR';
+    const symbol = currency === 'EUR' ? '€' : '$';
+    
+    if (cost < 0.01) {
+      return `~0,0001 ${symbol}`;
+    } else if (cost < 1) {
+      return `~${cost.toFixed(4)} ct`;
+    } else if (cost < 100) {
+      return `~${cost.toFixed(2)} ct`;
+    } else {
+      const euros = cost / 100;
+      return `~${euros.toFixed(2)} ${symbol}`;
+    }
+  };
 
   /**
    * Token-Formatierung mit Tausendertrenner
