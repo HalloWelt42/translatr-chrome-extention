@@ -994,7 +994,7 @@ class SmartTranslator {
     
     // Bei Continue-Mode: Nicht zurücksetzen wenn schon übersetzt
     if (this.isTranslated && mode !== 'continue') {
-      console.log('[SWT] Bereits übersetzt, toggle...');
+      console.log('[SWT DEBUG] isTranslated=true, toggle statt uebersetzen');
       this.toggleTranslation();
       return;
     }
@@ -1060,16 +1060,22 @@ class SmartTranslator {
         textNodes = this.findTranslatableTextNodes();
       }
 
-      const total = textNodes.length;
+      const total = textNodes ? textNodes.length : 0;
       let translated = 0;
-      
-      // Geplante Nodes speichern für "Fortsetzen" Berechnung
+
+      console.log('[SWT DEBUG] textNodes gefunden:', total);
+      if (total === 0) {
+        console.log('[SWT DEBUG] KEINE Text-Nodes! findTranslatableTextNodes() hat 0 zurueckgegeben');
+        console.log('[SWT DEBUG] typeof findTranslatableTextNodes:', typeof this.findTranslatableTextNodes);
+        this.showProgress(false);
+        return;
+      }
+
       this._plannedNodes = total;
-      
-      // Batch-Größe aus Settings laden (konsistent mit Middleware)
+
       const batchSettings = await chrome.storage.sync.get(['pageBatchSize', 'lmBatchSize']);
       const batchSize = Math.max(1, Math.min(50, batchSettings.pageBatchSize || batchSettings.lmBatchSize || 20));
-      
+
       console.log(`[SWT] Übersetzung gestartet: ${total} Text-Nodes (Batch-Größe: ${batchSize})`);
 
       // Batch-weise Übersetzung: Requests gleichzeitig abfeuern, Ergebnisse in Reihenfolge anwenden
