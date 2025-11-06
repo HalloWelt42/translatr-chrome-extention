@@ -1711,7 +1711,7 @@ class SmartTranslator {
   }
 }
 
-// Initialisieren (mit Guard gegen doppelte Instanziierung)
+// Initialisieren
 if (!window.swtInstance) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
@@ -1723,3 +1723,25 @@ if (!window.swtInstance) {
     window.swtInstance = new SmartTranslator();
   }
 }
+
+// === DIAGNOSE === (nach Instanziierung und Sub-Modul-Laden)
+setTimeout(() => {
+  const inst = window.swtInstance;
+  const proto = SmartTranslator.prototype;
+  console.log('=== SWT DIAGNOSE ===');
+  console.log('swtInstance:', !!inst);
+  console.log('showProgress:', typeof proto.showProgress);
+  console.log('findTranslatableTextNodes:', typeof proto.findTranslatableTextNodes);
+  console.log('wrapWithHoverOriginal:', typeof proto.wrapWithHoverOriginal);
+  console.log('handleMessage:', typeof proto.handleMessage);
+  console.log('translatePage:', typeof proto.translatePage);
+  console.log('checkForCachedTranslation:', typeof proto.checkForCachedTranslation);
+  console.log('loadCachedTranslation:', typeof proto.loadCachedTranslation);
+  console.log('settings.sourceLang:', inst?.settings?.sourceLang);
+  console.log('settings.targetLang:', inst?.settings?.targetLang);
+  console.log('settings.apiType:', inst?.settings?.apiType);
+  console.log('__swtMessageListenerAdded:', window.__swtMessageListenerAdded);
+  console.log('SWT.Cache:', typeof SWT?.Cache?.checkCache);
+  console.log('SWT.CacheServer:', typeof SWT?.CacheServer?.bulkGet);
+  console.log('=== /DIAGNOSE ===');
+}, 2000);
