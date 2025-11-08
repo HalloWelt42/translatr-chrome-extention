@@ -299,25 +299,25 @@ class SidePanelController {
 
     translateBtn.addEventListener('click', async () => {
       if (translateBtn.classList.contains('disabled')) return;
-      await this.sendPageAction('translatePage', { mode: 'replace' });
+      await this.sendPageAction('TRANSLATE_PAGE', { mode: 'replace' });
       setTimeout(() => this.updateActionStates(), 500);
     });
 
     continueBtn.addEventListener('click', async () => {
       if (continueBtn.classList.contains('disabled')) return;
-      await this.sendPageAction('translatePage', { mode: 'continue' });
+      await this.sendPageAction('TRANSLATE_PAGE', { mode: 'continue' });
       setTimeout(() => this.updateActionStates(), 500);
     });
 
     restoreBtn.addEventListener('click', async () => {
       if (restoreBtn.classList.contains('disabled')) return;
-      await this.sendPageAction('restorePage');
+      await this.sendPageAction('RESTORE_PAGE');
       setTimeout(() => this.updateActionStates(), 500);
     });
 
     loadCacheBtn.addEventListener('click', async () => {
       if (loadCacheBtn.classList.contains('disabled')) return;
-      await this.sendPageAction('loadCachedTranslation');
+      await this.sendPageAction('LOAD_CACHED_TRANSLATION');
       setTimeout(() => this.updateActionStates(), 500);
     });
 
@@ -463,7 +463,7 @@ class SidePanelController {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab) {
         await chrome.tabs.sendMessage(tab.id, { action, ...data });
-        SWT.Toast.show('Aktion ausgeführt');
+        // Kein Toast hier -- die Aktion zeigt eigenes Feedback
       }
     } catch (e) {
       SWT.Toast.show('Fehler: Seite nicht erreichbar');
@@ -558,7 +558,7 @@ class SidePanelController {
           });
           
           // Lokalen Cache auch löschen
-          await this.sendPageAction('clearCache');
+          await this.sendPageAction('CLEAR_CACHE');
           
           this.loadCache();
           this.updateActionStates();
