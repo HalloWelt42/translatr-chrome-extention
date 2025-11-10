@@ -149,18 +149,14 @@ class SmartTranslator {
     // Message Listener nur einmal registrieren (global)
     if (!window.__swtMessageListenerAdded) {
       window.__swtMessageListenerAdded = true;
-      console.log('[SWT DEBUG] Message-Listener registriert');
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        console.log('[SWT DEBUG] Message empfangen:', request?.action);
         if (window.swtInstance) {
           window.swtInstance.handleMessage(request, sender, sendResponse);
         } else {
-          console.log('[SWT DEBUG] FEHLER: swtInstance ist null!');
         }
         return true;
       });
     } else {
-      console.log('[SWT DEBUG] Listener bereits registriert, uebersprungen');
     }
 
     // Storage Listener auch nur einmal
@@ -994,7 +990,6 @@ class SmartTranslator {
     
     // Bei Continue-Mode: Nicht zurücksetzen wenn schon übersetzt
     if (this.isTranslated && mode !== 'continue') {
-      console.log('[SWT DEBUG] isTranslated=true, toggle statt uebersetzen');
       this.toggleTranslation();
       return;
     }
@@ -1063,10 +1058,7 @@ class SmartTranslator {
       const total = textNodes ? textNodes.length : 0;
       let translated = 0;
 
-      console.log('[SWT DEBUG] textNodes gefunden:', total);
       if (total === 0) {
-        console.log('[SWT DEBUG] KEINE Text-Nodes! findTranslatableTextNodes() hat 0 zurueckgegeben');
-        console.log('[SWT DEBUG] typeof findTranslatableTextNodes:', typeof this.findTranslatableTextNodes);
         this.showProgress(false);
         return;
       }
@@ -1550,7 +1542,6 @@ class SmartTranslator {
 
   // === Message Handler ===
   handleMessage(request, sender, sendResponse) {
-    console.log('[SWT DEBUG] handleMessage:', request.action);
     switch (request.action) {
       case 'GET_SELECTION':
         sendResponse({ text: window.getSelection().toString().trim() });
@@ -1567,7 +1558,6 @@ class SmartTranslator {
         break;
 
       case 'TRANSLATE_PAGE':
-        console.log('[SWT DEBUG] TRANSLATE_PAGE empfangen, mode:', request.mode);
         this.translatePage(request.mode || 'replace');
         sendResponse({ success: true });
         break;
@@ -1725,23 +1715,3 @@ if (!window.swtInstance) {
 }
 
 // === DIAGNOSE === (nach Instanziierung und Sub-Modul-Laden)
-setTimeout(() => {
-  const inst = window.swtInstance;
-  const proto = SmartTranslator.prototype;
-  console.log('=== SWT DIAGNOSE ===');
-  console.log('swtInstance:', !!inst);
-  console.log('showProgress:', typeof proto.showProgress);
-  console.log('findTranslatableTextNodes:', typeof proto.findTranslatableTextNodes);
-  console.log('wrapWithHoverOriginal:', typeof proto.wrapWithHoverOriginal);
-  console.log('handleMessage:', typeof proto.handleMessage);
-  console.log('translatePage:', typeof proto.translatePage);
-  console.log('checkForCachedTranslation:', typeof proto.checkForCachedTranslation);
-  console.log('loadCachedTranslation:', typeof proto.loadCachedTranslation);
-  console.log('settings.sourceLang:', inst?.settings?.sourceLang);
-  console.log('settings.targetLang:', inst?.settings?.targetLang);
-  console.log('settings.apiType:', inst?.settings?.apiType);
-  console.log('__swtMessageListenerAdded:', window.__swtMessageListenerAdded);
-  console.log('SWT.Cache:', typeof SWT?.Cache?.checkCache);
-  console.log('SWT.CacheServer:', typeof SWT?.CacheServer?.bulkGet);
-  console.log('=== /DIAGNOSE ===');
-}, 2000);

@@ -271,13 +271,7 @@ function setupEventListeners() {
     if (btn.classList.contains('disabled')) return;
     
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    console.log('[SWT Popup] Sende TRANSLATE_PAGE an Tab:', tab?.id);
-    try {
-      const result = await chrome.tabs.sendMessage(tab.id, { action: 'TRANSLATE_PAGE', mode: 'replace' });
-      console.log('[SWT Popup] Antwort:', result);
-    } catch (e) {
-      console.log('[SWT Popup] FEHLER:', e.message);
-    }
+    await chrome.tabs.sendMessage(tab.id, { action: 'TRANSLATE_PAGE', mode: 'replace' }).catch(() => {});
     window.close();
   });
 
