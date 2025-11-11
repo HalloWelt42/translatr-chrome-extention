@@ -478,7 +478,12 @@ class TranslatorBackground {
   }
 
   async translateText(text, source = 'auto', target = 'de', pageUrl = null) {
-    // Sprachrichtung für Cache-Hash - MUSS mit content-cache.js übereinstimmen
+    // Leere/ungueltige Texte sofort abweisen
+    if (!text || text.trim().length < 2) {
+      return { success: false, error: 'Text zu kurz oder leer' };
+    }
+
+    // Sprachrichtung fuer Cache-Hash
     const langPair = `${source || 'auto'}:${target || 'de'}`;
     
     // E-Book Erkennung
