@@ -521,8 +521,6 @@ class SmartTranslator {
       'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioContext',
       // Neue v3.1 Settings
       'autoLoadCache', 'autoTranslateDomains', 'enableAbortTranslation',
-      // Token-Kosten (v3.4)
-      'enableTokenCost', 'tokenCostAmount', 'tokenCostPer', 'tokenCostCurrency'
     ]);
 
     // String-Settings mit Defaults
@@ -530,13 +528,10 @@ class SmartTranslator {
     this.settings.targetLang = this.settings.targetLang || 'de';
     this.settings.sourceLang = this.settings.sourceLang || 'auto';
     this.settings.apiType = this.settings.apiType || 'libretranslate';
-    this.settings.tokenCostCurrency = this.settings.tokenCostCurrency || 'EUR';
     
     // Number-Settings mit Defaults
     this.settings.selectionIconDelay = this.settings.selectionIconDelay || 200;
     this.settings.tabWordThreshold = this.settings.tabWordThreshold || 20;
-    this.settings.tokenCostAmount = this.settings.tokenCostAmount ?? 1;
-    this.settings.tokenCostPer = this.settings.tokenCostPer || 10000;
     
     // Boolean-Settings: Expliziter Cast, Default true
     this.settings.showSelectionIcon = this.settings.showSelectionIcon === true || this.settings.showSelectionIcon === undefined;
@@ -544,7 +539,6 @@ class SmartTranslator {
     this.settings.skipBlockquotes = this.settings.skipBlockquotes === true || this.settings.skipBlockquotes === undefined;
     this.settings.useTabsForAlternatives = this.settings.useTabsForAlternatives === true || this.settings.useTabsForAlternatives === undefined;
     this.settings.fixInlineSpacing = this.settings.fixInlineSpacing === true || this.settings.fixInlineSpacing === undefined;
-    this.settings.enableTokenCost = this.settings.enableTokenCost === true || this.settings.enableTokenCost === undefined;
     
     // Boolean-Settings: Expliziter Cast, Default false
     this.settings.simplifyPdfExport = this.settings.simplifyPdfExport === true;
@@ -999,22 +993,14 @@ class SmartTranslator {
       console.log('[SWT] Continue-Mode: Übersetze nur fehlende Texte');
     }
 
-    // API-Typ, Batch-Einstellungen und Token-Kosten laden
     const apiSettings = await chrome.storage.sync.get([
       'apiType', 'lmStudioContext', 
       'lmBatchSize', 'enableTrueBatch', 'useCacheFirst',
-      // Token-Kosten (v3.5.1)
-      'enableTokenCost', 'tokenCostAmount', 'tokenCostPer', 'tokenCostCurrency'
     ]);
     this.settings.apiType = apiSettings.apiType || 'libretranslate';
     this.settings.lmStudioContext = apiSettings.lmStudioContext || 'general';
     // Continue-Mode impliziert Cache-First
     this.settings.useCacheFirst = mode === 'continue' ? true : apiSettings.useCacheFirst !== false;
-    // Token-Kosten aktualisieren
-    this.settings.enableTokenCost = apiSettings.enableTokenCost !== false;
-    this.settings.tokenCostAmount = apiSettings.tokenCostAmount ?? 1;
-    this.settings.tokenCostPer = apiSettings.tokenCostPer || 10000;
-    this.settings.tokenCostCurrency = apiSettings.tokenCostCurrency || 'EUR';
 
     this.showProgress(true);
     this.translationMode = mode;
