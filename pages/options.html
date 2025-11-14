@@ -14,7 +14,7 @@
         <span data-swt-icon="translate"></span>
         Smart Translator
       </h1>
-      <p>Einstellungen v3.13</p>
+      <p>Einstellungen</p>
     </header>
 
     <!-- Status-Anzeige für Feedback -->
@@ -29,11 +29,11 @@
 
       <div class="api-type-selector">
         <div class="api-type-option active" data-type="libretranslate">
-          <h3>🌐 LibreTranslate</h3>
+          <h3><span data-swt-icon="globe"></span> LibreTranslate</h3>
           <p>Open-Source, selbst-gehostet</p>
         </div>
         <div class="api-type-option" data-type="lmstudio">
-          <h3>🤖 LM Studio</h3>
+          <h3><span data-swt-icon="robot"></span> LM Studio</h3>
           <p>Lokales LLM, Fachübersetzungen</p>
         </div>
       </div>
@@ -73,7 +73,7 @@
             <select id="lmStudioModel">
               <option value="">Modelle laden...</option>
             </select>
-            <button type="button" class="btn btn-secondary" id="refreshModelsBtn" title="Modelle neu laden">
+            <button type="button" class="btn btn-secondary" id="refreshModelsBtn">
               <span data-swt-icon="sync"></span>
             </button>
           </div>
@@ -94,12 +94,12 @@
           <label for="lmStudioContext">Fachkontext</label>
           <div class="description">Optimierte Prompts für verschiedene Fachgebiete</div>
           <select id="lmStudioContext">
-            <option value="general">📝 Allgemein</option>
-            <option value="automotive">🚗 Kfz / Automotive</option>
-            <option value="technical">⚙️ Technisch / IT</option>
-            <option value="medical">🏥 Medizin</option>
-            <option value="legal">⚖️ Recht / Juristisch</option>
-            <option value="custom">✏️ Benutzerdefiniert</option>
+            <option value="general">Allgemein</option>
+            <option value="automotive">Kfz / Automotive</option>
+            <option value="technical">Technisch / IT</option>
+            <option value="medical">Medizin</option>
+            <option value="legal">Recht / Juristisch</option>
+            <option value="custom">Benutzerdefiniert</option>
           </select>
         </div>
 
@@ -120,58 +120,25 @@
     <div class="card">
       <h2>
         <span data-swt-icon="copyAll"></span>
-        Batch-Übersetzung
+        Batch-Verarbeitung
       </h2>
 
       <div class="form-group">
-        <label for="pageBatchSize">Middleware Batch-Größe</label>
-        <div class="description">Anzahl Texte die die Middleware sammelt bevor sie als Batch an die API gesendet werden (1 = sofort einzeln, höher = effizienter)</div>
-        <input type="range" id="pageBatchSize" min="1" max="50" value="1">
-        <div class="range-value"><span id="pageBatchSizeValue">1</span> Texte</div>
+        <label for="pageBatchSize">Batch-Groesse</label>
+        <div class="description">Texte pro Batch (1 = einzeln, hoeher = schneller)</div>
+        <input type="range" id="pageBatchSize" min="1" max="50" value="20">
+        <div class="range-value"><span id="pageBatchSizeValue">20</span> Texte</div>
       </div>
 
       <div class="toggle-group">
         <div class="toggle-info">
-          <div class="label">True Batch-Modus (LM Studio)</div>
-          <div class="desc">Mehrere Texte in einem API-Call (effizienter)</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="enableTrueBatch" checked>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Smart Chunking</div>
-          <div class="desc">Automatische Aufteilung bei Token-Limits</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="enableSmartChunking" checked>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Cache zuerst prüfen</div>
-          <div class="desc">Vor Übersetzung gecachte Texte laden (spart Rechenleistung)</div>
+          <div class="label">Cache zuerst pruefen</div>
+          <div class="desc">Gecachte Texte laden statt neu zu uebersetzen</div>
         </div>
         <label class="toggle">
           <input type="checkbox" id="useCacheFirst" checked>
           <span class="toggle-slider"></span>
         </label>
-      </div>
-
-      <div class="row mt-md">
-        <div class="form-group">
-          <label for="lmBatchSize">LM Batch-Größe</label>
-          <input type="number" id="lmBatchSize" min="5" max="50" value="20">
-        </div>
-        <div class="form-group">
-          <label for="lmMaxBatchTokens">Max Batch-Tokens</label>
-          <input type="number" id="lmMaxBatchTokens" min="8000" max="256000" step="1000" value="128000">
-        </div>
       </div>
     </div>
 

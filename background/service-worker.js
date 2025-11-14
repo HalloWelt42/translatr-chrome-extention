@@ -152,19 +152,19 @@ class TranslatorBackground {
 
       chrome.contextMenus.create({
         id: 'TRANSLATE_SELECTION',
-        title: '🌐 "%s" übersetzen',
+        title: '"%s" übersetzen',
         contexts: ['selection']
       });
 
       chrome.contextMenus.create({
         id: 'TRANSLATE_WORD',
-        title: '🌐 Wort übersetzen',
+        title: 'Wort übersetzen',
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
         id: 'TRANSLATE_PAGE_CMD',
-        title: '🌐 Seite übersetzen',
+        title: 'Seite übersetzen',
         contexts: ['page']
       });
 
@@ -177,7 +177,7 @@ class TranslatorBackground {
       // Export-Untermenü
       chrome.contextMenus.create({
         id: 'EXPORT_MENU',
-        title: '📥 Exportieren',
+        title: 'Exportieren',
         contexts: ['page']
       });
 
@@ -217,13 +217,13 @@ class TranslatorBackground {
 
       chrome.contextMenus.create({
         id: 'OPEN_SIDEPANEL_CMD',
-        title: '📋 Side Panel öffnen',
+        title: 'Side Panel öffnen',
         contexts: ['page', 'selection']
       });
 
       chrome.contextMenus.create({
         id: 'OPEN_OPTIONS',
-        title: '⚙️ Einstellungen',
+        title: 'Einstellungen',
         contexts: ['page']
       });
 

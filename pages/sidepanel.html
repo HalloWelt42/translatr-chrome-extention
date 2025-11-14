@@ -13,7 +13,7 @@
       <h1>
         <span data-swt-icon="translate"></span>
         <span>Smart Translator</span>
-        <div class="api-badge" id="apiBadge" title="Aktives API-Backend">
+        <div class="api-badge" id="apiBadge">
           <span id="apiBadgeText">Libre</span>
         </div>
       </h1>
@@ -65,17 +65,17 @@
             Kontext
           </label>
           <select id="contextSelect">
-            <option value="general">📝 Allgemein</option>
-            <option value="automotive">🚗 Kfz / Automotive</option>
-            <option value="technical">⚙️ Technisch / IT</option>
-            <option value="medical">🏥 Medizin</option>
-            <option value="legal">⚖️ Recht / Juristisch</option>
+            <option value="general">Allgemein</option>
+            <option value="automotive">Kfz / Automotive</option>
+            <option value="technical">Technisch / IT</option>
+            <option value="medical">Medizin</option>
+            <option value="legal">Recht / Juristisch</option>
           </select>
         </div>
 
         <div class="text-field-wrapper">
           <textarea id="sourceText" placeholder="Text eingeben..."></textarea>
-          <button class="field-clear-btn" id="clearSource" title="Leeren">
+          <button class="field-clear-btn" id="clearSource">
             <span data-swt-icon="delete"></span>
           </button>
         </div>
@@ -87,7 +87,7 @@
 
         <div class="text-field-wrapper">
           <div class="result-box" id="resultBox"><span class="placeholder">Übersetzung erscheint hier...</span></div>
-          <button class="field-clear-btn" id="clearResult" title="Leeren">
+          <button class="field-clear-btn" id="clearResult">
             <span data-swt-icon="delete"></span>
           </button>
         </div>
@@ -117,7 +117,7 @@
           <div class="action-card" id="continuePage">
             <span data-swt-icon="play"></span>
             <span>Fortsetzen</span>
-            <span class="action-badge" id="cacheProgress" title="Cache-Abdeckung">–</span>
+            <span class="action-badge" id="cacheProgress">–</span>
           </div>
           <div class="action-card" id="restorePage">
             <span data-swt-icon="refresh"></span>
@@ -224,7 +224,7 @@
     </div>
 
     <div class="app-footer">
-      <a href="#" id="openOptions">⚙️ Einstellungen öffnen</a>
+      <a href="#" id="openOptions">Einstellungen öffnen</a>
     </div>
   </div>
 

@@ -102,18 +102,12 @@ async function loadSettings() {
     setVal('lmStudioContext', settings.lmStudioContext || 'general');
     setVal('lmStudioCustomPrompt', settings.lmStudioCustomPrompt || '');
     
-    // Batch-Einstellungen (v3.5)
-    setVal('lmBatchSize', settings.lmBatchSize || 20);
-    setVal('lmMaxBatchTokens', settings.lmMaxBatchTokens || 128000);
-    setChecked('enableTrueBatch', settings.enableTrueBatch !== false);
-    setChecked('enableSmartChunking', settings.enableSmartChunking !== false);
-    setChecked('useCacheFirst', settings.useCacheFirst !== false);
-    
-    // Seiten-Batch-Größe (v3.11.5) - Default: lmBatchSize oder 20
-    const pageBatchSize = settings.pageBatchSize || settings.lmBatchSize || 20;
+    // Batch
+    const pageBatchSize = settings.pageBatchSize || 20;
     setVal('pageBatchSize', pageBatchSize);
     const pageBatchSizeValueEl = document.getElementById('pageBatchSizeValue');
     if (pageBatchSizeValueEl) pageBatchSizeValueEl.textContent = pageBatchSize;
+    setChecked('useCacheFirst', settings.useCacheFirst !== false);
     
     // API-Typ setzen und UI aktualisieren
     const apiType = settings.apiType || 'libretranslate';
@@ -597,15 +591,9 @@ async function saveSettings() {
       lmStudioContext: getVal('lmStudioContext', 'general'),
       lmStudioCustomPrompt: getVal('lmStudioCustomPrompt', '').trim(),
       
-      // Batch-Einstellungen (v3.5)
-      lmBatchSize: getInt('lmBatchSize', 20),
-      lmMaxBatchTokens: getInt('lmMaxBatchTokens', 128000),
-      enableTrueBatch: getChecked('enableTrueBatch', true),
-      enableSmartChunking: getChecked('enableSmartChunking', true),
-      useCacheFirst: getChecked('useCacheFirst', true),
-      
-      // Seiten-Batch-Größe (v3.11.5) - synchron mit lmBatchSize
+      // Batch
       pageBatchSize: getInt('pageBatchSize', 20),
+      useCacheFirst: getChecked('useCacheFirst', true),
       
       // Sprachen
       sourceLang: getVal('sourceLang', 'auto'),
@@ -613,6 +601,7 @@ async function saveSettings() {
       
       // UI Optionen
       showSelectionIcon: getChecked('showSelectionIcon', true),
+      enableTTS: getChecked('enableTTS', true),
       showOriginalInTooltip: getChecked('showOriginalInTooltip', true),
       showAlternatives: getChecked('showAlternatives', true),
       highlightTranslated: getChecked('highlightTranslated', false),
