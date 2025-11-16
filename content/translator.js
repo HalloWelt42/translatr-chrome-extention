@@ -513,38 +513,45 @@ class SmartTranslator {
   async loadSettings() {
     this.settings = await chrome.storage.sync.get([
       'serviceUrl', 'apiKey', 'sourceLang', 'targetLang',
-      'showSelectionIcon', 'selectionIconDelay', 'tooltipPosition',
-      'showOriginalInTooltip', 'showAlternatives', 'enableTTS',
-      'skipCodeBlocks', 'skipBlockquotes', 'useTabsForAlternatives',
-      'simplifyPdfExport', 'fixInlineSpacing', 'tabWordThreshold',
-      // LM Studio Settings
+      'showSelectionIcon', 'showOriginalInTooltip', 'showAlternatives',
+      'enableTTS', 'highlightTranslated',
+      'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
       'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioContext',
-      // Neue v3.1 Settings
-      'autoLoadCache', 'autoTranslateDomains', 'enableAbortTranslation',
+      'autoLoadCache', 'autoTranslateDomains',
+      'cacheServerEnabled', 'cacheServerMode',
+      'excludedDomains'
     ]);
 
-    // String-Settings mit Defaults
+    // String-Defaults
     this.settings.serviceUrl = this.settings.serviceUrl || 'http://localhost:5000/translate';
     this.settings.targetLang = this.settings.targetLang || 'de';
     this.settings.sourceLang = this.settings.sourceLang || 'auto';
     this.settings.apiType = this.settings.apiType || 'libretranslate';
-    
-    // Number-Settings mit Defaults
-    this.settings.selectionIconDelay = this.settings.selectionIconDelay || 200;
-    this.settings.tabWordThreshold = this.settings.tabWordThreshold || 20;
-    
-    // Boolean-Settings: Expliziter Cast, Default true
-    this.settings.showSelectionIcon = this.settings.showSelectionIcon === true || this.settings.showSelectionIcon === undefined;
-    this.settings.skipCodeBlocks = this.settings.skipCodeBlocks === true || this.settings.skipCodeBlocks === undefined;
-    this.settings.skipBlockquotes = this.settings.skipBlockquotes === true || this.settings.skipBlockquotes === undefined;
-    this.settings.useTabsForAlternatives = this.settings.useTabsForAlternatives === true || this.settings.useTabsForAlternatives === undefined;
-    this.settings.fixInlineSpacing = this.settings.fixInlineSpacing === true || this.settings.fixInlineSpacing === undefined;
-    
-    // Boolean-Settings: Expliziter Cast, Default false
-    this.settings.simplifyPdfExport = this.settings.simplifyPdfExport === true;
+
+    // Hardcoded Defaults (keine UI, nicht aenderbar)
+    this.settings.selectionIconDelay = 200;
+    this.settings.tooltipPosition = 'below';
+    this.settings.useTabsForAlternatives = true;
+    this.settings.tabWordThreshold = 20;
+    this.settings.simplifyPdfExport = false;
+    this.settings.enableAbortTranslation = true;
+    this.settings.enableLLMFallback = false;
+    this.settings.ttsLanguage = 'auto';
+
+    // Boolean-Defaults (true)
+    this.settings.showSelectionIcon = this.settings.showSelectionIcon !== false;
+    this.settings.skipCodeBlocks = this.settings.skipCodeBlocks !== false;
+    this.settings.skipBlockquotes = this.settings.skipBlockquotes !== false;
+    this.settings.fixInlineSpacing = this.settings.fixInlineSpacing !== false;
+    this.settings.showOriginalInTooltip = this.settings.showOriginalInTooltip !== false;
+    this.settings.showAlternatives = this.settings.showAlternatives !== false;
+    this.settings.enableTTS = this.settings.enableTTS !== false;
+
+    // Boolean-Defaults (false)
+    this.settings.highlightTranslated = this.settings.highlightTranslated === true;
     this.settings.autoLoadCache = this.settings.autoLoadCache === true;
-    
-    // Array-Settings
+
+    // Array-Defaults
     this.settings.autoTranslateDomains = this.settings.autoTranslateDomains || [];
     
     // Debug: Settings ausgeben
@@ -994,12 +1001,10 @@ class SmartTranslator {
     }
 
     const apiSettings = await chrome.storage.sync.get([
-      'apiType', 'lmStudioContext', 
-      'lmBatchSize', 'enableTrueBatch', 'useCacheFirst',
+      'apiType', 'lmStudioContext', 'useCacheFirst'
     ]);
     this.settings.apiType = apiSettings.apiType || 'libretranslate';
     this.settings.lmStudioContext = apiSettings.lmStudioContext || 'general';
-    // Continue-Mode impliziert Cache-First
     this.settings.useCacheFirst = mode === 'continue' ? true : apiSettings.useCacheFirst !== false;
 
     this.showProgress(true);
