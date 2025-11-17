@@ -41,16 +41,6 @@
     wrapper.textContent = finalTranslation;
     wrapper.dataset.original = original;
     wrapper.dataset.translated = translated;
-    wrapper.title = original;
-
-    const self = this;
-    wrapper.addEventListener('mouseenter', (e) => {
-      self.showOriginalTooltip(e.target, original);
-    });
-
-    wrapper.addEventListener('mouseleave', () => {
-      self.hideOriginalTooltip();
-    });
 
     node.parentNode.replaceChild(wrapper, node);
   };
