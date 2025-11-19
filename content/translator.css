@@ -80,13 +80,13 @@
   box-sizing: border-box !important;
 }
 
-/* === Cache Indicator (roter Button oben rechts) === */
+/* === Cache Indicator (oben rechts) === */
 .swt-cache-indicator {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 2147483646;
-  background: var(--md-error);
+  background: var(--accent);
   color: white;
   padding: 10px 16px;
   border-radius: 24px;
@@ -94,7 +94,7 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: var(--md-elevation-2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   opacity: 0;
   transform: translateY(-20px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -108,8 +108,8 @@
 }
 
 .swt-cache-indicator:hover {
-  background: var(--md-error);
-  box-shadow: var(--md-elevation-3);
+  background: var(--accent-hover);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .swt-cache-indicator svg {
