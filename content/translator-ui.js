@@ -33,19 +33,19 @@
           <div class="swt-progress-content">
             <div class="swt-progress-header">
               <div class="swt-progress-title-wrap">
-                <div class="swt-status-dot" id="smtStatusDot" title="Bereit"></div>
+                <div class="swt-status-dot" id="swtStatusDot"></div>
                 <span class="swt-progress-title">Übersetze...</span>
-                <span class="swt-progress-eta" title="Geschätzte Restzeit">
+                <span class="swt-progress-eta">
                   ${SWT.Icons.svg('clock', 'swt-eta-icon')}
                   <span class="swt-eta-text">berechne...</span>
                 </span>
               </div>
               <div class="swt-progress-actions">
-                <button class="swt-progress-minimize" title="Minimieren">−</button>
-                <button class="swt-progress-pause" title="Pausieren">
+                <button class="swt-progress-minimize">−</button>
+                <button class="swt-progress-pause">
                   ${SWT.Icons.svg('pause')}
                 </button>
-                <button class="swt-progress-stop" title="Abbrechen">
+                <button class="swt-progress-stop">
                   ${SWT.Icons.svg('stop')}
                 </button>
               </div>
@@ -57,9 +57,9 @@
                 <span class="swt-progress-stats">0 / 0</span>
               </div>
               <div class="swt-progress-tokens">
-                <span class="swt-token-current" title="Tokens letzte Anfrage">0</span>
+                <span class="swt-token-current">0</span>
                 <span class="swt-token-divider">•</span>
-                <span class="swt-token-total" title="Tokens gesamt">0</span>
+                <span class="swt-token-total">0</span>
               </div>
             </div>
           </div>

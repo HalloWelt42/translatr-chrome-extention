@@ -124,27 +124,23 @@ class SmartTranslator {
   }
 
   async init() {
-    console.log('[SWT] === INIT START ===');
-    console.log('[SWT] URL:', window.location.href);
-    console.log('[SWT] Hostname:', window.location.hostname);
     
     await this.loadSettings();
     await this.loadEbookDomains(); // E-Book-Domains laden
     
     // Debug: Strategie prüfen
     const strategy = this.getActiveStrategy?.();
-    console.log('[SWT] Aktive Strategie nach init:', strategy?.name || 'keine');
     
     this.setupEventListeners();
     this.setupUrlTracking();  // NEU: URL-Tracking für SPAs
     
-    // Für E-Books: Warten bis iframes geladen sind
+    // Fuer E-Books: Warten bis iframes geladen sind
     if (strategy?.name === 'E-Book Reader') {
-      console.log('[SWT E-Book] Warte auf iframes...');
       await this.waitForEbookIframes();
     }
-    
-    this.checkForCachedTranslation();
+
+    // Cache-Check NACH Settings und DOM-Ready (await!)
+    await this.checkForCachedTranslation();
 
     // Message Listener nur einmal registrieren (global)
     if (!window.__swtMessageListenerAdded) {
@@ -197,7 +193,6 @@ class SmartTranslator {
       });
     }
     
-    console.log('[SWT] === INIT COMPLETE ===');
   }
   
   /**

@@ -76,11 +76,17 @@
       console.log('[SWT] Standard Cache-Check mit Text-Nodes');
       const textNodes = this.findTranslatableTextNodes();
       sampleTexts = textNodes.slice(0, 50).map(n => n.textContent.trim()).filter(t => t.length >= 2);
-      console.log('[SWT] Gefundene Sample-Texte:', sampleTexts.length);
     }
     
     if (sampleTexts.length === 0) {
-      console.log('[SWT] Keine Sample-Texte gefunden, kein Cache-Check');
+      // Retry nach 500ms -- Seite war evtl. noch nicht fertig gerendert
+      if (!this._cacheCheckRetried) {
+        this._cacheCheckRetried = true;
+        console.log('[SWT] Keine Texte gefunden, Retry in 500ms');
+        await new Promise(r => setTimeout(r, 500));
+        return this.checkForCachedTranslation();
+      }
+      console.log('[SWT] Keine Sample-Texte nach Retry');
       this.setCacheAvailable(false);
       this.checkAutoTranslateDomain();
       return;
@@ -88,8 +94,6 @@
     
     // Cache-Key Debug
     const currentUrl = window.location.href;
-    console.log('[SWT] Cache-Check mit Key:', this.cacheKey);
-    console.log('[SWT] URL für Cache:', currentUrl);
     
     // Cache prüfen - WICHTIG: aktuelle URL verwenden!
     const cacheResult = await SWT.Cache.checkCache(
@@ -163,10 +167,7 @@
   SmartTranslator.prototype.showCacheIndicator = function(source = 'local', count = 0, total = 0) {
     if (this.cacheIndicator) return;
 
-    const isServer = source === 'server';
-    const label = isServer 
-      ? `Server-Cache: ${count}/${total} Texte`
-      : 'Übersetzung verfügbar';
+    const label = 'Übersetzung verfügbar';
 
     this.cacheIndicator = document.createElement('div');
     this.cacheIndicator.className = 'swt-ui swt-cache-indicator';

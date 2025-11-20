@@ -216,10 +216,10 @@
         }
         
         if (reasons.length > 0) {
-          console.log('⛔ AUSSCHLUSS-GRÜNDE:');
+          console.log('[X] AUSSCHLUSS-GRÜNDE:');
           reasons.forEach(r => console.log('  -', r));
         } else {
-          console.log('✅ Sollte gefunden werden! (kein Ausschlussgrund)');
+          console.log('[OK] Sollte gefunden werden! (kein Ausschlussgrund)');
         }
         
         // Zeige DOM-Pfad
@@ -238,7 +238,7 @@
     }
     
     if (!found) {
-      console.log('❌ Text nicht im DOM gefunden!');
+      console.log('[!] Text nicht im DOM gefunden!');
       console.log('Mögliche Gründe:');
       console.log('  - Text ist in einem iframe');
       console.log('  - Text wurde dynamisch geladen (nach dem Scan)');

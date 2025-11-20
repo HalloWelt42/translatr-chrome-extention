@@ -523,7 +523,7 @@ DomainStrategies.register('ebook', {
           if (body) {
             const pTags = body.querySelectorAll('p');
             const allText = body.textContent?.substring(0, 200);
-            console.log('[SWT E-Book] ✓ contentDocument.body verfügbar');
+            console.log('[SWT E-Book] OK: contentDocument.body verfügbar');
             console.log('[SWT E-Book] p-Tags:', pTags.length);
             console.log('[SWT E-Book] Body-Text (Auszug):', allText);
             
@@ -534,7 +534,7 @@ DomainStrategies.register('ebook', {
                 document: contentDoc,
                 body: body
               });
-              console.log('[SWT E-Book] ✓ contentDocument hinzugefügt');
+              console.log('[SWT E-Book] OK: contentDocument hinzugefügt');
               return; // Erfolgreich - nicht auch srcdoc parsen
             } else {
               console.log('[SWT E-Book] contentDocument leer - versuche srcdoc');
@@ -573,7 +573,7 @@ DomainStrategies.register('ebook', {
               body: body,
               warning: 'Änderungen an geparstem srcdoc sind NICHT sichtbar im iframe!'
             });
-            console.log('[SWT E-Book] ⚠ srcdoc-parsed hinzugefügt (read-only!)');
+            console.log('[SWT E-Book] [W] srcdoc-parsed hinzugefügt (read-only!)');
           }
         } catch (e) {
           console.warn('[SWT E-Book] srcdoc Parse-Fehler:', e);

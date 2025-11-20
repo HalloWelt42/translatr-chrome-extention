@@ -594,7 +594,7 @@
 /* Pause-Zustand des Progress-Overlays */
 .swt-progress.swt-paused .swt-progress-fill {
   background: var(--md-warning);
-  animation: smt-pulse 1.5s ease-in-out infinite;
+  animation: swt-pulse 1.5s ease-in-out infinite;
 }
 
 .swt-progress.swt-paused .swt-progress-title::after {
@@ -603,7 +603,7 @@
   color: var(--md-warning);
 }
 
-@keyframes smt-pulse {
+@keyframes swt-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
 }
