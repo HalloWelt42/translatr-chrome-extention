@@ -118,17 +118,22 @@ SWT.CacheServer = {
     
     // Hash aus URL + Text + Sprachrichtung
     const content = normalizedUrl + text + langSuffix;
-    
-    // SHA-256 via Web Crypto API
-    const encoder = new TextEncoder();
-    const data = encoder.encode(content);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    
-    // Buffer zu Hex-String
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    
-    return hashHex;
+
+    // SHA-256 via Web Crypto API (nur auf HTTPS verfuegbar)
+    if (crypto.subtle) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(content);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Fallback fuer HTTP-Seiten: einfacher String-Hash (djb2)
+    let hash = 5381;
+    for (let i = 0; i < content.length; i++) {
+      hash = ((hash << 5) + hash + content.charCodeAt(i)) >>> 0;
+    }
+    return hash.toString(16).padStart(16, '0');
   },
 
   // ==========================================================================
