@@ -167,25 +167,19 @@
   SmartTranslator.prototype.showCacheIndicator = function(source = 'local', count = 0, total = 0) {
     if (this.cacheIndicator) return;
 
-    const label = 'Übersetzung verfügbar';
-
     this.cacheIndicator = document.createElement('div');
     this.cacheIndicator.className = 'swt-ui swt-cache-indicator';
     this.cacheIndicator.innerHTML = `
       ${SWT.Icons.svg('translate')}
-      <span>${label}</span>
+      <span>Übersetzung verfügbar</span>
     `;
-    this.cacheIndicator.title = isServer 
-      ? 'Klicken zum Übersetzen (nutzt Server-Cache)'
-      : 'Gecachte Übersetzung für diese Seite verfügbar';
 
     const self = this;
+    const useServer = source === 'server';
     this.cacheIndicator.addEventListener('click', () => {
-      if (isServer) {
-        // Server-Cache: Seite übersetzen (Bulk-Check holt gecachte)
+      if (useServer) {
         self.translatePage('replace');
       } else {
-        // Lokaler Cache: Direkt laden
         self.loadCachedTranslation();
       }
       self.hideCacheIndicator();
