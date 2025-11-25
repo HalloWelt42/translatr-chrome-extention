@@ -175,13 +175,8 @@
     `;
 
     const self = this;
-    const useServer = source === 'server';
     this.cacheIndicator.addEventListener('click', () => {
-      if (useServer) {
-        self.translatePage('replace');
-      } else {
-        self.loadCachedTranslation();
-      }
+      self.loadCachedTranslation();
       self.hideCacheIndicator();
     });
 
