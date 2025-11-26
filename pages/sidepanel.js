@@ -321,6 +321,17 @@ class SidePanelController {
       setTimeout(() => this.updateActionStates(), 500);
     });
 
+    // Hover-Original Toggle
+    const hoverToggle = document.getElementById('toggleHoverOriginal');
+    if (hoverToggle) {
+      chrome.storage.sync.get(['showOriginalInTooltip'], (s) => {
+        hoverToggle.checked = s.showOriginalInTooltip !== false;
+      });
+      hoverToggle.addEventListener('change', () => {
+        chrome.storage.sync.set({ showOriginalInTooltip: hoverToggle.checked });
+      });
+    }
+
     document.getElementById('openOptions').addEventListener('click', (e) => {
       e.preventDefault();
       chrome.runtime.openOptionsPage();

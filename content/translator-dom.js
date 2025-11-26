@@ -42,6 +42,17 @@
     wrapper.dataset.original = original;
     wrapper.dataset.translated = translated;
 
+    // Hover-Original nur wenn aktiviert
+    if (this.settings.showOriginalInTooltip) {
+      const self = this;
+      wrapper.addEventListener('mouseenter', function() {
+        self.showOriginalTooltip(this, original);
+      });
+      wrapper.addEventListener('mouseleave', function() {
+        self.hideOriginalTooltip();
+      });
+    }
+
     node.parentNode.replaceChild(wrapper, node);
   };
 
