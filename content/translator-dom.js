@@ -42,17 +42,6 @@
     wrapper.dataset.original = original;
     wrapper.dataset.translated = translated;
 
-    // Hover-Original nur wenn aktiviert
-    if (this.settings.showOriginalInTooltip) {
-      const self = this;
-      wrapper.addEventListener('mouseenter', function() {
-        self.showOriginalTooltip(this, original);
-      });
-      wrapper.addEventListener('mouseleave', function() {
-        self.hideOriginalTooltip();
-      });
-    }
-
     node.parentNode.replaceChild(wrapper, node);
   };
 
@@ -563,5 +552,23 @@
     
     return clone.textContent.replace(/\s+/g, ' ').trim();
   };
+
+  // === Event-Delegation fuer Hover-Original ===
+  // Greift sofort fuer alle .swt-translated-text Elemente,
+  // reagiert live auf Einstellungsaenderungen
+  document.addEventListener('mouseover', function(e) {
+    var el = e.target.closest('.swt-translated-text');
+    if (!el || !window.swtInstance?.settings?.showOriginalInTooltip) return;
+    var original = el.dataset.original;
+    if (original) {
+      window.swtInstance.showOriginalTooltip(el, original);
+    }
+  });
+
+  document.addEventListener('mouseout', function(e) {
+    var el = e.target.closest('.swt-translated-text');
+    if (!el || !window.swtInstance) return;
+    window.swtInstance.hideOriginalTooltip();
+  });
 
 })();
