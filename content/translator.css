@@ -122,14 +122,14 @@
 .swt-selection-icon {
   width: 32px;
   height: 32px;
-  background: var(--md-primary);
+  background: var(--accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 2147483646;
-  box-shadow: var(--md-elevation-2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   opacity: 0;
   transform: scale(0.5);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -141,9 +141,9 @@
 }
 
 .swt-selection-icon:hover {
-  background: var(--md-primary-dark);
+  background: var(--accent-hover);
   transform: scale(1.1);
-  box-shadow: var(--md-elevation-3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
 
 .swt-selection-icon:active {
@@ -160,17 +160,18 @@
 .swt-tooltip {
   position: absolute;
   z-index: 2147483647;
-  background: var(--md-surface);
-  border-radius: 10px;
-  box-shadow: var(--md-elevation-3);
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   max-width: 380px;
   min-width: 200px;
   opacity: 0;
   transform: translateX(-50%) translateY(8px);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  border: 1px solid var(--md-divider);
+  border: 1px solid var(--border);
   font-size: 13px;
+  color: var(--text);
 }
 
 .swt-tooltip.swt-visible {
@@ -178,40 +179,37 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* Aktionsleiste OBEN (Kompakt) */
+/* Aktionsleiste OBEN */
 .swt-tooltip-actions {
   display: flex;
   gap: 4px;
   padding: 6px 10px;
-  background: var(--md-surface);
-  border-bottom: 1px solid var(--md-divider);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .swt-action {
   width: 28px;
   height: 28px;
-  border: 1px solid var(--md-divider);
-  background: white;
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s;
-  color: var(--md-on-surface);
+  color: var(--text);
 }
 
 .swt-action:hover {
-  background: var(--md-primary);
-  border-color: var(--md-primary);
+  background: var(--accent);
+  border-color: var(--accent);
   color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .swt-action:active {
-  transform: translateY(0);
-  box-shadow: none;
+  opacity: 0.8;
 }
 
 .swt-action svg {
@@ -225,17 +223,17 @@
 }
 
 .swt-action.swt-close:hover {
-  background: var(--md-error);
-  border-color: var(--md-error);
+  background: var(--red);
+  border-color: var(--red);
 }
 
-/* Original-Text oben (Kompakt) */
+/* Original-Text oben */
 .swt-tooltip-original {
   padding: 6px 10px;
   font-size: 11px;
-  color: var(--md-on-surface-medium);
-  background: var(--md-surface);
-  border-bottom: 1px solid var(--md-divider);
+  color: var(--text-secondary);
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-subtle);
   max-height: 50px;
   overflow-y: auto;
   word-break: break-word;
@@ -247,32 +245,32 @@
   display: flex;
   gap: 3px;
   padding: 5px 10px;
-  background: var(--md-background);
-  border-bottom: 1px solid var(--md-divider);
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border);
 }
 
 .swt-tab {
   min-width: 26px;
   height: 24px;
   padding: 0 8px;
-  border: 1px solid var(--md-divider);
-  background: white;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
   border-radius: 5px;
   cursor: pointer;
   font-size: 11px;
   font-weight: 600;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
   transition: all 0.15s;
 }
 
 .swt-tab:hover {
-  border-color: var(--md-primary);
-  color: var(--md-primary);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .swt-tab.active {
-  background: var(--md-primary);
-  border-color: var(--md-primary);
+  background: var(--accent);
+  border-color: var(--accent);
   color: white;
 }
 
@@ -282,7 +280,7 @@
 }
 
 .swt-tab-panel.active {
-  color: var(--md-on-surface-disabled);
+  color: var(--text-muted);
   display: block;
 }
 
@@ -294,7 +292,7 @@
 
 .swt-translated {
   font-size: 13px;
-  color: var(--md-on-surface);
+  color: var(--text);
   font-weight: 500;
   word-break: break-word;
   line-height: 1.45;
@@ -303,7 +301,7 @@
 .swt-alternatives {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px dashed var(--md-divider);
+  border-top: 1px dashed var(--border);
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
@@ -311,75 +309,38 @@
 
 .swt-alt {
   font-size: 11px;
-  color: var(--md-on-surface-medium);
-  background: var(--md-background);
+  color: var(--text-secondary);
+  background: var(--bg-base);
   padding: 3px 8px;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid var(--md-divider);
+  border: 1px solid var(--border);
 }
 
 .swt-alt:hover {
-  background: var(--md-primary-light);
-  color: var(--md-primary);
-  border-color: var(--md-primary);
+  background: var(--bg-elevated);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* === Original Tooltip (Hover) === */
 .swt-original-tooltip {
   position: fixed;
   z-index: 2147483647;
-  background: var(--md-on-surface);
-  color: white;
+  background: var(--bg-card);
+  color: var(--text);
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   max-width: 300px;
   word-break: break-word;
   opacity: 0;
   transition: opacity 0.15s ease;
   pointer-events: none;
-  box-shadow: var(--md-elevation-2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
 }
-
-/* === Loading Tooltip mit Spinner === */
-.swt-loading-tooltip {
-  position: absolute;
-  z-index: 2147483647;
-  background: var(--md-surface);
-  border-radius: 8px;
-  box-shadow: var(--md-elevation-2);
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  opacity: 0;
-  transform: translateX(-50%) translateY(8px);
-  transition: all 0.2s ease;
-  border: 1px solid var(--md-divider);
-  font-size: 13px;
-  color: var(--md-on-surface-medium);
-}
-
-.swt-loading-tooltip.swt-visible {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-.swt-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--md-divider);
-  border-top-color: var(--md-primary);
-  border-radius: 50%;
-  animation: swt-spin 0.8s linear infinite;
-}
-
-@keyframes swt-spin {
-  to { transform: rotate(360deg); }
-}
-
 
 .swt-original-tooltip.swt-visible {
   opacity: 1;
@@ -392,7 +353,44 @@
   left: 20px;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-top: 6px solid var(--md-on-surface);
+  border-top: 6px solid var(--bg-card);
+}
+
+/* === Loading Tooltip mit Spinner === */
+.swt-loading-tooltip {
+  position: absolute;
+  z-index: 2147483647;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.swt-loading-tooltip.swt-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.swt-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: swt-spin 0.8s linear infinite;
+}
+
+@keyframes swt-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* === Translated Text Wrapper === */
@@ -419,9 +417,9 @@
   top: 20px;
   right: 20px;
   z-index: 2147483647;
-  background: var(--md-surface);
+  background: var(--bg-card);
   border-radius: 12px;
-  box-shadow: var(--md-elevation-3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   min-width: 320px;
   opacity: 0;
   transform: translateX(20px);
@@ -494,7 +492,7 @@
 
 .swt-progress-title {
   font-weight: 600;
-  color: var(--md-on-surface);
+  color: var(--text);
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -505,7 +503,7 @@
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
 }
 
 .swt-eta-icon {
@@ -540,18 +538,18 @@
 }
 
 .swt-progress-minimize {
-  background: var(--md-primary-light);
-  color: var(--md-primary);
+  background: var(--bg-elevated);
+  color: var(--accent);
 }
 
 .swt-progress-minimize:hover {
-  background: var(--md-primary);
+  background: var(--accent);
   color: white;
 }
 
 .swt-progress-pause {
-  background: var(--md-warning-light);
-  color: var(--md-warning);
+  background: var(--yellow-glow);
+  color: var(--yellow);
 }
 
 .swt-progress-pause svg {
@@ -561,23 +559,23 @@
 }
 
 .swt-progress-pause:hover {
-  background: var(--md-warning);
+  background: var(--yellow);
   color: white;
 }
 
 .swt-progress-pause.swt-paused {
-  background: var(--md-success);
+  background: var(--green);
   color: white;
 }
 
 .swt-progress-pause.swt-paused:hover {
-  background: var(--md-success);
+  background: var(--green);
   filter: brightness(1.1);
 }
 
 .swt-progress-stop {
-  background: var(--md-error-light);
-  color: var(--md-error);
+  background: var(--red-glow);
+  color: var(--red);
 }
 
 .swt-progress-stop svg {
@@ -587,20 +585,20 @@
 }
 
 .swt-progress-stop:hover {
-  background: var(--md-error);
+  background: var(--red);
   color: white;
 }
 
 /* Pause-Zustand des Progress-Overlays */
 .swt-progress.swt-paused .swt-progress-fill {
-  background: var(--md-warning);
+  background: var(--yellow);
   animation: swt-pulse 1.5s ease-in-out infinite;
 }
 
 .swt-progress.swt-paused .swt-progress-title::after {
   content: ' (Pausiert)';
   font-weight: 400;
-  color: var(--md-warning);
+  color: var(--yellow);
 }
 
 @keyframes swt-pulse {
@@ -616,14 +614,14 @@
 
 .swt-progress-bar {
   height: 6px;
-  background: var(--md-divider);
+  background: var(--border);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .swt-progress-fill {
   height: 100%;
-  background: var(--md-primary);
+  background: var(--accent);
   border-radius: 3px;
   width: 0%;
   transition: width 0.3s ease-out;
@@ -637,11 +635,11 @@
 
 .swt-progress-text {
   font-weight: 600;
-  color: var(--md-primary);
+  color: var(--accent);
 }
 
 .swt-progress-stats {
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
 }
 
 .swt-progress-tokens {
@@ -649,7 +647,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: var(--md-primary-light);
+  background: var(--bg-elevated);
   border-radius: 8px;
   font-size: 12px;
   margin-top: 4px;
@@ -657,16 +655,16 @@
 
 .swt-token-current {
   font-weight: 600;
-  color: var(--md-primary);
+  color: var(--accent);
 }
 
 .swt-token-divider {
-  color: var(--md-on-surface-disabled);
+  color: var(--text-muted);
 }
 
 .swt-token-total {
   font-weight: 500;
-  color: var(--md-on-surface-medium);
+  color: var(--text-secondary);
 }
 
 
@@ -711,13 +709,13 @@
 
 .swt-ring-bg {
   fill: none;
-  stroke: var(--md-divider);
+  stroke: var(--border);
   stroke-width: 3;
 }
 
 .swt-ring-fill {
   fill: none;
-  stroke: var(--md-primary);
+  stroke: var(--accent);
   stroke-width: 3;
   stroke-linecap: round;
   transition: stroke-dasharray 0.3s ease-out, stroke 0.3s ease;
@@ -740,7 +738,7 @@
   position: absolute;
   font-size: 12px;
   font-weight: 700;
-  color: var(--md-primary);
+  color: var(--accent);
   transition: color 0.3s ease;
 }
 
@@ -782,11 +780,11 @@
 .swt-notification {
   position: relative;
   z-index: 2147483647;
-  background: var(--md-surface);
-  color: var(--md-on-surface);
+  background: var(--bg-card);
+  color: var(--text);
   padding: 12px 20px;
   border-radius: 8px;
-  box-shadow: var(--md-elevation-3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   font-size: 14px;
   font-weight: 500;
   opacity: 0;
@@ -860,7 +858,7 @@
   code, pre, kbd, samp {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
     font-size: 0.9em !important;
-    background: var(--md-background) !important;
+    background: var(--bg-base) !important;
     border: 1px solid #ddd !important;
     border-radius: 3px !important;
   }
@@ -885,7 +883,7 @@
 
   /* Zitate */
   blockquote {
-    border-left: 3px solid var(--md-on-surface-disabled) !important;
+    border-left: 3px solid var(--text-muted) !important;
     padding-left: 16px !important;
     margin-left: 0 !important;
     color: #555 !important;
