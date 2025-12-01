@@ -39,25 +39,11 @@
     }
     console.log('[SWT] Cache-API ready, mode:', SWT.Cache?.config?.mode);
     
-    // Strategie und Seitentyp erkennen
-    const strategy = this.getActiveStrategy?.();
-    console.log('[SWT] checkForCachedTranslation - Strategie:', strategy?.name || 'keine', 'usesIframeContent:', strategy?.usesIframeContent);
-    
-    const isEbook = strategy?.name === 'E-Book Reader';
-    const isPlainText = strategy?.name === 'Plain Text' || this.detectPlainTextPage();
-    
+    const isPlainText = this.detectPlainTextPage?.();
+
     let sampleTexts = [];
-    
-    if (isEbook) {
-      // E-Book: Block-Elemente als Stichprobe
-      console.log('[SWT E-Book] Cache-Check mit Block-Elementen');
-      const blocks = this.findTranslatableBlockElements();
-      sampleTexts = blocks.slice(0, 20).map(b => b.text).filter(t => t.length >= 10);
-      console.log('[SWT E-Book] Sample-Texte für Cache:', sampleTexts.length);
-      if (sampleTexts.length > 0) {
-        console.log('[SWT E-Book] Erster Sample:', sampleTexts[0].substring(0, 60));
-      }
-    } else if (isPlainText) {
+
+    if (isPlainText) {
       // Plain-Text: Absätze aus <pre> extrahieren
       console.log('[SWT PlainText] Cache-Check mit Pre-Elementen');
       const preElements = document.querySelectorAll('pre');
@@ -88,7 +74,6 @@
       }
       console.log('[SWT] Keine Sample-Texte nach Retry');
       this.setCacheAvailable(false);
-      this.checkAutoTranslateDomain();
       return;
     }
     
@@ -106,56 +91,18 @@
     console.log('[SWT] Cache check result:', cacheResult);
     
     if (cacheResult.hasCache) {
-      // Für E-Books: Zusätzliche Validierung - stimmen die Texte überein?
-      if (isEbook && cacheResult.matchedTexts) {
-        const matchRatio = cacheResult.matchedTexts / sampleTexts.length;
-        console.log('[SWT E-Book] Cache Match-Ratio:', matchRatio);
-        
-        // Nur wenn mindestens 30% der Texte übereinstimmen
-        if (matchRatio < 0.3) {
-          console.log('[SWT E-Book] Cache ungültig (zu wenig Übereinstimmung)');
-          this.setCacheAvailable(false);
-          this.checkAutoTranslateDomain();
-          return;
-        }
-      }
-      
-      // Cache-Status setzen für UI (mit Anzahl)
+      // Cache-Status setzen
       this.setCacheAvailable(true, cacheResult.source, cacheResult.count || 0);
-      
+
       if (this.settings.autoLoadCache) {
-        // Automatisch laden (nur wenn explizit aktiviert)
         await this.loadCachedTranslation();
       } else {
-        // Nur Indikator anzeigen - NICHT automatisch laden!
         this.showCacheIndicator(cacheResult.source, cacheResult.count, sampleTexts.length);
       }
-      return; // Cache gefunden, nicht auto-translate
+      return;
     }
-    
-    // Kein Cache gefunden
-    this.setCacheAvailable(false);
-    
-    // Auto-Translate Domain prüfen
-    this.checkAutoTranslateDomain();
-  };
 
-  /**
-   * Prüft ob aktuelle Domain automatisch übersetzt werden soll
-   */
-  SmartTranslator.prototype.checkAutoTranslateDomain = async function() {
-    const hostname = window.location.hostname.toLowerCase();
-    const domains = this.settings.autoTranslateDomains || [];
-    
-    if (domains.some(d => hostname === d || hostname.endsWith('.' + d))) {
-      if (!this.isTranslated) {
-        setTimeout(() => {
-          if (!this.isTranslated) {
-            this.translatePage('replace');
-          }
-        }, 1000);
-      }
-    }
+    this.setCacheAvailable(false);
   };
 
   /**
@@ -408,19 +355,9 @@
     try {
       // Alle übersetzbaren Texte sammeln
       const strategy = this.getActiveStrategy?.();
-      const isEbook = strategy?.name === 'E-Book Reader';
       
-      let totalTexts = [];
-      
-      if (isEbook) {
-        // E-Book: Block-Elemente
-        const blocks = this.findTranslatableBlockElements();
-        totalTexts = blocks.map(b => b.text).filter(t => t && t.length >= 2);
-      } else {
-        // Normal: Text-Nodes
-        const nodes = this.findTranslatableTextNodes();
-        totalTexts = nodes.map(n => n.textContent?.trim()).filter(t => t && t.length >= 2);
-      }
+      const nodes = this.findTranslatableTextNodes();
+      const totalTexts = nodes.map(n => n.textContent?.trim()).filter(t => t && t.length >= 2);
       
       if (totalTexts.length === 0) {
         return 0;

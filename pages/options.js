@@ -68,7 +68,6 @@ async function loadSettings() {
       'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
       'lmStudioMaxTokens', 'lmStudioContext', 'lmStudioCustomPrompt',
       // Neue v3.1 Einstellungen
-      'autoLoadCache', 'autoTranslateDomains',
       'filterEmbeddingModels', 'enableAbortTranslation', 'enableLLMFallback',
       // Batch-Einstellungen (v3.5)
       'lmBatchSize', 'lmMaxBatchTokens', 'enableTrueBatch', 'enableSmartChunking', 'useCacheFirst',
@@ -77,8 +76,6 @@ async function loadSettings() {
       // Cache-Server (v3.8)
       'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode', 'cacheServerTimeout',
       'autoLoadCache',
-      // E-Book Reader (v3.13)
-      'ebookReaderDomains', 'extractIframeContent'
     ]);
 
     // Hilfsfunktion für sicheres Setzen
@@ -135,11 +132,7 @@ async function loadSettings() {
     setVal('excludedDomains', settings.excludedDomains || '');
     
     // Auto-Translate Domains
-    renderAutoTranslateDomains(settings.autoTranslateDomains || []);
     
-    // E-Book Reader Domains (v3.13)
-    renderEbookReaderDomains(settings.ebookReaderDomains || ['books.mac']); // Default: books.mac
-    setChecked('extractIframeContent', settings.extractIframeContent !== false);
     
     // Cache-Server (v3.8)
     setChecked('cacheServerEnabled', settings.cacheServerEnabled !== false);
@@ -153,183 +146,6 @@ async function loadSettings() {
   } catch (e) {
     console.warn('Smart Translator: Error loading settings', e);
   }
-}
-
-// Auto-Translate Domains rendern
-function renderAutoTranslateDomains(domains) {
-  const container = document.getElementById('autoTranslateDomains');
-  container.innerHTML = '';
-  
-  domains.forEach((domain, index) => {
-    const item = document.createElement('div');
-    item.className = 'domain-item';
-    item.innerHTML = `
-      <span>${domain}</span>
-      <button type="button" data-index="${index}" title="Entfernen">
-        ${SWT.Icons.svg('delete')}
-      </button>
-    `;
-    container.appendChild(item);
-  });
-  
-  // Event-Listener für Löschen
-  container.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => removeAutoTranslateDomain(parseInt(btn.dataset.index)));
-  });
-}
-
-// Domain hinzufügen
-async function addAutoTranslateDomain() {
-  const input = document.getElementById('newAutoTranslateDomain');
-  const domain = input.value.trim().toLowerCase();
-  
-  if (!domain) return;
-  
-  // Domain validieren
-  if (!/^[a-z0-9]+([\-\.][a-z0-9]+)*\.[a-z]{2,}$/i.test(domain)) {
-    showStatus('Ungültige Domain: ' + domain, 'error');
-    return;
-  }
-  
-  const settings = await chrome.storage.sync.get(['autoTranslateDomains']);
-  const domains = settings.autoTranslateDomains || [];
-  
-  if (domains.includes(domain)) {
-    showStatus('Domain bereits vorhanden', 'error');
-    return;
-  }
-  
-  domains.push(domain);
-  await chrome.storage.sync.set({ autoTranslateDomains: domains });
-  
-  input.value = '';
-  renderAutoTranslateDomains(domains);
-  showStatus('Domain hinzugefügt: ' + domain, 'success');
-}
-
-// Domain entfernen
-async function removeAutoTranslateDomain(index) {
-  const settings = await chrome.storage.sync.get(['autoTranslateDomains']);
-  const domains = settings.autoTranslateDomains || [];
-  
-  const removed = domains.splice(index, 1);
-  await chrome.storage.sync.set({ autoTranslateDomains: domains });
-  
-  renderAutoTranslateDomains(domains);
-  showStatus('Domain entfernt: ' + removed[0], 'success');
-}
-
-// === E-Book Reader Domains (v3.13) ===
-
-// E-Book Reader Domains rendern
-function renderEbookReaderDomains(domains) {
-  const container = document.getElementById('ebookReaderDomains');
-  if (!container) return;
-  
-  container.innerHTML = '';
-  
-  domains.forEach((domain, index) => {
-    const item = document.createElement('div');
-    item.className = 'domain-item';
-    item.innerHTML = `
-      <span>${domain}</span>
-      <button type="button" data-index="${index}" title="Entfernen">
-        ${SWT.Icons.svg('delete')}
-      </button>
-    `;
-    container.appendChild(item);
-  });
-  
-  // Event-Listener für Löschen
-  container.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => removeEbookReaderDomain(parseInt(btn.dataset.index)));
-  });
-}
-
-// E-Book Reader Domain hinzufügen
-async function addEbookReaderDomain() {
-  const input = document.getElementById('newEbookReaderDomain');
-  if (!input) {
-    console.warn('[SWT] E-Book Domain Input nicht gefunden');
-    return;
-  }
-  
-  let domain = input.value.trim().toLowerCase();
-  console.log('[SWT] E-Book Domain Input:', domain);
-  
-  if (!domain) {
-    showStatus('Bitte Domain eingeben', 'error');
-    return;
-  }
-  
-  // URL zu Domain konvertieren (falls User https://books.mac eingibt)
-  if (domain.startsWith('http://') || domain.startsWith('https://')) {
-    try {
-      const url = new URL(domain);
-      domain = url.hostname;
-      console.log('[SWT] URL zu Domain konvertiert:', domain);
-    } catch (e) {
-      showStatus('Ungültige URL: ' + domain, 'error');
-      return;
-    }
-  }
-  
-  // Protokoll-Reste entfernen
-  domain = domain.replace(/^\/\//, '').replace(/\/.*$/, '');
-  
-  // Lockere Validierung für lokale Domains (z.B. books.mac, reader.local)
-  if (domain.length < 2) {
-    showStatus('Domain zu kurz', 'error');
-    return;
-  }
-  
-  const settings = await chrome.storage.sync.get(['ebookReaderDomains']);
-  const domains = settings.ebookReaderDomains || [];
-  
-  if (domains.includes(domain)) {
-    showStatus('Domain "' + domain + '" bereits vorhanden', 'info');
-    input.value = '';
-    return;
-  }
-  
-  domains.push(domain);
-  await chrome.storage.sync.set({ ebookReaderDomains: domains });
-  console.log('[SWT] E-Book Domains gespeichert:', domains);
-  
-  input.value = '';
-  renderEbookReaderDomains(domains);
-  showStatus('✓ E-Book Domain hinzugefügt: ' + domain, 'success');
-  
-  // Domain-Strategien aktualisieren (falls content-script bereits geladen)
-  updateEbookDomainStrategies(domains);
-}
-
-// E-Book Reader Domain entfernen
-async function removeEbookReaderDomain(index) {
-  const settings = await chrome.storage.sync.get(['ebookReaderDomains']);
-  const domains = settings.ebookReaderDomains || [];
-  
-  const removed = domains.splice(index, 1);
-  await chrome.storage.sync.set({ ebookReaderDomains: domains });
-  
-  renderEbookReaderDomains(domains);
-  showStatus('E-Book Reader Domain entfernt: ' + removed[0], 'success');
-  
-  // Domain-Strategien aktualisieren
-  updateEbookDomainStrategies(domains);
-}
-
-// Domain-Strategien im Content-Script aktualisieren
-function updateEbookDomainStrategies(domains) {
-  // Nachricht an alle Tabs senden
-  chrome.tabs.query({}, (tabs) => {
-    tabs.forEach(tab => {
-      chrome.tabs.sendMessage(tab.id, {
-        action: 'UPDATE_EBOOK_DOMAINS',
-        domains: domains
-      }).catch(() => {}); // Ignoriere Fehler für Tabs ohne Content-Script
-    });
-  });
 }
 
 function setupEventListeners() {
@@ -413,7 +229,6 @@ function setupEventListeners() {
     });
   }
   
-  // E-Book Reader Domain hinzufügen (v3.13)
   const addEbookDomainBtn = document.getElementById('addEbookReaderDomain');
   if (addEbookDomainBtn) {
     addEbookDomainBtn.addEventListener('click', addEbookReaderDomain);
@@ -429,11 +244,8 @@ function setupEventListeners() {
     });
   }
   
-  // extractIframeContent Checkbox (v3.13)
-  const extractIframeEl = document.getElementById('extractIframeContent');
   if (extractIframeEl) {
     extractIframeEl.addEventListener('change', async (e) => {
-      await chrome.storage.sync.set({ extractIframeContent: e.target.checked });
       showStatus(e.target.checked ? 'iframe-Extraktion aktiviert' : 'iframe-Extraktion deaktiviert', 'success');
     });
   }

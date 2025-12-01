@@ -61,15 +61,11 @@ SWT.Storage = {
 
     // Cache
     autoLoadCache: false,
-    autoTranslateDomains: [],
     cacheServerEnabled: true,
     cacheServerUrl: 'http://192.168.178.49:8083',
     cacheServerMode: 'server-only',
     cacheServerTimeout: 5000,
 
-    // E-Book
-    ebookReaderDomains: ['books.mac'],
-    extractIframeContent: true,
 
     // Sonstiges
     filterEmbeddingModels: true,

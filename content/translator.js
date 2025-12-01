@@ -82,20 +82,10 @@ class SmartTranslator {
     
     if (typeof DomainStrategies !== 'undefined') {
       const strategy = DomainStrategies.getStrategy(url);
-      console.log('[SWT] Gefundene Strategie:', strategy?.name || 'default');
-      
-      if (strategy?.name === 'E-Book Reader') {
-        console.log('[SWT] E-Book Domains:', strategy.ebookDomains);
-      }
-      
-      // Strategie mit eigener Cache-Key-Generierung?
       if (strategy && typeof strategy.generateCacheKey === 'function') {
         const customKey = strategy.generateCacheKey(url);
-        console.log('[SWT] Custom Cache-Key:', customKey);
         return 'swt_cache_' + btoa(customKey).replace(/[^a-zA-Z0-9]/g, '').slice(0, 80);
       }
-    } else {
-      console.log('[SWT] DomainStrategies nicht verfügbar!');
     }
     
     // Standard: hostname + pathname (ohne Hash)
@@ -116,7 +106,6 @@ class SmartTranslator {
   }
   
   /**
-   * Prüft ob aktuelle Seite iframe-basierten Content hat (E-Books etc.)
    */
   hasIframeContent() {
     const strategy = this.getActiveStrategy();
@@ -126,20 +115,14 @@ class SmartTranslator {
   async init() {
     
     await this.loadSettings();
-    await this.loadEbookDomains(); // E-Book-Domains laden
     
     // Debug: Strategie prüfen
     const strategy = this.getActiveStrategy?.();
     
     this.setupEventListeners();
-    this.setupUrlTracking();  // NEU: URL-Tracking für SPAs
-    
-    // Fuer E-Books: Warten bis iframes geladen sind
-    if (strategy?.name === 'E-Book Reader') {
-      await this.waitForEbookIframes();
-    }
+    this.setupUrlTracking();
 
-    // Cache-Check NACH Settings und DOM-Ready (await!)
+    // Cache-Check
     await this.checkForCachedTranslation();
 
     // Message Listener nur einmal registrieren (global)
@@ -172,81 +155,19 @@ class SmartTranslator {
               'showAlternatives', 'highlightTranslated', 'skipCodeBlocks',
               'skipBlockquotes', 'fixInlineSpacing', 'useCacheFirst',
               'autoLoadCache', 'enableTokenCost', 'enableTrueBatch',
-              'enableSmartChunking', 'cacheServerEnabled', 'extractIframeContent'
             ];
             
             if (booleanSettings.includes(key)) {
-              // Expliziter Boolean-Cast
               window.swtInstance.settings[key] = newValue === true;
             } else {
               window.swtInstance.settings[key] = newValue;
-            }
-            
-            // E-Book-Domains dynamisch aktualisieren
-            if (key === 'ebookReaderDomains' && typeof DomainStrategies !== 'undefined') {
-              if (DomainStrategies.strategies.ebook) {
-                DomainStrategies.strategies.ebook.ebookDomains = newValue || [];
-              }
             }
           }
         }
       });
     }
-    
-  }
-  
-  /**
-   * E-Book-Reader-Domains aus Settings laden und in DomainStrategies setzen
-   */
-  async loadEbookDomains() {
-    console.log('[SWT] loadEbookDomains gestartet...');
-    try {
-      const settings = await chrome.storage.sync.get(['ebookReaderDomains', 'extractIframeContent']);
-      const domains = settings.ebookReaderDomains || ['books.mac']; // Default
-      
-      if (typeof DomainStrategies !== 'undefined' && DomainStrategies.strategies.ebook) {
-        DomainStrategies.strategies.ebook.ebookDomains = domains;
-        console.log('[SWT] E-Book-Reader-Domains geladen:', domains);
-      }
-      
-      this.settings.ebookReaderDomains = domains;
-      this.settings.extractIframeContent = settings.extractIframeContent !== false;
-    } catch (e) {
-      console.warn('[SWT] E-Book-Domains laden fehlgeschlagen:', e);
-    }
-  }
-  
-  /**
-   * Wartet bis E-Book iframes geladen sind
-   * Manche Reader laden iframes dynamisch nach dem DOM ready
-   */
-  async waitForEbookIframes(maxWait = 5000, checkInterval = 200) {
-    const startTime = Date.now();
-    
-    return new Promise((resolve) => {
-      const check = () => {
-        // Suche nach iframes mit srcdoc oder epubjs
-        const iframes = document.querySelectorAll('iframe[srcdoc], iframe.epub-view, iframe[id*="epub"]');
-        
-        if (iframes.length > 0) {
-          console.log('[SWT E-Book] iframes gefunden:', iframes.length);
-          resolve(true);
-          return;
-        }
-        
-        // Timeout erreicht?
-        if (Date.now() - startTime > maxWait) {
-          console.log('[SWT E-Book] Timeout - keine iframes gefunden nach', maxWait, 'ms');
-          resolve(false);
-          return;
-        }
-        
-        // Weiter warten
-        setTimeout(check, checkInterval);
-      };
-      
-      check();
-    });
+
+    console.log('[SWT] init() abgeschlossen');
   }
   
   // === URL-Tracking für SPAs (v3.5.3, v3.8 Debouncing) ===
@@ -283,111 +204,14 @@ class SmartTranslator {
       }
     }, 1000);
     
-    // 5. E-Book spezifisch: Beobachte iframe srcdoc Änderungen
-    this.setupEbookObserver();
     
     // console.log('[SWT] URL-Tracking aktiviert');
   }
   
   /**
-   * MutationObserver für E-Book iframe-Änderungen
    * Erkennt wenn Calibre-Web den srcdoc ändert (Blättern)
    * SMART: Triggert nur bei echtem URL-Wechsel
    */
-  setupEbookObserver() {
-    const strategy = this.getActiveStrategy?.();
-    if (strategy?.name !== 'E-Book Reader') return;
-    
-    console.log('[SWT] E-Book Observer wird eingerichtet...');
-    
-    // Speichere aktuelle URL für Vergleich
-    this._lastEbookUrl = window.location.href;
-    this._ebookObserverBusy = false;
-    
-    // Beobachte den Container für neue/geänderte iframes
-    const observer = new MutationObserver((mutations) => {
-      // Verhindere Mehrfach-Trigger während Verarbeitung
-      if (this._ebookObserverBusy) return;
-      
-      // Prüfe ob URL sich geändert hat (= echter Seitenwechsel)
-      const currentUrl = window.location.href;
-      if (currentUrl === this._lastEbookUrl) {
-        // Gleiche URL - kein echter Seitenwechsel, ignorieren
-        return;
-      }
-      
-      let shouldTrigger = false;
-      
-      for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'srcdoc') {
-          shouldTrigger = true;
-          break;
-        }
-        if (mutation.type === 'childList') {
-          const hasNewIframe = Array.from(mutation.addedNodes).some(
-            node => node.nodeName === 'IFRAME' || node.querySelector?.('iframe')
-          );
-          if (hasNewIframe) {
-            shouldTrigger = true;
-            break;
-          }
-        }
-      }
-      
-      if (shouldTrigger) {
-        console.log('[SWT E-Book] Seitenwechsel:', this._lastEbookUrl.split('#')[1]?.substring(0,30), '→', currentUrl.split('#')[1]?.substring(0,30));
-        this._lastEbookUrl = currentUrl;
-        this.handleEbookPageChange();
-      }
-    });
-    
-    // Beobachte den gesamten Body für iframe-Änderungen
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['srcdoc']
-    });
-    
-    this._ebookObserver = observer;
-    console.log('[SWT] E-Book Observer aktiviert');
-  }
-  
-  /**
-   * Handler für E-Book Seitenwechsel (Blättern)
-   */
-  handleEbookPageChange() {
-    // Verhindere Mehrfach-Trigger
-    if (this._ebookObserverBusy) return;
-    this._ebookObserverBusy = true;
-    
-    // Debounce
-    if (this._ebookChangeTimeout) {
-      clearTimeout(this._ebookChangeTimeout);
-    }
-    
-    this._ebookChangeTimeout = setTimeout(async () => {
-      console.log('[SWT E-Book] Verarbeite Seitenwechsel...');
-      
-      // State zurücksetzen
-      this.resetTranslationState();
-      
-      // Cache-Key neu generieren
-      this.pageUrl = window.location.href;
-      this.cacheKey = this.generateCacheKey();
-      this.lastUrl = window.location.href;
-      
-      console.log('[SWT E-Book] Cache-Key:', this.cacheKey.substring(0, 60));
-      
-      // Warten bis iframes neu geladen sind
-      await this.waitForEbookIframes(3000, 100);
-      
-      // Cache prüfen
-      this.checkForCachedTranslation();
-      this._ebookObserverBusy = false;
-    }, 300);
-  }
-  
   // Debounce Timer für URL-Änderungen
   _urlChangeTimeout = null;
   _pendingUrlChange = null;
@@ -487,7 +311,6 @@ class SmartTranslator {
     // Haupt-Dokument
     removeWrappers(document);
     
-    // Auch in iframes (für E-Books)
     const strategy = this.getActiveStrategy?.();
     if (strategy?.usesIframeContent) {
       document.querySelectorAll('iframe').forEach(iframe => {
@@ -512,7 +335,6 @@ class SmartTranslator {
       'enableTTS', 'highlightTranslated',
       'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
       'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioContext',
-      'autoLoadCache', 'autoTranslateDomains',
       'cacheServerEnabled', 'cacheServerMode',
       'excludedDomains'
     ]);
@@ -547,7 +369,6 @@ class SmartTranslator {
     this.settings.autoLoadCache = this.settings.autoLoadCache === true;
 
     // Array-Defaults
-    this.settings.autoTranslateDomains = this.settings.autoTranslateDomains || [];
     
     // Debug: Settings ausgeben
     console.log('[SWT] Settings geladen - showSelectionIcon:', this.settings.showSelectionIcon);
@@ -973,17 +794,6 @@ class SmartTranslator {
       this.cacheKey = this.generateCacheKey();
     }
     
-    // E-Book-Reader: Immer frischen State beim Übersetzen
-    const strategy = this.getActiveStrategy?.();
-    if (strategy?.name === 'E-Book Reader') {
-      console.log('[SWT E-Book] translatePage: Reset für frischen Scan');
-      // State zurücksetzen (entfernt alte Wrapper)
-      this.resetTranslationState();
-      // Cache-Key neu generieren
-      this.cacheKey = this.generateCacheKey();
-      console.log('[SWT E-Book] Neuer Cache-Key:', this.cacheKey);
-    }
-    
     // Bei Continue-Mode: Nicht zurücksetzen wenn schon übersetzt
     if (this.isTranslated && mode !== 'continue') {
       this.toggleTranslation();
@@ -1012,26 +822,9 @@ class SmartTranslator {
       // Cache-Objekt für Übersetzungen
       const cacheTranslations = {};
       
-      // E-Book Reader: Spezielle Block-basierte Übersetzung
-      const strategy = this.getActiveStrategy?.();
-      const isEbook = strategy?.name === 'E-Book Reader';
-      
       let textNodes;
-      let ebookBlocks = null;
-      
-      if (isEbook) {
-        console.log('[SWT E-Book] Verwende Block-Element-Übersetzung');
-        ebookBlocks = this.findTranslatableBlockElements();
-        
-        if (ebookBlocks.length === 0) {
-          console.log('[SWT E-Book] Keine Block-Elemente gefunden, Fallback zu Text-Nodes');
-          textNodes = this.findTranslatableTextNodes();
-        } else {
-          // Für E-Books: Block-Elemente direkt übersetzen
-          await this.translateEbookBlocks(ebookBlocks, cacheTranslations);
-          return; // E-Book-Übersetzung abgeschlossen
-        }
-      } else if (isPlainText) {
+
+      if (isPlainText) {
         textNodes = this.handlePlainTextPage();
       } else {
         // Leerzeichen bei Inline-Tags normalisieren
@@ -1144,547 +937,6 @@ class SmartTranslator {
     }
   }
 
-  /**
-   * E-Book-spezifische Block-Übersetzung
-   * Übersetzt ganze Absätze statt einzelner Text-Nodes
-   * Nutzt Queue-basiertes Batching im Background
-   */
-  async translateEbookBlocks(blocks, cacheTranslations) {
-    console.log('[SWT E-Book] translateEbookBlocks:', blocks.length, 'Blöcke');
-    
-    const total = blocks.length;
-    let translated = 0;
-    let cachedCount = 0;
-    let aiCount = 0;
-    
-    // Status-Update Funktion (lokal + Sidepanel)
-    const updateStatus = (type, active = true, complete = false) => {
-      // Lokaler Status-Indikator im Progress-Popup
-      this.updateSourceStatus?.(type, active);
-      
-      // Sidepanel benachrichtigen
-      chrome.runtime.sendMessage({
-        action: 'TRANSLATION_STATUS',
-        type,      // 'loading', 'cache', 'ai'
-        active,
-        complete,
-        cached: cachedCount,
-        ai: aiCount,
-        total
-      }).catch(() => {}); // Sidepanel evtl. nicht offen
-    };
-    
-    // Cache-First: Gecachte Übersetzungen zuerst laden und anwenden
-    if (this.settings.useCacheFirst) {
-      console.log('[SWT E-Book] Cache-First aktiviert, lade gecachte Übersetzungen...');
-      updateStatus('cache', true);
-      
-      // Alle Texte sammeln
-      const allTexts = blocks.map(b => b.text).filter(t => t.length >= 2);
-      
-      // Cache abfragen (nur Cache, keine Übersetzung)
-      const cacheResult = await this.sendMessageSafe({
-        action: 'TRANSLATE_BATCH',
-        texts: allTexts,
-        source: this.settings.sourceLang,
-        target: this.settings.targetLang,
-        pageUrl: window.location.href,
-        cacheOnly: true
-      });
-      
-      if (cacheResult && cacheResult.success && cacheResult.items) {
-        // Gecachte Übersetzungen in Map speichern
-        const cachedTranslations = new Map();
-        for (const item of cacheResult.items) {
-          if (item.fromCache && item.translation !== item.original) {
-            cachedTranslations.set(item.original, item.translation);
-          }
-        }
-        
-        console.log(`[SWT E-Book] ${cachedTranslations.size} Übersetzungen aus Cache`);
-        
-        // Gecachte sofort anwenden
-        for (const block of blocks) {
-          const cachedText = cachedTranslations.get(block.text);
-          if (cachedText) {
-            cacheTranslations[block.text] = cachedText;
-            this.replaceEbookBlockContent(block, cachedText);
-            cachedCount++;
-            translated++;
-          }
-        }
-        
-        // Fortschritt aktualisieren
-        this.updateProgress(translated, total);
-        
-        // Blöcke filtern - nur nicht-gecachte übersetzen
-        blocks = blocks.filter(b => !cachedTranslations.has(b.text));
-        console.log(`[SWT E-Book] ${blocks.length} Blöcke noch zu übersetzen`);
-        
-        // Wenn alles gecacht war, fertig!
-        if (blocks.length === 0) {
-          updateStatus('cache', false, true); // Complete
-          this.isTranslated = true;
-          this.showProgress(false);
-          this.notifyStatusChange();
-          this.showNotification(`${cachedCount} E-Book-Absätze aus Cache geladen`, 'success');
-          return;
-        }
-      }
-    }
-    
-    // Status: AI-Übersetzung startet
-    updateStatus('ai', true);
-    
-    // Batch-Größe aus Settings laden
-    const batchSettings = await chrome.storage.sync.get(['pageBatchSize', 'lmBatchSize']);
-    const batchSize = Math.max(1, Math.min(50, batchSettings.pageBatchSize || batchSettings.lmBatchSize || 20));
-    
-    console.log(`[SWT E-Book] Übersetzung: ${blocks.length} Blöcke (Batch-Größe: ${batchSize})`);
-    
-    // Batch-weise Übersetzung
-    for (let i = 0; i < blocks.length; i += batchSize) {
-      // Abbruch-Check
-      if (this.translationAborted) break;
-      
-      // Pause-Check
-      while (this.isPaused && !this.translationAborted) {
-        await new Promise(r => setTimeout(r, 200));
-      }
-      if (this.translationAborted) break;
-      
-      // Aktuelles Batch
-      const batch = blocks.slice(i, i + batchSize);
-      
-      // ALLE Requests des Batches GLEICHZEITIG abfeuern
-      const batchPromises = batch.map((block, idx) => {
-        const text = block.text;
-        if (text.length < 2) {
-          return Promise.resolve({ block, text, result: null, skipped: true, index: idx });
-        }
-        
-        return this.sendMessageSafe({
-          action: 'TRANSLATE',
-          text: text,
-          source: this.settings.sourceLang,
-          target: this.settings.targetLang,
-          pageUrl: window.location.href
-        }).then(result => ({ block, text, result, skipped: false, index: idx }))
-          .catch(e => ({ block, text, result: null, error: e, skipped: false, index: idx }));
-      });
-      
-      // Auf ALLE Ergebnisse warten
-      const batchResults = await Promise.all(batchPromises);
-      
-      if (this.translationAborted) break;
-      
-      // Ergebnisse in EXAKTER Reihenfolge anwenden
-      batchResults.sort((a, b) => a.index - b.index);
-      
-      for (const { block, text, result, skipped } of batchResults) {
-        if (this.translationAborted) break;
-        
-        if (!skipped && result && result.success && result.translatedText !== text) {
-          cacheTranslations[text] = result.translatedText;
-          this.replaceEbookBlockContent(block, result.translatedText);
-          aiCount++;
-        }
-        
-        translated++;
-        this.updateProgress(cachedCount + translated, total, {
-          tokens: result?.tokens || 0
-        });
-      }
-    }
-    
-    // Nur speichern wenn nicht abgebrochen
-    if (!this.translationAborted) {
-      // Status: Letzter aktiver Status bleibt (ai oder cache)
-      const finalType = aiCount > 0 ? 'ai' : 'cache';
-      updateStatus(finalType, false); // Animation stoppen
-      
-      this.saveToCache(cacheTranslations);
-      this.isTranslated = true;
-      this.showProgress(false);
-      this.notifyStatusChange();
-      
-      const tokenInfo = this.totalTokens > 0 
-        ? ` (${this.formatTokens(this.totalTokens)} Tokens)` 
-        : '';
-      const cacheInfo = cachedCount > 0 ? ` (${cachedCount} aus Cache)` : '';
-      this.showNotification(`${translated} E-Book-Absätze übersetzt${cacheInfo}${tokenInfo}`, 'success');
-      this.pageTokens = this.totalTokens;
-    } else {
-      // Bei Abbruch auch Status zurücksetzen
-      updateStatus(null, false, true);
-    }
-  }
-  
-  /**
-   * Ersetzt den Inhalt eines E-Book Block-Elements mit der Übersetzung
-   */
-  replaceEbookBlockContent(block, translatedText) {
-    const el = block.element;
-    if (!el) return;
-    
-    // Original speichern
-    const originalHtml = el.innerHTML;
-    const originalText = block.text;
-    
-    // Neuen Inhalt setzen - einfacher Text ohne innere Struktur
-    // Die komplexen span-Strukturen werden durch die Übersetzung ersetzt
-    el.innerHTML = `<span class="swt-translated-text" data-original="${this.escapeHtml(originalText)}" data-original-html="${this.escapeHtml(originalHtml)}">${this.escapeHtml(translatedText)}</span>`;
-    
-    // Tracking
-    this.originalTexts.set(el, originalHtml);
-    this.translatedTexts.set(el, translatedText);
-    
-    console.log('[SWT E-Book] Block übersetzt:', translatedText.substring(0, 50) + '...');
-  }
-  
-  /**
-   * HTML-Escape für sichere Einbettung
-   */
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  /**
-   * Lädt gecachte Übersetzungen für eine Liste von Texten
-   * @param {string[]} texts - Liste der zu prüfenden Texte
-   * @returns {Promise<Map<string, string>>} - Map von Original → Übersetzung
-   */
-  async loadCachedTranslationsForTexts(texts) {
-    const cachedTranslations = new Map();
-    
-    if (!texts || texts.length === 0) {
-      return cachedTranslations;
-    }
-    
-    try {
-      // Über Background-Script den Cache abfragen
-      const result = await this.sendMessageSafe({
-        action: 'TRANSLATE_BATCH',
-        texts: texts,
-        source: this.settings.sourceLang,
-        target: this.settings.targetLang,
-        pageUrl: window.location.href,
-        cacheOnly: true  // Nur Cache prüfen, nicht übersetzen
-      });
-      
-      if (result && result.success && result.items) {
-        for (const item of result.items) {
-          if (item.fromCache && item.translation !== item.original) {
-            cachedTranslations.set(item.original, item.translation);
-          }
-        }
-      }
-      
-      console.log(`[SWT] Cache-First: ${cachedTranslations.size} von ${texts.length} aus Cache geladen`);
-    } catch (e) {
-      console.warn('[SWT] Cache-First Fehler:', e);
-    }
-    
-    return cachedTranslations;
-  }
-
-  // Erkennt Plain-Text Seiten (RFC, .txt, Pre-Only)
-  detectPlainTextPage() {
-    const url = window.location.href.toLowerCase();
-    const hostname = window.location.hostname.toLowerCase();
-    
-    // URL-basierte Erkennung
-    if (url.endsWith('.txt') || url.endsWith('.text')) return true;
-    
-    // RFC-Seiten
-    if (hostname.includes('ietf.org') || hostname.includes('rfc-editor.org')) return true;
-    if (url.includes('/rfc/') || url.includes('/doc/rfc')) return true;
-    
-    // Content-Type Check (wenn verfügbar)
-    const contentType = document.contentType || '';
-    if (contentType.includes('text/plain')) return true;
-    
-    // DOM-basierte Erkennung: Nur ein Pre-Element mit viel Text?
-    const body = document.body;
-    const preElements = body.querySelectorAll('pre');
-    
-    if (preElements.length === 1) {
-      const pre = preElements[0];
-      const preText = pre.textContent.length;
-      const bodyText = body.textContent.length;
-      // Wenn Pre mehr als 80% des Seiteninhalts ausmacht
-      if (preText > 1000 && preText / bodyText > 0.8) return true;
-    }
-    
-    // Keine anderen Block-Elemente außer Pre?
-    const blocks = body.querySelectorAll('p, div, article, section, h1, h2, h3, h4, h5, h6');
-    if (blocks.length < 3 && preElements.length > 0) return true;
-    
-    return false;
-  }
-
-  // Behandelt Plain-Text Seiten speziell
-  handlePlainTextPage() {
-    const preElements = document.querySelectorAll('pre');
-    const textNodes = [];
-    
-    preElements.forEach(pre => {
-      // Pre-Element in logische Abschnitte aufteilen
-      const text = pre.textContent;
-      const paragraphs = this.splitIntoParagraphs(text);
-      
-      // Erstelle für jeden Absatz einen virtuellen Container
-      pre.innerHTML = ''; // Leeren
-      
-      paragraphs.forEach(para => {
-        if (para.trim().length < 3) {
-          // Leerzeilen beibehalten
-          pre.appendChild(document.createTextNode(para + '\n\n'));
-          return;
-        }
-        
-        const span = document.createElement('span');
-        span.className = 'swt-pre-paragraph';
-        span.textContent = para;
-        pre.appendChild(span);
-        pre.appendChild(document.createTextNode('\n\n'));
-        
-        // TextNode aus dem Span für Übersetzung
-        if (span.firstChild) {
-          textNodes.push(span.firstChild);
-        }
-      });
-    });
-    
-    // Falls keine Pre-Elemente, versuche Body-Text
-    if (textNodes.length === 0) {
-      return this.findTranslatableTextNodes();
-    }
-    
-    return textNodes;
-  }
-
-  // Teilt Text in logische Absätze (für Plain-Text/RFC)
-  splitIntoParagraphs(text) {
-    // Strategie:
-    // 1. Doppelte Leerzeilen = eindeutige Absatzgrenze
-    // 2. Satzende (. ! ?) + einzelne Newline + Großbuchstabe = Absatzgrenze
-    // 3. Mindestlänge für sinnvolle Übersetzung
-    
-    const paragraphs = [];
-    let currentParagraph = '';
-    
-    // Erst bei doppelten Newlines splitten
-    const blocks = text.split(/\n\s*\n/);
-    
-    blocks.forEach(block => {
-      const trimmed = block.trim();
-      if (!trimmed) return;
-      
-      // Block ist kurz genug → direkt verwenden
-      if (trimmed.length < 500) {
-        paragraphs.push(trimmed);
-        return;
-      }
-      
-      // Langer Block → bei Satzenden + Newlines aufteilen
-      const lines = trimmed.split('\n');
-      let currentChunk = '';
-      
-      lines.forEach((line, idx) => {
-        const trimmedLine = line.trim();
-        if (!trimmedLine) return;
-        
-        if (currentChunk) {
-          currentChunk += '\n';
-        }
-        currentChunk += trimmedLine;
-        
-        // Prüfe ob Satzende und nächste Zeile mit Großbuchstabe beginnt
-        const endsWithSentence = trimmedLine.match(/[.!?]$/);
-        const nextLine = lines[idx + 1]?.trim();
-        const nextStartsWithCapital = nextLine?.match(/^[A-ZÄÖÜ]/);
-        
-        if (endsWithSentence && (!nextLine || nextStartsWithCapital)) {
-          // Mindestlänge prüfen
-          if (currentChunk.length >= 50) {
-            paragraphs.push(currentChunk);
-            currentChunk = '';
-          }
-        }
-      });
-      
-      // Rest hinzufügen
-      if (currentChunk.trim()) {
-        paragraphs.push(currentChunk.trim());
-      }
-    });
-    
-    return paragraphs.filter(p => p.length > 0);
-  }
-
-
-  // === Message Handler ===
-  handleMessage(request, sender, sendResponse) {
-    switch (request.action) {
-      case 'GET_SELECTION':
-        sendResponse({ text: window.getSelection().toString().trim() });
-        break;
-
-      case 'SHOW_TRANSLATION':
-        this.showTooltip(request.original, request.translated, request.alternatives);
-        sendResponse({ success: true });
-        break;
-
-      case 'SHOW_ERROR':
-        this.showNotification(request.message, 'error');
-        sendResponse({ success: true });
-        break;
-
-      case 'TRANSLATE_PAGE':
-        this.translatePage(request.mode || 'replace');
-        sendResponse({ success: true });
-        break;
-
-      case 'RESTORE_PAGE':
-        this.restorePage();
-        sendResponse({ success: true });
-        break;
-
-      case 'TOGGLE_TRANSLATION':
-        this.toggleTranslation();
-        sendResponse({ success: true });
-        break;
-
-      case 'EXPORT_PDF':
-        if (!this._exportLock) {
-          this._exportLock = true;
-          this.exportAsPdf(request.simplified);
-          setTimeout(() => this._exportLock = false, 500);
-        }
-        sendResponse({ success: true });
-        break;
-
-      case 'EXPORT_MARKDOWN':
-        if (!this._exportLock) {
-          this._exportLock = true;
-          this.exportAsMarkdown();
-          setTimeout(() => this._exportLock = false, 500);
-        }
-        sendResponse({ success: true });
-        break;
-
-      case 'EXPORT_TEXT':
-        if (!this._exportLock) {
-          this._exportLock = true;
-          this.exportAsText();
-          setTimeout(() => this._exportLock = false, 500);
-        }
-        sendResponse({ success: true });
-        break;
-
-      case 'LOAD_CACHED_TRANSLATION':
-        this.loadCachedTranslation().then(loaded => {
-          sendResponse({ success: loaded });
-        });
-        return true; // Async response
-        break;
-
-      case 'GET_CACHE_INFO':
-        sendResponse({
-          size: this.getCacheSize(),
-          entries: this.getCacheInfo(),
-          currentPageHasCache: this.hasValidCache()
-        });
-        break;
-
-      case 'CLEAR_CACHE':
-        this.clearCache(request.key).then(() => {
-          sendResponse({ success: true });
-        }).catch(e => {
-          console.warn('[SWT] clearCache Fehler:', e);
-          sendResponse({ success: false, error: e.message });
-        });
-        return true; // Async response
-
-      case 'GET_PAGE_INFO':
-        // Schnelle synchrone Antwort - keine teuren Berechnungen
-        // serverCacheCount wird aus dem beim Seitenload gesetzten Wert genommen
-        // remaining = geplante Nodes - übersetzte Nodes (für "Fortsetzen")
-        const remaining = this._plannedNodes 
-          ? Math.max(0, this._plannedNodes - this.originalTexts.size)
-          : 0;
-        sendResponse({
-          isTranslated: this.isTranslated,
-          mode: this.translationMode,
-          count: this.originalTexts.size,
-          plannedNodes: this._plannedNodes || 0,
-          remaining: remaining,
-          hasCache: this.hasValidCache(),
-          serverCacheCount: this._serverCacheCount || 0,
-          cacheProgress: this._cacheProgress || 0
-        });
-        break;
-
-      case 'TRANSLATE_WORD_AT_CURSOR':
-        this.translateWordAtPosition(request.x, request.y);
-        sendResponse({ success: true });
-        break;
-
-      case 'updateEbookDomains':
-        // E-Book-Reader-Domains dynamisch aktualisieren
-        if (typeof DomainStrategies !== 'undefined' && 
-            DomainStrategies.strategies.ebook) {
-          DomainStrategies.strategies.ebook.ebookDomains = request.domains || [];
-          console.log('[SWT] E-Book-Domains aktualisiert:', request.domains);
-        }
-        sendResponse({ success: true });
-        break;
-
-      default:
-        sendResponse({ success: false });
-    }
-  }
-
-  // Wort an Position übersetzen (für Rechtsklick ohne Markierung)
-  async translateWordAtPosition(x, y) {
-    const element = document.elementFromPoint(x, y);
-    if (!element) return;
-
-    // Finde das Wort an der Position
-    const range = document.caretRangeFromPoint(x, y);
-    if (!range) return;
-
-    const textNode = range.startContainer;
-    if (textNode.nodeType !== Node.TEXT_NODE) return;
-
-    const text = textNode.textContent;
-    const offset = range.startOffset;
-
-    // Wortgrenzen finden
-    let start = offset;
-    let end = offset;
-
-    // Nach links
-    while (start > 0 && /\w/.test(text[start - 1])) start--;
-    // Nach rechts
-    while (end < text.length && /\w/.test(text[end])) end++;
-
-    const word = text.substring(start, end).trim();
-    if (!word || word.length < 2) return;
-
-    // Position für Tooltip
-    const rect = element.getBoundingClientRect();
-    const savedPosition = {
-      top: rect.bottom + window.scrollY + 10,
-      left: x
-    };
-
-    // Übersetzen
-    await this.translateSelection(word, savedPosition);
-  }
 }
 
 // Initialisieren

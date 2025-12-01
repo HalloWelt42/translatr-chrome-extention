@@ -92,9 +92,7 @@ class TranslatorBackground {
         'simplifyPdfExport', 'useTabsForAlternatives', 'tabWordThreshold',
         'lmBatchSize', 'lmMaxBatchTokens', 'pageBatchSize',
         'enableTrueBatch', 'enableSmartChunking', 'useCacheFirst',
-        'autoLoadCache', 'autoTranslateDomains',
         'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode', 'cacheServerTimeout',
-        'ebookReaderDomains', 'extractIframeContent',
         'filterEmbeddingModels', 'enableAbortTranslation', 'enableLLMFallback'
       ];
 
