@@ -120,7 +120,7 @@ SWT.CacheServer = {
     const content = normalizedUrl + text + langSuffix;
 
     // SHA-256 via Web Crypto API (nur auf HTTPS verfuegbar)
-    if (crypto.subtle) {
+    if (typeof crypto !== 'undefined' && crypto.subtle) {
       const encoder = new TextEncoder();
       const data = encoder.encode(content);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
