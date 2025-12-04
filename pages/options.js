@@ -89,11 +89,11 @@ async function loadSettings() {
     };
 
     // LibreTranslate Werte
-    setVal('serviceUrl', settings.serviceUrl || 'http://localhost:5000/translate');
+    setVal('serviceUrl', settings.serviceUrl);
     setVal('apiKey', settings.apiKey || '');
     
     // LM Studio Werte
-    setVal('lmStudioUrl', settings.lmStudioUrl || 'http://192.168.178.45:1234');
+    setVal('lmStudioUrl', settings.lmStudioUrl);
     setVal('lmStudioTemperature', settings.lmStudioTemperature ?? 0.1);
     setVal('lmStudioMaxTokens', settings.lmStudioMaxTokens || 2000);
     setVal('lmStudioContext', settings.lmStudioContext || 'general');
@@ -136,7 +136,7 @@ async function loadSettings() {
     
     // Cache-Server (v3.8)
     setChecked('cacheServerEnabled', settings.cacheServerEnabled !== false);
-    setVal('cacheServerUrl', settings.cacheServerUrl || 'http://192.168.178.49:8083');
+    setVal('cacheServerUrl', settings.cacheServerUrl);
     setVal('cacheServerMode', settings.cacheServerMode || 'server-only');
     setVal('cacheServerTimeout', settings.cacheServerTimeout || 5000);
     setChecked('autoLoadCache', settings.autoLoadCache || false);
@@ -392,11 +392,11 @@ async function saveSettings() {
       apiType: apiType,
       
       // LibreTranslate
-      serviceUrl: getVal('serviceUrl', 'http://localhost:5000/translate').trim(),
+      serviceUrl: getVal('serviceUrl', '').trim(),
       apiKey: getVal('apiKey', '').trim(),
       
       // LM Studio
-      lmStudioUrl: getVal('lmStudioUrl', 'http://192.168.178.45:1234').trim(),
+      lmStudioUrl: getVal('lmStudioUrl', '').trim(),
       lmStudioModel: getVal('lmStudioModel', ''),
       lmStudioTemperature: getFloat('lmStudioTemperature', 0.1),
       lmStudioMaxTokens: getInt('lmStudioMaxTokens', 2000),
@@ -429,7 +429,7 @@ async function saveSettings() {
       
       // Cache-Server (v3.8)
       cacheServerEnabled: getChecked('cacheServerEnabled', true),
-      cacheServerUrl: getVal('cacheServerUrl', 'http://192.168.178.49:8083').trim(),
+      cacheServerUrl: getVal('cacheServerUrl', '').trim(),
       cacheServerMode: getVal('cacheServerMode', 'server-only'),
       cacheServerTimeout: getInt('cacheServerTimeout', 5000),
       autoLoadCache: getChecked('autoLoadCache', false)
@@ -451,9 +451,9 @@ async function resetSettings() {
 
   const defaultSettings = {
     apiType: 'libretranslate',
-    serviceUrl: 'http://localhost:5000/translate',
+    serviceUrl: '',
     apiKey: '',
-    lmStudioUrl: 'http://192.168.178.45:1234',
+    lmStudioUrl: '',
     lmStudioModel: '',
     lmStudioTemperature: 0.1,
     lmStudioMaxTokens: 2000,
@@ -489,7 +489,7 @@ async function resetSettings() {
     excludedDomains: '',
     // Cache-Server Defaults
     cacheServerEnabled: true,
-    cacheServerUrl: 'http://192.168.178.49:8083',
+    cacheServerUrl: '',
     cacheServerMode: 'server-only',
     cacheServerTimeout: 5000
   };
@@ -550,7 +550,7 @@ async function testConnection(apiType) {
 }
 
 async function testLibreTranslate(testInput) {
-  const serviceUrl = document.getElementById('serviceUrl').value.trim() || 'http://localhost:5000/translate';
+  const serviceUrl = document.getElementById('serviceUrl').value.trim();
   const apiKey = document.getElementById('apiKey').value.trim();
   const targetLang = document.getElementById('targetLang').value;
 

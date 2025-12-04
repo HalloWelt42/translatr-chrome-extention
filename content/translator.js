@@ -340,7 +340,7 @@ class SmartTranslator {
     ]);
 
     // String-Defaults
-    this.settings.serviceUrl = this.settings.serviceUrl || 'http://localhost:5000/translate';
+    this.settings.serviceUrl = this.settings.serviceUrl;
     this.settings.targetLang = this.settings.targetLang || 'de';
     this.settings.sourceLang = this.settings.sourceLang || 'auto';
     this.settings.apiType = this.settings.apiType || 'libretranslate';

@@ -134,7 +134,7 @@ class TranslatorBackground {
     if (!settings.apiType) {
       await chrome.storage.sync.set({
         apiType: 'libretranslate',
-        lmStudioUrl: 'http://192.168.178.45:1234',
+        lmStudioUrl: '',
         lmStudioModel: '',
         lmStudioTemperature: 0.1,
         lmStudioMaxTokens: 2000,
@@ -978,7 +978,7 @@ class TranslatorBackground {
 
   async batchTranslateWithLMStudio(texts, source, target, settings) {
     try {
-      const url = settings.lmStudioUrl || 'http://192.168.178.45:1234';
+      const url = settings.lmStudioUrl;
       const model = settings.lmStudioModel;
       
       if (!model) {
@@ -1295,11 +1295,11 @@ class TranslatorBackground {
       apiType: 'libretranslate',
       
       // LibreTranslate
-      serviceUrl: 'http://localhost:5000/translate',
+      serviceUrl: '',
       apiKey: '',
       
       // LM Studio (neu)
-      lmStudioUrl: 'http://192.168.178.45:1234',
+      lmStudioUrl: '',
       lmStudioModel: '',
       lmStudioTemperature: 0.1,
       lmStudioMaxTokens: 2000,

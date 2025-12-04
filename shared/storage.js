@@ -17,11 +17,11 @@ SWT.Storage = {
   defaultSettings: {
     // API
     apiType: 'libretranslate',
-    serviceUrl: 'http://localhost:5000/translate',
+    serviceUrl: '',
     apiKey: '',
 
     // LM Studio
-    lmStudioUrl: 'http://192.168.178.45:1234',
+    lmStudioUrl: '',
     lmStudioModel: '',
     lmStudioTemperature: 0.1,
     lmStudioMaxTokens: 2000,
@@ -62,7 +62,7 @@ SWT.Storage = {
     // Cache
     autoLoadCache: false,
     cacheServerEnabled: true,
-    cacheServerUrl: 'http://192.168.178.49:8083',
+    cacheServerUrl: '',
     cacheServerMode: 'server-only',
     cacheServerTimeout: 5000,
 

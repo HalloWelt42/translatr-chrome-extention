@@ -12,7 +12,7 @@ const LMStudioProvider = {
    */
   async translate(text, source, target, settings, updateTokenStats) {
     try {
-      const url = settings.lmStudioUrl || 'http://192.168.178.45:1234';
+      const url = settings.lmStudioUrl;
       const model = settings.lmStudioModel;
 
       if (!model) {
@@ -111,7 +111,7 @@ const LMStudioProvider = {
    */
   async batchTranslate(texts, source, target, settings) {
     try {
-      const url = settings.lmStudioUrl || 'http://192.168.178.45:1234';
+      const url = settings.lmStudioUrl;
       const model = settings.lmStudioModel;
 
       if (!model) {

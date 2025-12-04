@@ -3,7 +3,7 @@
  * Version: 1.3.0
  * 
  * Kommuniziert mit SWT Cache Server (FastAPI)
- * API: http://192.168.178.49:8083/
+ *
  * 
  * v1.3.0: Base64-Encoding, Mixed-Content-Fix (Requests über Background)
  * v1.2.0: Ready-Promise für async Init, langPair konsistent
@@ -16,7 +16,7 @@ SWT.CacheServer = {
   // Konfiguration (wird aus chrome.storage geladen)
   config: {
     enabled: true,  // Default: aktiviert
-    serverUrl: 'http://192.168.178.49:8083',
+    serverUrl: '',
     mode: 'server-only', // server-only als Default (localStorage nur Notlösung)
     timeout: 5000,
     translator: 'unknown'
@@ -37,7 +37,7 @@ SWT.CacheServer = {
       try {
         const stored = await chrome.storage.sync.get({
           cacheServerEnabled: true,  // Default: aktiviert
-          cacheServerUrl: 'http://192.168.178.49:8083',
+          cacheServerUrl: '',
           cacheServerMode: 'server-only',  // Default: nur Server
           cacheServerTimeout: 5000
         });

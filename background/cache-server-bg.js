@@ -1,7 +1,7 @@
 const CacheServer = {
   config: {
     enabled: true,  // Default: aktiviert
-    serverUrl: 'http://192.168.178.49:8083',
+    serverUrl: '',
     mode: 'server-only',  // Default: nur Server (localStorage nur bei Fehler)
     timeout: 5000,
     translator: 'unknown'
@@ -19,7 +19,7 @@ const CacheServer = {
     try {
       const stored = await chrome.storage.sync.get({
         cacheServerEnabled: true,  // Default: aktiviert
-        cacheServerUrl: 'http://192.168.178.49:8083',
+        cacheServerUrl: '',
         cacheServerMode: 'server-only',  // Default: nur Server
         cacheServerTimeout: 5000,
         apiType: 'libretranslate',
