@@ -64,8 +64,9 @@ class TranslatorBackground {
   async handleInstall(details) {
     if (details.reason === 'install') {
       await this.setDefaultSettings();
+      // Bei Erstinstallation: Einstellungen oeffnen
+      chrome.tabs.create({ url: chrome.runtime.getURL('pages/options.html') });
     } else if (details.reason === 'update') {
-      // Migration: alte Einzel-Keys -> neues Format (swt-settings / swt-data)
       await this.migrateToUnifiedStorage();
       await this.migrateSettings();
     }
@@ -507,7 +508,7 @@ class TranslatorBackground {
       }
     }
 
-    // 2. Normale Übersetzung
+    // 2. Normale Uebersetzung -- nur wenn API konfiguriert
     const settings = await chrome.storage.sync.get([
       'apiType', 'serviceUrl', 'apiKey',
       'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
@@ -516,6 +517,15 @@ class TranslatorBackground {
     ]);
 
     const apiType = settings.apiType || 'libretranslate';
+
+    // Pruefen ob API konfiguriert ist
+    if (apiType === 'libretranslate' && !settings.serviceUrl) {
+      return { success: false, error: 'LibreTranslate nicht konfiguriert. Bitte URL in den Einstellungen setzen.' };
+    }
+    if (apiType === 'lmstudio' && !settings.lmStudioUrl) {
+      return { success: false, error: 'LM Studio nicht konfiguriert. Bitte URL in den Einstellungen setzen.' };
+    }
+
     let result;
 
     if (apiType === 'lmstudio') {
