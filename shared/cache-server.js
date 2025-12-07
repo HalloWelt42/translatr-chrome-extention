@@ -326,7 +326,10 @@ SWT.CacheServer = {
       
       return { translations: {}, missing: hashes };
     } catch (e) {
-      console.warn('[CacheServer Content] BulkGet-Fehler:', e.message);
+      // "Extension context invalidated" ist normal bei Extension-Reload -- still ignorieren
+      if (!e.message?.includes('Extension context invalidated')) {
+        console.warn('[CacheServer] BulkGet:', e.message);
+      }
       return { translations: {}, missing: hashes };
     }
   },

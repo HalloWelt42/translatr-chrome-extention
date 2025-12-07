@@ -60,8 +60,11 @@ class SmartTranslator {
           continue;
         }
         
-        // Fehler nach allen Retries oder anderer Fehlertyp
-        console.warn(`[SWT] sendMessage failed (attempt ${attempt + 1}/${maxRetries + 1}):`, errorMsg);
+        // Extension-Kontext ungueltig = still ignorieren (Extension wurde neu geladen)
+        if (errorMsg.includes('Extension context invalidated')) {
+          return { success: false, error: 'context_invalidated' };
+        }
+        console.warn('[SWT] sendMessage:', errorMsg);
         return { success: false, error: errorMsg };
       }
     }
