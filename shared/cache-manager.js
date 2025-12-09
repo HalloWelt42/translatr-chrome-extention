@@ -345,6 +345,7 @@ SWT.Cache.init();
 
 // Bei Settings-Aenderung neu initialisieren
 chrome.storage.onChanged.addListener((changes, area) => {
+  if (!chrome.runtime?.id) return; // Extension-Kontext ungueltig
   if (area === 'sync' && (changes.cacheServerEnabled || changes.cacheServerMode)) {
     SWT.Cache._ready = false;
     SWT.Cache._initPromise = null;

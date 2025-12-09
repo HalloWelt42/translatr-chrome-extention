@@ -303,10 +303,13 @@ SWT.CacheServer = {
    * @returns {Object} { translations: {hash: {original, translated}}, missing: [hash] }
    */
   async bulkGet(hashes, pageUrl = null) {
-    // Auf Init warten
+    // Extension-Kontext pruefen
+    if (!chrome.runtime?.id) {
+      return { translations: {}, missing: hashes };
+    }
+
     await this.waitForReady();
-    
-    
+
     if (!this.config.enabled || !hashes.length) {
       return { translations: {}, missing: hashes };
     }

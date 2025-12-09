@@ -39,6 +39,7 @@ class SmartTranslator {
    * @returns {Promise<Object>} - Die Antwort oder {success: false, error: ...}
    */
   async sendMessageSafe(message, maxRetries = 2, retryDelay = 100) {
+    if (!chrome.runtime?.id) return { success: false, error: 'context_invalidated' };
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const result = await chrome.runtime.sendMessage(message);
