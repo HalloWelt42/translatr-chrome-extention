@@ -56,8 +56,11 @@ SWT.CacheServer = {
         
         this._ready = true;
       } catch (e) {
-        console.warn('[CacheServer] Init-Fehler:', e);
-        this._ready = true; // Trotzdem ready markieren, mit Defaults
+        // Still bei Extension-Reload
+        if (!String(e).includes('invalidated')) {
+          console.warn('[CacheServer] Init:', e.message);
+        }
+        this._ready = true;
       }
     })();
     

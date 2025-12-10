@@ -36,7 +36,9 @@ SWT.Cache = {
 
         this._ready = true;
       } catch (e) {
-        console.warn('[CacheManager] Init:', e);
+        if (!String(e).includes('invalidated')) {
+          console.warn('[CacheManager] Init:', e.message);
+        }
         this._ready = true;
       }
     })();
@@ -68,6 +70,7 @@ SWT.Cache = {
   // ==========================================================================
 
   async checkCache(pageUrl, cacheKey, settings, sampleTexts) {
+    if (!chrome.runtime?.id) return { hasCache: false, source: null, count: 0, percentage: 0 };
     await this.waitForReady();
 
     if (!this.config.enabled) {
