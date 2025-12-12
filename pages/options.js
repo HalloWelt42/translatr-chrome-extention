@@ -57,25 +57,24 @@ Antworte NUR mit JSON: {"translation": "...", "alternatives": ["..."], "context_
 async function loadSettings() {
   try {
     const settings = await chrome.storage.sync.get([
-      'serviceUrl', 'apiKey', 'sourceLang', 'targetLang',
-      'showSelectionIcon', 'selectionIconDelay',
-      'showOriginalInTooltip', 'showAlternatives',
-      'tooltipPosition', 'highlightTranslated',
-      'enableTTS', 'ttsLanguage', 'excludedDomains',
-      'skipCodeBlocks', 'skipBlockquotes', 'useTabsForAlternatives',
-      'simplifyPdfExport', 'fixInlineSpacing', 'tabWordThreshold',
-      // LM Studio Einstellungen
-      'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
+      // API
+      'apiType', 'serviceUrl', 'apiKey',
+      'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
       'lmStudioMaxTokens', 'lmStudioContext', 'lmStudioCustomPrompt',
-      // Neue v3.1 Einstellungen
-      'filterEmbeddingModels', 'enableAbortTranslation', 'enableLLMFallback',
-      // Batch-Einstellungen (v3.5)
-      'lmBatchSize', 'lmMaxBatchTokens', 'enableTrueBatch', 'enableSmartChunking', 'useCacheFirst',
-      // Seiten-Batch-Größe (v3.11.5)
-      'pageBatchSize',
-      // Cache-Server (v3.8)
-      'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode', 'cacheServerTimeout',
-      'autoLoadCache',
+      // Sprachen
+      'sourceLang', 'targetLang',
+      // Anzeige
+      'showSelectionIcon', 'enableTTS', 'showOriginalInTooltip',
+      'showAlternatives', 'highlightTranslated',
+      // Inhaltsfilter
+      'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
+      // Batch
+      'pageBatchSize', 'useCacheFirst',
+      // Cache
+      'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode',
+      'cacheServerTimeout', 'autoLoadCache',
+      // Sonstiges
+      'excludedDomains'
     ]);
 
     // Hilfsfunktion für sicheres Setzen
@@ -130,11 +129,8 @@ async function loadSettings() {
     
     // Ausgeschlossene Domains
     setVal('excludedDomains', settings.excludedDomains || '');
-    
-    // Auto-Translate Domains
-    
-    
-    // Cache-Server (v3.8)
+
+    // Cache-Server
     setChecked('cacheServerEnabled', settings.cacheServerEnabled !== false);
     setVal('cacheServerUrl', settings.cacheServerUrl);
     setVal('cacheServerMode', settings.cacheServerMode || 'server-only');
@@ -210,43 +206,6 @@ function setupEventListeners() {
   if (contextSelect) {
     contextSelect.addEventListener('change', (e) => {
       toggleCustomPrompt(e.target.value);
-    });
-  }
-  
-  // Auto-Translate Domain hinzufügen
-  const addDomainBtn = document.getElementById('addAutoTranslateDomain');
-  if (addDomainBtn) {
-    addDomainBtn.addEventListener('click', addAutoTranslateDomain);
-  }
-  
-  const newDomainInput = document.getElementById('newAutoTranslateDomain');
-  if (newDomainInput) {
-    newDomainInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addAutoTranslateDomain();
-      }
-    });
-  }
-  
-  const addEbookDomainBtn = document.getElementById('addEbookReaderDomain');
-  if (addEbookDomainBtn) {
-    addEbookDomainBtn.addEventListener('click', addEbookReaderDomain);
-  }
-  
-  const newEbookDomainInput = document.getElementById('newEbookReaderDomain');
-  if (newEbookDomainInput) {
-    newEbookDomainInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addEbookReaderDomain();
-      }
-    });
-  }
-  
-  if (extractIframeEl) {
-    extractIframeEl.addEventListener('change', async (e) => {
-      showStatus(e.target.checked ? 'iframe-Extraktion aktiviert' : 'iframe-Extraktion deaktiviert', 'success');
     });
   }
   
@@ -459,39 +418,24 @@ async function resetSettings() {
     lmStudioMaxTokens: 2000,
     lmStudioContext: 'general',
     lmStudioCustomPrompt: '',
-    // Batch-Einstellungen (v3.5)
-    lmBatchSize: 20,
-    lmMaxBatchTokens: 128000,
-    enableTrueBatch: true,
-    enableSmartChunking: true,
-    useCacheFirst: true,
-    // Seiten-Batch-Größe (v3.11.5)
     pageBatchSize: 20,
+    useCacheFirst: true,
     sourceLang: 'auto',
     targetLang: 'de',
     showSelectionIcon: true,
-    selectionIconDelay: 200,
-    enableDoubleClick: false,
+    enableTTS: true,
     showOriginalInTooltip: true,
     showAlternatives: true,
-    tooltipAutoHide: true,
-    tooltipPosition: 'below',
-    tooltipAutoHideDelay: 5000,
-    highlightTranslated: true,
+    highlightTranslated: false,
     skipCodeBlocks: true,
     skipBlockquotes: true,
     fixInlineSpacing: true,
-    useTabsForAlternatives: true,
-    tabWordThreshold: 20,
-    simplifyPdfExport: false,
-    enableTTS: false,
-    ttsLanguage: 'de-DE',
     excludedDomains: '',
-    // Cache-Server Defaults
     cacheServerEnabled: true,
     cacheServerUrl: '',
     cacheServerMode: 'server-only',
-    cacheServerTimeout: 5000
+    cacheServerTimeout: 5000,
+    autoLoadCache: false
   };
 
   try {

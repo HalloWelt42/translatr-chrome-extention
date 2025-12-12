@@ -158,7 +158,6 @@ class SmartTranslator {
               'showSelectionIcon', 'enableTTS', 'showOriginalInTooltip',
               'showAlternatives', 'highlightTranslated', 'skipCodeBlocks',
               'skipBlockquotes', 'fixInlineSpacing', 'useCacheFirst',
-              'autoLoadCache', 'enableTokenCost', 'enableTrueBatch',
             ];
             
             if (booleanSettings.includes(key)) {

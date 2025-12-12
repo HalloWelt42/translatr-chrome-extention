@@ -3,7 +3,7 @@
     "message": "Smart Translator"
   },
   "appDescription": {
-    "message": "Intelligent translator with LibreTranslate, LM Studio, Cache Server & E-Book support"
+    "message": "Intelligent translator with LibreTranslate, LM Studio and Cache Server"
   },
   "appDefaultTitle": {
     "message": "Smart Translator"
