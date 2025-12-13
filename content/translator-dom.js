@@ -250,35 +250,12 @@
 
   /**
    * Übersetzbare Text-Nodes finden
-   * v3.13: Mit iframe-Support für E-Book-Reader
    */
   SmartTranslator.prototype.findTranslatableTextNodes = function() {
     const skipCode = this.settings.skipCodeBlocks !== false;
     const skipQuotes = this.settings.skipBlockquotes !== false;
     
-    // Prüfe ob Strategie iframe-Content nutzt
-    const strategy = this.getActiveStrategy?.();
-    const checkIframes = strategy?.usesIframeContent === true;
-    
-    console.log('[SWT] findTranslatableTextNodes:', {
-      strategy: strategy?.name || 'default',
-      checkIframes,
-      url: window.location.href
-    });
-    
-    // Sammle alle zu durchsuchenden Dokumente
     const documents = [document];
-    
-    if (checkIframes && strategy?.extractIframeContent) {
-      console.log('[SWT] Extrahiere iframe-Content...');
-      const iframeContents = strategy.extractIframeContent(document);
-      console.log('[SWT] iframe-Contents gefunden:', iframeContents.length);
-      iframeContents.forEach(content => {
-        if (content.document) {
-          documents.push(content.document);
-        }
-      });
-    }
     
     console.log('[SWT] Durchsuche', documents.length, 'Dokumente');
     
@@ -362,108 +339,6 @@
     
     console.log('[SWT] Gesamt gefundene Text-Nodes:', nodes.length);
     return nodes;
-  };
-  
-  /**
-   * E-Book-spezifisch: Finde Block-Elemente (ganze Absätze) statt Text-Nodes
-   * Löst das Problem mit fragmentierten Texten durch <span> Tags
-   */
-  SmartTranslator.prototype.findTranslatableBlockElements = function() {
-    const strategy = this.getActiveStrategy?.();
-    if (!strategy?.extractIframeContent) {
-      console.log('[SWT E-Book] Keine extractIframeContent Methode');
-      return [];
-    }
-    
-    const iframeContents = strategy.extractIframeContent(document);
-    const blocks = [];
-    
-    // Block-Elemente die als Ganzes übersetzt werden sollen
-    const blockSelectors = 'p, h1, h2, h3, h4, h5, h6, li, figcaption, blockquote, td, th';
-    const excludeSelectors = '.swt-translated-text, script, style, noscript';
-    
-    iframeContents.forEach(content => {
-      const body = content.body;
-      if (!body) return;
-      
-      body.querySelectorAll(blockSelectors).forEach(el => {
-        // Bereits übersetzt?
-        if (el.classList.contains('swt-translated-text')) return;
-        if (el.closest(excludeSelectors)) return;
-        
-        // Kompletten Text extrahieren (ignoriert innere Tags)
-        const text = el.textContent?.trim();
-        
-        // Mindestens 10 Zeichen für sinnvolle Übersetzung
-        if (!text || text.length < 10) return;
-        
-        // Nur Text ohne Sonderzeichen?
-        if (/^[\s\d\W]*$/.test(text)) return;
-        
-        blocks.push({
-          element: el,
-          text: text,
-          sourceDocument: content.document,
-          sourceType: content.type,
-          iframe: content.iframe
-        });
-      });
-    });
-    
-    console.log('[SWT E-Book] Gefundene Block-Elemente:', blocks.length);
-    if (blocks.length > 0) {
-      console.log('[SWT E-Book] Beispiel:', blocks[0].text.substring(0, 100));
-    }
-    
-    return blocks;
-  };
-  
-  /**
-   * Extrahiert Text aus E-Book iframe srcdoc für Übersetzung
-   * Gibt strukturierte Daten zurück für spätere Reintegration
-   */
-  SmartTranslator.prototype.extractEbookContent = function() {
-    const strategy = this.getActiveStrategy?.();
-    if (!strategy?.extractIframeContent) return null;
-    
-    const iframeContents = strategy.extractIframeContent(document);
-    if (iframeContents.length === 0) return null;
-    
-    const result = {
-      iframes: [],
-      texts: []
-    };
-    
-    iframeContents.forEach((content, idx) => {
-      const body = content.body;
-      if (!body) return;
-      
-      const iframeData = {
-        index: idx,
-        type: content.type,
-        elements: []
-      };
-      
-      // Alle übersetzbaren Elemente sammeln
-      body.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td, th, figcaption').forEach((el, elIdx) => {
-        const text = el.textContent?.trim();
-        if (text && text.length >= 3 && !/^[\s\d\W]*$/.test(text)) {
-          const elementData = {
-            index: elIdx,
-            tagName: el.tagName.toLowerCase(),
-            className: el.className,
-            text: text,
-            path: this._getElementPath(el)
-          };
-          iframeData.elements.push(elementData);
-          result.texts.push(text);
-        }
-      });
-      
-      result.iframes.push(iframeData);
-    });
-    
-    return result;
   };
   
   /**
