@@ -116,13 +116,21 @@ body { min-height: 100vh; }
 }
 
 .history-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   padding: var(--spacing-md);
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   margin-bottom: var(--spacing-sm);
-  cursor: pointer;
   transition: all var(--transition-normal);
+}
+
+.history-item-content {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
 }
 
 .history-item:hover {

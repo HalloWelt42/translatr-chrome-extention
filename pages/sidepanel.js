@@ -508,21 +508,34 @@ class SidePanelController {
         return;
       }
 
-      historyList.innerHTML = history.map(item => `
-        <div class="history-item" data-original="${SWT.Utils.escapeAttr(item.original)}" data-translated="${SWT.Utils.escapeAttr(item.translated)}">
-          <div class="history-original">${SWT.Utils.escapeHtml(item.original)}</div>
-          <div class="history-translated">${SWT.Utils.escapeHtml(item.translated)}</div>
-          <div class="history-meta">${SWT.Utils.formatDate(item.timestamp)} · ${item.source} → ${item.target}</div>
+      historyList.innerHTML = history.map((item, idx) => `
+        <div class="history-item" data-index="${idx}" data-original="${SWT.Utils.escapeAttr(item.original)}" data-translated="${SWT.Utils.escapeAttr(item.translated)}">
+          <div class="history-item-content">
+            <div class="history-original">${SWT.Utils.escapeHtml(item.original)}</div>
+            <div class="history-translated">${SWT.Utils.escapeHtml(item.translated)}</div>
+            <div class="history-meta">${SWT.Utils.formatDate(item.timestamp)} · ${item.source} -> ${item.target}</div>
+          </div>
+          <button class="cache-item-btn delete-history" data-index="${idx}">${SWT.Icons.svg('trash')}</button>
         </div>
       `).join('');
 
-      historyList.querySelectorAll('.history-item').forEach(item => {
-        item.addEventListener('click', () => {
+      historyList.querySelectorAll('.history-item-content').forEach(content => {
+        content.addEventListener('click', () => {
+          const item = content.closest('.history-item');
           document.getElementById('sourceText').value = item.dataset.original;
           document.getElementById('resultBox').textContent = item.dataset.translated;
           this.currentTranslation = item.dataset.translated;
           document.getElementById('resultActions').style.display = 'flex';
           document.querySelector('.tab[data-tab="translate"]').click();
+        });
+      });
+
+      historyList.querySelectorAll('.delete-history').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.dataset.index);
+          await chrome.runtime.sendMessage({ action: 'DELETE_HISTORY_ENTRY', index: idx });
+          this.loadHistory();
         });
       });
     } catch (e) {
@@ -745,11 +758,11 @@ class SidePanelController {
             html += `
               <div class="cache-item server" data-hash="${hash}">
                 <div class="cache-item-info">
-                  <div class="cache-item-text" title="${SWT.Utils.escapeAttr(entry.original)}">${SWT.Utils.escapeHtml(orig)}</div>
-                  <div class="cache-item-meta" title="${SWT.Utils.escapeAttr(entry.translated)}">${SWT.Utils.escapeHtml(trans)}</div>
+                  <div class="cache-item-text">${SWT.Utils.escapeHtml(orig)}</div>
+                  <div class="cache-item-meta">${SWT.Utils.escapeHtml(trans)}</div>
                 </div>
                 <div class="cache-item-actions">
-                  <button class="cache-item-btn delete-server" title="Löschen">${SWT.Icons.svg('delete')}</button>
+                  <button class="cache-item-btn delete-server">${SWT.Icons.svg('delete')}</button>
                 </div>
               </div>
             `;
@@ -788,11 +801,11 @@ class SidePanelController {
             return `
             <div class="cache-item${isCurrentPage ? ' current' : ''}" data-key="${entry.key}">
               <div class="cache-item-info">
-                <a href="${SWT.Utils.escapeAttr(entry.url)}" class="cache-item-url" target="_blank" title="${SWT.Utils.escapeAttr(entry.url)}">${SWT.Utils.escapeHtml(this.truncateUrl(entry.url))}</a>
+                <a href="${SWT.Utils.escapeAttr(entry.url)}" class="cache-item-url" target="_blank">${SWT.Utils.escapeHtml(this.truncateUrl(entry.url))}</a>
                 <div class="cache-item-meta">${entry.count} Übersetzungen · ${SWT.Utils.formatBytes(entry.size)} · ${SWT.Utils.formatDate(entry.timestamp)}</div>
               </div>
               <div class="cache-item-actions">
-                <button class="cache-item-btn delete" title="Löschen">
+                <button class="cache-item-btn delete">
                   ${SWT.Icons.svg('delete')}
                 </button>
               </div>
@@ -835,6 +848,7 @@ class SidePanelController {
           });
           item.remove();
           SWT.Toast.show('Server-Cache-Eintrag gelöscht');
+          this.loadCache(); // Stats aktualisieren
         });
       });
     } catch (e) {

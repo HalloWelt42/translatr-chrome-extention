@@ -337,6 +337,11 @@ class TranslatorBackground {
           sendResponse({ success: true });
           break;
 
+        case 'DELETE_HISTORY_ENTRY':
+          await this.deleteHistoryEntry(request.index);
+          sendResponse({ success: true });
+          break;
+
         case 'ADD_TO_HISTORY':
           await this.addToHistory(request.entry);
           sendResponse({ success: true });
@@ -1258,6 +1263,15 @@ class TranslatorBackground {
 
   async clearHistory() {
     await chrome.storage.local.set({ translationHistory: [] });
+  }
+
+  async deleteHistoryEntry(index) {
+    const data = await chrome.storage.local.get(['translationHistory']);
+    const history = data.translationHistory || [];
+    if (index >= 0 && index < history.length) {
+      history.splice(index, 1);
+      await chrome.storage.local.set({ translationHistory: history });
+    }
   }
 
   // === Token Statistics ===
