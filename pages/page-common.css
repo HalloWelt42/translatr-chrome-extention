@@ -97,6 +97,12 @@ body {
 
 .hidden { display: none !important; }
 .fullwidth { width: 100%; }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.text-muted { color: var(--text-secondary); }
+.hint { font-size: 13px; color: var(--text-secondary); }
 
 .visually-hidden {
   position: absolute;

@@ -24,29 +24,6 @@
   --blue: #3b82f6;
   --radius: 10px;
   --radius-sm: 6px;
-
-  /* Kompatibilitaet: alte md-Variablen auf neue abbilden */
-  --md-primary: var(--accent);
-  --md-primary-dark: var(--accent-hover);
-  --md-primary-light: var(--bg-elevated);
-  --md-primary-text: #FFFFFF;
-  --md-accent: var(--accent);
-  --md-success: var(--green);
-  --md-success-light: var(--green-glow);
-  --md-error: var(--red);
-  --md-error-light: var(--red-glow);
-  --md-warning: var(--yellow);
-  --md-warning-light: var(--yellow-glow);
-  --md-surface: var(--bg-card);
-  --md-background: var(--bg-base);
-  --md-on-surface: var(--text);
-  --md-on-surface-medium: var(--text-secondary);
-  --md-on-surface-disabled: var(--text-muted);
-  --md-divider: var(--border);
-  --md-divider-dark: var(--border-subtle);
-  --md-elevation-1: none;
-  --md-elevation-2: none;
-  --md-elevation-3: none;
 }
 
 @media (prefers-color-scheme: light) {

@@ -1,11 +1,5 @@
 /* Options-spezifisches Layout */
 
-/* Utilities */
-.mt-sm { margin-top: 12px; }
-.mt-md { margin-top: 16px; }
-.mt-lg { margin-top: 24px; }
-.mb-sm { margin-bottom: var(--spacing-sm); }
-
 .text-muted { color: var(--text-secondary); }
 .hint { font-size: 13px; color: var(--text-secondary); }
 

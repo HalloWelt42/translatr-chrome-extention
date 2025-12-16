@@ -326,6 +326,11 @@ function setupEventListeners() {
     }, 300);
     window.close();
   });
+
+  document.getElementById('openDonate').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('pages/donate.html') });
+  });
 }
 
 async function saveLanguages() {

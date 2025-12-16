@@ -442,7 +442,7 @@ body { min-height: 100vh; }
   color: var(--text-secondary);
 }
 
-.cache-status {
+.cache-badge {
   display: inline-block;
   font-size: 10px;
   font-weight: 600;
@@ -450,12 +450,12 @@ body { min-height: 100vh; }
   border-radius: var(--radius-sm);
 }
 
-.cache-status.available {
+.cache-badge.available {
   background: var(--green-glow);
   color: var(--green);
 }
 
-.cache-status.none {
+.cache-badge.none {
   background: var(--red-glow);
   color: var(--red);
 }
