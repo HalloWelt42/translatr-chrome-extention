@@ -1,17 +1,17 @@
-# Datenschutzerklaerung / Privacy Policy
+# Datenschutzerklärung / Privacy Policy
 
 ## Deutsch
 
 ### Welche Daten werden gespeichert?
-- **Einstellungen** (API-URLs, Sprachen, UI-Praeferenzen) -- lokal im Browser via chrome.storage.sync
-- **Uebersetzungsverlauf** (letzte 100 Eintraege) -- lokal via chrome.storage.local
+- **Einstellungen** (API-URLs, Sprachen, UI-Präferenzen) -- lokal im Browser via chrome.storage.sync
+- **Übersetzungsverlauf** (letzte 100 Einträge) -- lokal via chrome.storage.local
 - **Token-Statistiken** (Anzahl Anfragen, Token-Verbrauch) -- lokal via chrome.storage.local
-- **Uebersetzungs-Cache** -- optional auf selbst-gehostetem Server ODER lokal im Browser
+- **Übersetzungs-Cache** -- optional auf selbst-gehostetem Server ODER lokal im Browser
 
 ### Welche externen Requests werden gemacht?
-- **LibreTranslate-Server**: Texte werden zur Uebersetzung an den vom Nutzer konfigurierten Server gesendet
+- **LibreTranslate-Server**: Texte werden zur Übersetzung an den vom Nutzer konfigurierten Server gesendet
 - **LM Studio**: Texte werden an den vom Nutzer konfigurierten lokalen LLM-Server gesendet
-- **Cache-Server**: Uebersetzungen werden optional auf dem vom Nutzer konfigurierten Server gespeichert/abgerufen
+- **Cache-Server**: Übersetzungen werden optional auf dem vom Nutzer konfigurierten Server gespeichert/abgerufen
 
 Alle Server-URLs werden vom Nutzer selbst konfiguriert. Es werden KEINE Daten an Drittanbieter oder externe Dienste gesendet.
 
@@ -21,9 +21,9 @@ Alle Server-URLs werden vom Nutzer selbst konfiguriert. Es werden KEINE Daten an
 - Keine Werbung
 - Keine Telemetrie
 
-### Datenexport und -loeschung
-- Alle Daten koennen ueber die Einstellungen exportiert werden
-- Alle Daten koennen ueber die Einstellungen geloescht werden
+### Datenexport und -löschung
+- Alle Daten können über die Einstellungen exportiert werden
+- Alle Daten können über die Einstellungen gelöscht werden
 - Bei Deinstallation werden alle lokalen Daten automatisch entfernt
 
 ---

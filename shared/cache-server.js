@@ -122,7 +122,7 @@ SWT.CacheServer = {
     // Hash aus URL + Text + Sprachrichtung
     const content = normalizedUrl + text + langSuffix;
 
-    // SHA-256 via Web Crypto API (nur auf HTTPS verfuegbar)
+    // SHA-256 via Web Crypto API (nur auf HTTPS verfügbar)
     if (typeof crypto !== 'undefined' && crypto.subtle) {
       const encoder = new TextEncoder();
       const data = encoder.encode(content);
@@ -131,7 +131,7 @@ SWT.CacheServer = {
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // Fallback fuer HTTP-Seiten: einfacher String-Hash (djb2)
+    // Fallback für HTTP-Seiten: einfacher String-Hash (djb2)
     let hash = 5381;
     for (let i = 0; i < content.length; i++) {
       hash = ((hash << 5) + hash + content.charCodeAt(i)) >>> 0;
@@ -306,7 +306,7 @@ SWT.CacheServer = {
    * @returns {Object} { translations: {hash: {original, translated}}, missing: [hash] }
    */
   async bulkGet(hashes, pageUrl = null) {
-    // Extension-Kontext pruefen
+    // Extension-Kontext prüfen
     if (!chrome.runtime?.id) {
       return { translations: {}, missing: hashes };
     }

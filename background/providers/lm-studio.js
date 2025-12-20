@@ -7,7 +7,7 @@ import { CONTEXT_PROMPTS, BATCH_PROMPT } from '../prompts.js';
 
 const LMStudioProvider = {
   /**
-   * Uebersetzt einen einzelnen Text
+   * Übersetzt einen einzelnen Text
    * @returns {{ success, translatedText, alternatives, contextNotes, apiType, tokens, usage }}
    */
   async translate(text, source, target, settings, updateTokenStats) {
@@ -106,7 +106,7 @@ const LMStudioProvider = {
   },
 
   /**
-   * Batch-Uebersetzung fuer Seiten-Uebersetzung
+   * Batch-Übersetzung für Seitenübersetzung
    * @returns {{ success, items[], tokens }}
    */
   async batchTranslate(texts, source, target, settings) {
@@ -232,11 +232,11 @@ const LMStudioProvider = {
 
   _getLanguageName(code) {
     const names = {
-      'en': 'Englisch', 'de': 'Deutsch', 'fr': 'Franzoesisch',
+      'en': 'Englisch', 'de': 'Deutsch', 'fr': 'Französisch',
       'es': 'Spanisch', 'it': 'Italienisch', 'pt': 'Portugiesisch',
       'ru': 'Russisch', 'zh': 'Chinesisch', 'ja': 'Japanisch',
-      'ko': 'Koreanisch', 'nl': 'Niederlaendisch', 'pl': 'Polnisch',
-      'tr': 'Tuerkisch', 'ar': 'Arabisch', 'hi': 'Hindi'
+      'ko': 'Koreanisch', 'nl': 'Niederländisch', 'pl': 'Polnisch',
+      'tr': 'Türkisch', 'ar': 'Arabisch', 'hi': 'Hindi'
     };
     return names[code] || code;
   }

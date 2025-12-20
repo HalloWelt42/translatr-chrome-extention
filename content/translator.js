@@ -61,7 +61,7 @@ class SmartTranslator {
           continue;
         }
         
-        // Extension-Kontext ungueltig = still ignorieren (Extension wurde neu geladen)
+        // Extension-Kontext ungültig = still ignorieren (Extension wurde neu geladen)
         if (errorMsg.includes('Extension context invalidated')) {
           return { success: false, error: 'context_invalidated' };
         }
@@ -348,7 +348,7 @@ class SmartTranslator {
     this.settings.sourceLang = this.settings.sourceLang || 'auto';
     this.settings.apiType = this.settings.apiType || 'libretranslate';
 
-    // Hardcoded Defaults (keine UI, nicht aenderbar)
+    // Hardcoded Defaults (keine UI, nicht änderbar)
     this.settings.selectionIconDelay = 200;
     this.settings.tooltipPosition = 'below';
     this.settings.useTabsForAlternatives = true;

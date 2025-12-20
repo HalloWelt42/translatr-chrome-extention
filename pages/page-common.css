@@ -10,13 +10,13 @@
 }
 
 :root {
-  /* Oberflaechen */
+  /* Oberflächen */
   --bg-base: #2b2a27;
   --bg-card: #35342f;
   --bg-elevated: #3e3d37;
   --bg-track: #504e48;
 
-  /* Raender */
+  /* Ränder */
   --border: #4a4843;
   --border-subtle: #403e3a;
 

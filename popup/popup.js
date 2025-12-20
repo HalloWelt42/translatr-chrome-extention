@@ -65,13 +65,13 @@ async function loadSettings() {
   document.getElementById('sourceLang').value = settings.sourceLang || 'auto';
   document.getElementById('targetLang').value = settings.targetLang || 'de';
 
-  // Pruefen ob API konfiguriert
+  // Prüfen ob API konfiguriert
   const apiType = settings.apiType || 'libretranslate';
   const apiConfigured = (apiType === 'libretranslate' && settings.serviceUrl)
     || (apiType === 'lmstudio' && settings.lmStudioUrl);
 
   if (!apiConfigured) {
-    // Uebersetzen-Buttons deaktivieren
+    // Übersetzen-Buttons deaktivieren
     document.querySelectorAll('#translateBtn, #translatePage').forEach(el => {
       el.classList.add('disabled');
       el.style.opacity = '0.4';

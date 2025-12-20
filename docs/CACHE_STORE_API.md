@@ -1,6 +1,6 @@
 # SWT Cache Store API
 
-Spezifikation fuer kompatible Cache-Server Implementierungen.
+Spezifikation für kompatible Cache-Server Implementierungen.
 Jeder Server der diese API implementiert kann als Cache-Backend genutzt werden.
 
 ## Architektur: Zwei-Hash-System
@@ -35,14 +35,14 @@ Output: SHA256(input)  (64 Zeichen hex)
 
 ```
 T3JpZ2luYWwgVGV4dA==           # Zeile 1: Original (Base64)
-w5xiZXJzZXR6dW5n               # Zeile 2: Uebersetzung (Base64)
+w5xiZXJzZXR6dW5n               # Zeile 2: Übersetzung (Base64)
 ```
 
 ---
 
 ## API Endpunkte
 
-### POST /cache/bulk -- Uebersetzungen speichern
+### POST /cache/bulk -- Übersetzungen speichern
 
 **Request:**
 ```json
@@ -61,7 +61,7 @@ w5xiZXJzZXR6dW5n               # Zeile 2: Uebersetzung (Base64)
 }
 ```
 
-### POST /cache/get -- Uebersetzungen abrufen (Bulk)
+### POST /cache/get -- Übersetzungen abrufen (Bulk)
 
 **Request:**
 ```json
@@ -89,7 +89,7 @@ w5xiZXJzZXR6dW5n               # Zeile 2: Uebersetzung (Base64)
 }
 ```
 
-### GET /cache/{hash} -- Einzelne Uebersetzung abrufen
+### GET /cache/{hash} -- Einzelne Übersetzung abrufen
 
 **Response (200):** Plain Text, 2 Zeilen Base64
 ```
@@ -99,7 +99,7 @@ w5xiZXJzZXR6dW5n
 
 **Response (404):** Nicht gefunden
 
-### POST /cache/{hash} -- Einzelne Uebersetzung speichern
+### POST /cache/{hash} -- Einzelne Übersetzung speichern
 
 **Request Body:** Plain Text, 2 Zeilen Base64
 ```
@@ -115,7 +115,7 @@ w5xiZXJzZXR6dW5n
 }
 ```
 
-### GET /cache/url/{url_hash}/all -- Alle Eintraege einer Domain
+### GET /cache/url/{url_hash}/all -- Alle Einträge einer Domain
 
 **Response (200):**
 ```json
@@ -128,7 +128,7 @@ w5xiZXJzZXR6dW5n
 }
 ```
 
-### DELETE /cache/url/{url_hash} -- Domain-Cache loeschen
+### DELETE /cache/url/{url_hash} -- Domain-Cache löschen
 
 **Response (200):**
 ```json
@@ -138,7 +138,7 @@ w5xiZXJzZXR6dW5n
 }
 ```
 
-### DELETE /cache/url/{url_hash}/{translation_hash} -- Einzelnen Eintrag loeschen
+### DELETE /cache/url/{url_hash}/{translation_hash} -- Einzelnen Eintrag löschen
 
 **Response (200):**
 ```json
@@ -185,7 +185,7 @@ Ein kompatibler Server muss mindestens implementieren:
 
 - `GET /cache/{hash}` -- Einzel-Abrufen
 - `POST /cache/{hash}` -- Einzel-Speichern
-- `DELETE /cache/url/{url_hash}` -- Domain loeschen
+- `DELETE /cache/url/{url_hash}` -- Domain löschen
 - `GET /cache/url/{url_hash}/all` -- Domain auflisten
 
 ### Base64-Kodierung

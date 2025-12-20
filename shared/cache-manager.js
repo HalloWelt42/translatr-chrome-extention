@@ -85,7 +85,7 @@ SWT.Cache = {
       }
     }
 
-    // Server pruefen
+    // Server prüfen
     if (this._useServer() && sampleTexts?.length > 0) {
       const serverResult = await this._checkServerCache(pageUrl, settings, sampleTexts);
       if (serverResult.hasCache) {
@@ -311,7 +311,7 @@ SWT.Cache = {
   },
 
   // ==========================================================================
-  // CACHE-INFO (fuer UI)
+  // CACHE-INFO (für UI)
   // ==========================================================================
 
   async getCacheInfo() {
@@ -346,9 +346,9 @@ SWT.Cache = {
 // Auto-Init
 SWT.Cache.init();
 
-// Bei Settings-Aenderung neu initialisieren
+// Bei Settings-Änderung neu initialisieren
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (!chrome.runtime?.id) return; // Extension-Kontext ungueltig
+  if (!chrome.runtime?.id) return; // Extension-Kontext ungültig
   if (area === 'sync' && (changes.cacheServerEnabled || changes.cacheServerMode)) {
     SWT.Cache._ready = false;
     SWT.Cache._initPromise = null;

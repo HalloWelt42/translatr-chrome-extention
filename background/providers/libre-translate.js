@@ -5,7 +5,7 @@
 
 const LibreTranslateProvider = {
   /**
-   * Uebersetzt einen Text via LibreTranslate
+   * Übersetzt einen Text via LibreTranslate
    * @returns {{ success, translatedText, alternatives, detectedLanguage, apiType, tokens }}
    */
   async translate(text, source, target, settings) {

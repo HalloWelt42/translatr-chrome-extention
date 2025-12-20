@@ -64,7 +64,7 @@ class TranslatorBackground {
   async handleInstall(details) {
     if (details.reason === 'install') {
       await this.setDefaultSettings();
-      // Bei Erstinstallation: Einstellungen oeffnen
+      // Bei Erstinstallation: Einstellungen öffnen
       chrome.tabs.create({ url: chrome.runtime.getURL('pages/options.html') });
     } else if (details.reason === 'update') {
       await this.migrateToUnifiedStorage();
@@ -482,12 +482,12 @@ class TranslatorBackground {
   }
 
   async translateText(text, source = 'auto', target = 'de', pageUrl = null) {
-    // Leere/ungueltige Texte sofort abweisen
+    // Leere/ungültige Texte sofort abweisen
     if (!text || text.trim().length < 2) {
       return { success: false, error: 'Text zu kurz oder leer' };
     }
 
-    // Sprachrichtung fuer Cache-Hash
+    // Sprachrichtung für Cache-Hash
     const langPair = `${source || 'auto'}:${target || 'de'}`;
     
     // E-Book Erkennung
@@ -513,7 +513,7 @@ class TranslatorBackground {
       }
     }
 
-    // 2. Normale Uebersetzung -- nur wenn API konfiguriert
+    // 2. Normale Übersetzung -- nur wenn API konfiguriert
     const settings = await chrome.storage.sync.get([
       'apiType', 'serviceUrl', 'apiKey',
       'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
@@ -523,7 +523,7 @@ class TranslatorBackground {
 
     const apiType = settings.apiType || 'libretranslate';
 
-    // Pruefen ob API konfiguriert ist
+    // Prüfen ob API konfiguriert ist
     if (apiType === 'libretranslate' && !settings.serviceUrl) {
       return { success: false, error: 'LibreTranslate nicht konfiguriert. Bitte URL in den Einstellungen setzen.' };
     }

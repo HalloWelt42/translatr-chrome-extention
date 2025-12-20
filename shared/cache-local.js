@@ -1,6 +1,6 @@
 /**
  * Smart Translator - Lokaler Cache (localStorage)
- * Eigenstaendiges Modul fuer die lokale Cache-Verwaltung.
+ * Eigenständiges Modul für die lokale Cache-Verwaltung.
  */
 
 window.SWT = window.SWT || {};
@@ -9,7 +9,7 @@ SWT.CacheLocal = {
   PREFIX: 'swt_cache_',
 
   /**
-   * Prueft ob lokaler Cache fuer eine Seite vorhanden ist
+   * Prüft ob lokaler Cache für eine Seite vorhanden ist
    */
   checkCache(cacheKey) {
     try {
@@ -31,7 +31,7 @@ SWT.CacheLocal = {
   },
 
   /**
-   * Laedt Uebersetzungen aus lokalem Cache
+   * Lädt Übersetzungen aus lokalem Cache
    */
   loadTranslations(cacheKey) {
     try {
@@ -47,7 +47,7 @@ SWT.CacheLocal = {
   },
 
   /**
-   * Speichert Uebersetzungen im lokalen Cache
+   * Speichert Übersetzungen im lokalen Cache
    */
   saveTranslations(cacheKey, pageUrl, items) {
     try {
@@ -73,8 +73,8 @@ SWT.CacheLocal = {
   },
 
   /**
-   * Loescht Cache-Eintraege
-   * @param {string|null} cacheKey - Einzelner Key oder null fuer alle
+   * Löscht Cache-Einträge
+   * @param {string|null} cacheKey - Einzelner Key oder null für alle
    */
   clearCache(cacheKey) {
     if (cacheKey) {
@@ -82,7 +82,7 @@ SWT.CacheLocal = {
       return { deleted: 1 };
     }
 
-    // Alle Cache-Eintraege loeschen
+    // Alle Cache-Einträge löschen
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -95,7 +95,7 @@ SWT.CacheLocal = {
   },
 
   /**
-   * Gibt alle lokalen Cache-Eintraege zurueck (fuer UI)
+   * Gibt alle lokalen Cache-Einträge zurück (für UI)
    */
   getEntries() {
     const entries = [];
@@ -120,7 +120,7 @@ SWT.CacheLocal = {
   },
 
   /**
-   * Berechnet den gesamten localStorage-Verbrauch fuer Cache
+   * Berechnet den gesamten localStorage-Verbrauch für Cache
    */
   getStorageUsage() {
     let totalSize = 0;

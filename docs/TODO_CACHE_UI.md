@@ -1,16 +1,16 @@
 # Cache UI Verbesserungen
 
 ## Paginierung
-- Sidepanel Cache-Liste: Max 20 Eintraege initial, Infinite Scroll
+- Sidepanel Cache-Liste: Max 20 Einträge initial, Infinite Scroll
 - Server-API: /cache/url/{url_hash}/all mit ?limit=20&offset=0
 - Suchfilter nach Domain
 
 ## Zaehler
-- Anzahl Cache-Eintraege fuer aktuelle Domain anzeigen
-- Anzahl Cache-Eintraege fuer aktuelle Seite anzeigen
+- Anzahl Cache-Einträge für aktuelle Domain anzeigen
+- Anzahl Cache-Einträge für aktuelle Seite anzeigen
 - Beides im Sidepanel Cache-Tab sichtbar
 
 ## Wichtig
-- Cache-Inhalt muss vollstaendig bleiben (nur Anzeige paginieren)
-- Loeschen einzelner Eintraege weiterhin moeglich
-- Domain-weites Loeschen weiterhin moeglich
+- Cache-Inhalt muss vollständig bleiben (nur Anzeige paginieren)
+- Löschen einzelner Einträge weiterhin moeglich
+- Domain-weites Löschen weiterhin moeglich

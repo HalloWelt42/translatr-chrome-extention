@@ -4,7 +4,7 @@
  */
 
 const MSG = {
-  // Uebersetzung
+  // Übersetzung
   TRANSLATE: 'TRANSLATE',
   TRANSLATE_BATCH: 'TRANSLATE_BATCH',
   TRANSLATE_PAGE: 'TRANSLATE_PAGE',

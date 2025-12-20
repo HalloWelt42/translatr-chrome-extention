@@ -147,7 +147,7 @@ SWT.Storage = {
 
   async migrateFromOldFormat() {
     try {
-      // Pruefen ob bereits migriert
+      // Prüfen ob bereits migriert
       const check = await chrome.storage.sync.get(this.SETTINGS_KEY);
       if (check[this.SETTINGS_KEY]) {
         return false; // Bereits migriert

@@ -428,9 +428,9 @@
     return clone.textContent.replace(/\s+/g, ' ').trim();
   };
 
-  // === Event-Delegation fuer Hover-Original ===
-  // Greift sofort fuer alle .swt-translated-text Elemente,
-  // reagiert live auf Einstellungsaenderungen
+  // === Event-Delegation für Hover-Original ===
+  // Greift sofort für alle .swt-translated-text Elemente,
+  // reagiert live auf Einstellungsänderungen
   document.addEventListener('mouseover', function(e) {
     var el = e.target.closest('.swt-translated-text');
     if (!el || !window.swtInstance?.settings?.showOriginalInTooltip) return;
