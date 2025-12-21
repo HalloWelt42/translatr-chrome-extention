@@ -117,7 +117,9 @@ class SmartTranslator {
   }
 
   async init() {
-    
+    try {
+    if (!chrome.runtime?.id) return;
+
     await this.loadSettings();
     
     // Debug: Strategie prüfen
@@ -171,6 +173,9 @@ class SmartTranslator {
     }
 
     console.log('[SWT] init() abgeschlossen');
+    } catch (e) {
+      if (!String(e).includes('invalidated')) console.warn('[SWT] init:', e.message);
+    }
   }
   
   // === URL-Tracking für SPAs (v3.5.3, v3.8 Debouncing) ===

@@ -427,5 +427,7 @@ SWT.CacheServer = {
   }
 };
 
-// Auto-Init
-SWT.CacheServer.init();
+// Auto-Init (nur wenn Extension-Kontext gültig)
+try {
+  if (chrome.runtime?.id) SWT.CacheServer.init();
+} catch (e) {}

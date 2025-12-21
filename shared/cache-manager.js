@@ -343,15 +343,19 @@ SWT.Cache = {
   }
 };
 
-// Auto-Init
-SWT.Cache.init();
-
-// Bei Settings-Änderung neu initialisieren
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (!chrome.runtime?.id) return; // Extension-Kontext ungültig
-  if (area === 'sync' && (changes.cacheServerEnabled || changes.cacheServerMode)) {
-    SWT.Cache._ready = false;
-    SWT.Cache._initPromise = null;
+// Auto-Init (nur wenn Extension-Kontext gültig)
+try {
+  if (chrome.runtime?.id) {
     SWT.Cache.init();
+    chrome.storage.onChanged.addListener((changes, area) => {
+      try {
+        if (!chrome.runtime?.id) return;
+        if (area === 'sync' && (changes.cacheServerEnabled || changes.cacheServerMode)) {
+          SWT.Cache._ready = false;
+          SWT.Cache._initPromise = null;
+          SWT.Cache.init();
+        }
+      } catch (e) {}
+    });
   }
-});
+} catch (e) {}
