@@ -69,6 +69,8 @@ class TranslatorBackground {
     } else if (details.reason === 'update') {
       await this.migrateToUnifiedStorage();
       await this.migrateSettings();
+      // Alle Tabs mit alten Content-Scripts neu laden
+      this.reloadContentScripts();
     }
     await this.setupContextMenu();
   }
@@ -143,6 +145,17 @@ class TranslatorBackground {
         lmStudioCustomPrompt: ''
       });
     }
+  }
+
+  async reloadContentScripts() {
+    try {
+      const tabs = await chrome.tabs.query({});
+      for (const tab of tabs) {
+        if (tab.url && (tab.url.startsWith('http://') || tab.url.startsWith('https://'))) {
+          chrome.tabs.reload(tab.id).catch(() => {});
+        }
+      }
+    } catch (e) {}
   }
 
   async setupContextMenu() {
