@@ -39,7 +39,7 @@ const CacheServer = {
       
       // console.log('[CacheServer] Initialisiert:', this.config.enabled ? 'aktiviert' : 'deaktiviert');
     } catch (e) {
-      console.warn('[CacheServer] Init-Fehler:', e);
+      if (!String(e).includes('invalidated')) console.warn('[CacheServer] Init:', e.message);
     }
   },
 
@@ -381,7 +381,9 @@ const CacheServer = {
       
       return results;
     } catch (e) {
-      console.warn('[CacheServer] BulkGet-Fehler:', e.message);
+      if (!String(e).includes('invalidated')) {
+        console.warn('[CacheServer] BulkGet:', e.message);
+      }
       return { translations: {}, missing: hashes };
     }
   },
