@@ -503,13 +503,10 @@ class TranslatorBackground {
     // Sprachrichtung für Cache-Hash
     const langPair = `${source || 'auto'}:${target || 'de'}`;
     
-    // E-Book Erkennung
-    const isEbook = pageUrl?.includes('#epubcfi');
     
     // 1. Cache-Server prüfen (wenn aktiviert und URL vorhanden)
     if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
       try {
-        const hash = await CacheServer.computeHash(pageUrl, text, langPair, isEbook);
         const cached = await CacheServer.get(hash, pageUrl);  // pageUrl für url_hash
         if (cached) {
           return {
@@ -619,8 +616,6 @@ class TranslatorBackground {
     // 2. Cache-Server prüfen (wenn aktiviert)
     if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
       try {
-        const isEbook = pageUrl?.includes('#epubcfi');
-        const hash = await CacheServer.computeHash(pageUrl, normalizedText, langPair, isEbook);
         const cached = await CacheServer.get(hash, pageUrl);
         
         if (cached && cached.translated) {
@@ -868,10 +863,6 @@ class TranslatorBackground {
     // Sprachrichtung für Cache-Hash - MUSS mit content-cache.js übereinstimmen
     const langPair = `${source || 'auto'}:${target || 'de'}`;
     
-    // E-Book Erkennung für korrekte Hash-Berechnung
-    const isEbook = pageUrl?.includes('#epubcfi');
-    if (isEbook) {
-      console.log('[Background] E-Book erkannt, verwende Kapitel-normalisierte Hashes');
     }
 
     if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
@@ -880,8 +871,6 @@ class TranslatorBackground {
         
         // Hashes für alle Texte berechnen (URL + Text + Sprachrichtung)
         for (const text of texts) {
-          // WICHTIG: includeHash für E-Books setzen!
-          const hash = await CacheServer.computeHash(pageUrl, text, langPair, isEbook);
           textHashMap.set(text, hash);
           hashTextMap.set(hash, text);
         }
@@ -890,7 +879,6 @@ class TranslatorBackground {
         if (texts.length > 0) {
           const firstHash = textHashMap.get(texts[0]);
           console.log(`[translateBatch] Erster Hash: ${firstHash} für "${texts[0].substring(0, 40)}..."`);
-          console.log(`[translateBatch] langPair: ${langPair}, isEbook: ${isEbook}`);
         }
         
         // Bulk-Abfrage - WICHTIG: pageUrl für url_hash übergeben!
@@ -968,7 +956,6 @@ class TranslatorBackground {
       // 3. Neue Übersetzungen im Cache speichern (nur wenn original ≠ translated)
       if (translatedResults.length > 0 && pageUrl && CacheServer.config.enabled && CacheServer.config.mode !== 'local-only') {
         console.log('[Background] Speichere Übersetzungen, pageUrl:', pageUrl);
-        console.log('[Background] isEbook:', pageUrl.includes('#epubcfi'), 'langPair:', langPair);
         
         const toStore = translatedResults
           .filter(r => r.original.trim() !== r.translation.trim()) // Keine identischen

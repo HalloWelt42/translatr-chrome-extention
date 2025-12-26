@@ -93,28 +93,9 @@ SWT.CacheServer = {
    * Berechnet SHA-256 Hash
    * Format: URL + Original-Text + Sprachrichtung (z.B. "en:de")
    */
-  async computeHash(pageUrl, text, langPair = null, includeHash = false) {
-    // URL normalisieren
+  async computeHash(pageUrl, text, langPair = null) {
     const url = new URL(pageUrl);
-    
-    // Für E-Books (epubcfi): Nur Spine-Pfad (vor !) verwenden
-    // Für normale Seiten: Hash ignorieren (Anchor-Links)
-    let normalizedUrl;
-    if (includeHash && url.hash && url.hash.includes('epubcfi')) {
-      // epubcfi(/6/14!/...) → nur /6/14 verwenden (= Kapitel)
-      const match = url.hash.match(/epubcfi\(([^!]+)!/);
-      if (match) {
-        const spinePath = match[1];
-        normalizedUrl = url.origin + url.pathname + '#epubcfi(' + spinePath + ')';
-        console.log('[SWT Cache] E-Book Kapitel-URL:', normalizedUrl);
-      } else {
-        // Fallback: kompletten Hash verwenden
-        normalizedUrl = url.origin + url.pathname + url.hash;
-      }
-    } else {
-      // Normal: Ohne Hash
-      normalizedUrl = url.origin + url.pathname;
-    }
+    const normalizedUrl = url.origin + url.pathname;
     
     // Sprachrichtung hinzufügen
     const langSuffix = langPair ? `:${langPair}` : '';
@@ -252,10 +233,7 @@ SWT.CacheServer = {
     }
     
     try {
-      // E-Book-Erkennung für korrekte Hash-Berechnung
-      const isEbook = pageUrl?.includes('#epubcfi');
-      const hash = await this.computeHash(pageUrl, original, null, isEbook);
-      
+      const hash = await this.computeHash(pageUrl, original);
       // Texte escapen für 2-Zeilen-Format
       const base64Original = this._encodeText(original);
       const base64Translated = this._encodeText(translated);
@@ -356,12 +334,8 @@ SWT.CacheServer = {
       const data = {};
       
       for (const t of translations) {
-        // Nicht speichern wenn original === translated
         if (t.original.trim() === t.translated.trim()) continue;
-        
-        // E-Book-Erkennung für korrekte Hash-Berechnung
-        const isEbook = t.pageUrl?.includes('#epubcfi');
-        const hash = await this.computeHash(t.pageUrl, t.original, null, isEbook);
+        const hash = await this.computeHash(t.pageUrl, t.original);
         data[hash] = [this._encodeText(t.original), this._encodeText(t.translated)];
       }
       

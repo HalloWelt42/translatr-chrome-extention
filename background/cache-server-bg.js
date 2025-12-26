@@ -47,27 +47,9 @@ const CacheServer = {
   // normalizeText entfernt - wir wollen exakte Matches
 
   // SHA-256 Hash berechnen: URL + Text + Sprachrichtung (für Übersetzung)
-  async computeHash(pageUrl, text, langPair = null, includeHash = false) {
-    // URL normalisieren
+  async computeHash(pageUrl, text, langPair = null) {
     const url = new URL(pageUrl);
-    
-    // Für E-Books (epubcfi): Hash auf Kapitel-Ebene einbeziehen!
-    // Für normale Seiten: Hash ignorieren (Anchor-Links)
-    let normalizedUrl;
-    if (includeHash && url.hash && url.hash.includes('epubcfi')) {
-      // E-Book: epubcfi auf KAPITEL-EBENE normalisieren (Teil vor !)
-      // epubcfi(/6/14!/...) → nur /6/14 verwenden
-      const match = url.hash.match(/epubcfi\(([^!]+)!/);
-      if (match) {
-        const spinePath = match[1];
-        normalizedUrl = url.origin + url.pathname + '#epubcfi(' + spinePath + ')';
-      } else {
-        normalizedUrl = url.origin + url.pathname + url.hash;
-      }
-    } else {
-      // Normal: Ohne Hash
-      normalizedUrl = url.origin + url.pathname;
-    }
+    const normalizedUrl = url.origin + url.pathname;
     
     // Sprachrichtung hinzufügen (z.B. "en:de")
     const langSuffix = langPair ? `:${langPair}` : '';
@@ -80,14 +62,6 @@ const CacheServer = {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     
-    // Debug-Log nur für E-Books beim ersten Aufruf
-    if (includeHash && !this._hashLogDone) {
-      console.log('[Background computeHash] normalizedUrl:', normalizedUrl);
-      console.log('[Background computeHash] langPair:', langPair);
-      console.log('[Background computeHash] text (50):', text.substring(0, 50));
-      console.log('[Background computeHash] → hash:', hash);
-      this._hashLogDone = true;
-    }
     
     return hash;
   },
@@ -289,9 +263,6 @@ const CacheServer = {
     }
     
     try {
-      // E-Book Erkennung für korrekte Hash-Berechnung
-      const isEbook = pageUrl?.includes('#epubcfi');
-      const hash = await this.computeHash(pageUrl, original, langPair, isEbook);
       
       // Texte Base64-codieren für 2-Zeilen-Format
       const encodedOriginal = this.encodeText(original);
@@ -416,15 +387,11 @@ const CacheServer = {
         }
         
         const langPair = t.langPair || defaultLangPair || 'auto:de';
-        // E-Book Erkennung für korrekte Hash-Berechnung
-        const isEbook = t.pageUrl?.includes('#epubcfi');
-        const transHash = await this.computeHash(t.pageUrl, t.original, langPair, isEbook);
         
         // Ersten Hash mit Details loggen
         if (byUrl.get(urlHash) && Object.keys(byUrl.get(urlHash).items).length === 0) {
           console.log('[CacheServer] Erster Store-Hash:', transHash);
           console.log('[CacheServer] pageUrl:', t.pageUrl);
-          console.log('[CacheServer] langPair:', langPair, 'isEbook:', isEbook);
           console.log('[CacheServer] Text:', t.original.substring(0, 50));
         }
         

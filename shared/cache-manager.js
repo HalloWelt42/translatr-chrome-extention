@@ -215,12 +215,11 @@ SWT.Cache = {
 
     try {
       const langPair = `${settings.sourceLang || 'auto'}:${settings.targetLang || 'de'}`;
-      const isEbook = pageUrl.includes('#epubcfi');
 
       const hashes = [];
       for (const text of sampleTexts.slice(0, 50)) {
         if (text.length >= 2) {
-          const hash = await SWT.CacheServer.computeHash(pageUrl, text, langPair, isEbook);
+          const hash = await SWT.CacheServer.computeHash(pageUrl, text, langPair);
           hashes.push(hash);
         }
       }
@@ -252,14 +251,13 @@ SWT.Cache = {
 
     try {
       const langPair = `${settings.sourceLang || 'auto'}:${settings.targetLang || 'de'}`;
-      const isEbook = pageUrl.includes('#epubcfi');
 
       const hashToText = new Map();
       const hashes = [];
 
       for (const text of allTexts) {
         if (text.length >= 2) {
-          const hash = await SWT.CacheServer.computeHash(pageUrl, text, langPair, isEbook);
+          const hash = await SWT.CacheServer.computeHash(pageUrl, text, langPair);
           if (!hashToText.has(hash)) {
             hashToText.set(hash, text);
             hashes.push(hash);
