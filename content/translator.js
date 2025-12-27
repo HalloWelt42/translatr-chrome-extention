@@ -74,7 +74,11 @@ class SmartTranslator {
 
   // Status-Änderung an Sidepanel/Popup melden
   notifyStatusChange() {
-    chrome.runtime.sendMessage({ action: 'PAGE_STATUS_CHANGED' }).catch(() => {});
+    try {
+      if (chrome.runtime?.id) {
+        chrome.runtime.sendMessage({ action: 'PAGE_STATUS_CHANGED' }).catch(() => {});
+      }
+    } catch (e) {}
   }
 
   generateCacheKey() {

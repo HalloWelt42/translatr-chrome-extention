@@ -20,6 +20,8 @@
    * Nutzt die abstrakte Cache-API
    */
   SmartTranslator.prototype.checkForCachedTranslation = async function() {
+    if (!chrome.runtime?.id) return; // Extension-Kontext ungültig
+    try {
     console.log('[SWT] checkForCachedTranslation gestartet...');
     console.log('[SWT] Current URL:', window.location.href);
     console.log('[SWT] this.pageUrl:', this.pageUrl);
@@ -103,6 +105,9 @@
     }
 
     this.setCacheAvailable(false);
+    } catch (e) {
+      if (!String(e).includes('invalidated')) console.warn('[SWT] Cache-Check:', e.message);
+    }
   };
 
   /**
