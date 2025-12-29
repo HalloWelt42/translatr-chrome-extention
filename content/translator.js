@@ -209,12 +209,15 @@ class SmartTranslator {
       this.handleUrlChange('hashchange');
     });
     
-    // 4. Fallback: Polling für Edge Cases (manche Frameworks)
+    // 4. Fallback: Polling fuer SPAs (nur Pfad, Query-Parameter ignorieren)
     this.urlCheckInterval = setInterval(() => {
-      if (window.location.href !== this.lastUrl) {
+      if (!chrome.runtime?.id) { clearInterval(this.urlCheckInterval); return; }
+      var current = window.location.origin + window.location.pathname;
+      var last = this.lastUrl ? new URL(this.lastUrl).origin + new URL(this.lastUrl).pathname : '';
+      if (current !== last) {
         this.handleUrlChange('polling');
       }
-    }, 1000);
+    }, 2000);
     
     
     // console.log('[SWT] URL-Tracking aktiviert');
