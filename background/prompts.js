@@ -54,4 +54,3 @@ Du erhältst ein JSON-Array mit Texten.
 Antworte NUR mit JSON im Format:
 {"items": [{"original": "...", "translation": "..."}, ...]}
 WICHTIG: Die Anzahl der Ausgabe-Items MUSS der Anzahl der Eingabe-Items entsprechen.`;
-export { CONTEXT_PROMPTS, BATCH_PROMPT };

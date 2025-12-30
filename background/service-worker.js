@@ -1,8 +1,4 @@
-// ES Module Imports
-import { CacheServer } from './cache-server-bg.js';
-import { CONTEXT_PROMPTS, BATCH_PROMPT } from './prompts.js';
-import { LibreTranslateProvider } from './providers/libre-translate.js';
-import { LMStudioProvider } from './providers/lm-studio.js';
+importScripts('cache-server-bg.js', 'prompts.js', 'providers/libre-translate.js', 'providers/lm-studio.js');
 
 // ==========================================================================
 // TRANSLATOR BACKGROUND

@@ -724,4 +724,3 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
-export { CacheServer };
