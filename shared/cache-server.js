@@ -58,7 +58,7 @@ SWT.CacheServer = {
       } catch (e) {
         // Still bei Extension-Reload
         if (!String(e).includes('invalidated')) {
-          console.warn('[CacheServer] Init:', e.message);
+          // console.warn('[CacheServer] Init:', e.message);
         }
         this._ready = true;
       }
@@ -212,9 +212,9 @@ SWT.CacheServer = {
         return null;
       }
       
-      console.warn('[CacheServer] HTTP', response.status); return null;
+      // console.warn('[CacheServer] HTTP', response.status); return null;
     } catch (e) {
-      console.warn('[CacheServer] Get-Fehler:', e.message);
+      // console.warn('[CacheServer] Get-Fehler:', e.message);
       return null;
     }
   },
@@ -248,9 +248,9 @@ SWT.CacheServer = {
         return { hash, created: true };
       }
       
-      console.warn('[CacheServer] HTTP', response.status); return null;
+      // console.warn('[CacheServer] HTTP', response.status); return null;
     } catch (e) {
-      console.warn('[CacheServer] Store-Fehler:', e.message);
+      // console.warn('[CacheServer] Store-Fehler:', e.message);
       return null;
     }
   },
@@ -267,7 +267,7 @@ SWT.CacheServer = {
       });
       return response.ok;
     } catch (e) {
-      console.warn('[CacheServer] Delete-Fehler:', e.message);
+      // console.warn('[CacheServer] Delete-Fehler:', e.message);
       return false;
     }
   },
@@ -284,37 +284,26 @@ SWT.CacheServer = {
    * @returns {Object} { translations: {hash: {original, translated}}, missing: [hash] }
    */
   async bulkGet(hashes, pageUrl = null) {
-    // Extension-Kontext prüfen
-    if (!chrome.runtime?.id) {
-      return { translations: {}, missing: hashes };
-    }
-
-    await this.waitForReady();
-
-    if (!this.config.enabled || !hashes.length) {
-      return { translations: {}, missing: hashes };
-    }
-    
+    var empty = { translations: {}, missing: hashes };
     try {
-      // Request über Background Script leiten (kein Mixed Content Problem)
-      const response = await chrome.runtime.sendMessage({
+      if (!chrome.runtime?.id) return empty;
+      await this.waitForReady();
+      if (!this.config.enabled || !hashes?.length) return empty;
+      if (!this.config.serverUrl) return empty;
+
+      var response = await chrome.runtime.sendMessage({
         action: 'CACHE_SERVER_BULK_GET',
         hashes: hashes,
         pageUrl: pageUrl
       });
-      
-      
+
       if (response && response.success) {
-        return response.result;
+        return response.result || empty;
       }
       
       return { translations: {}, missing: hashes };
     } catch (e) {
-      // "Extension context invalidated" ist normal bei Extension-Reload -- still ignorieren
-      if (!e.message?.includes('Extension context invalidated')) {
-        console.warn('[CacheServer] BulkGet:', e.message);
-      }
-      return { translations: {}, missing: hashes };
+      return empty;
     }
   },
 
@@ -354,9 +343,9 @@ SWT.CacheServer = {
         return { created: count };
       }
       
-      console.warn('[CacheServer] HTTP', response.status); return null;
+      // console.warn('[CacheServer] HTTP', response.status); return null;
     } catch (e) {
-      console.warn('[CacheServer] BulkStore-Fehler:', e.message);
+      // console.warn('[CacheServer] BulkStore-Fehler:', e.message);
       return { created: 0, error: e.message };
     }
   },
@@ -378,7 +367,7 @@ SWT.CacheServer = {
       }
       return null;
     } catch (e) {
-      console.warn('[CacheServer] Stats-Fehler:', e.message);
+      // console.warn('[CacheServer] Stats-Fehler:', e.message);
       return null;
     }
   },

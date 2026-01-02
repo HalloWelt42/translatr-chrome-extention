@@ -37,7 +37,7 @@ SWT.Cache = {
         this._ready = true;
       } catch (e) {
         if (!String(e).includes('invalidated')) {
-          console.warn('[CacheManager] Init:', e.message);
+          // console.warn('[CacheManager] Init:', e.message);
         }
         this._ready = true;
       }
@@ -239,7 +239,7 @@ SWT.Cache = {
         matchedTexts: count
       };
     } catch (e) {
-      console.warn('[CacheManager] Server check:', e);
+      // console.warn('[CacheManager] Server check:', e);
       return { hasCache: false, count: 0, percentage: 0 };
     }
   },
@@ -275,7 +275,7 @@ SWT.Cache = {
         }
       }
     } catch (e) {
-      console.warn('[CacheManager] Server load:', e);
+      // console.warn('[CacheManager] Server load:', e);
     }
 
     return translations;
@@ -304,7 +304,7 @@ SWT.Cache = {
         });
       }
     } catch (e) {
-      console.warn('[CacheManager] Server save:', e);
+      // console.warn('[CacheManager] Server save:', e);
     }
   },
 
