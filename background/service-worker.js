@@ -856,17 +856,12 @@ class TranslatorBackground {
     let cachedResults = [];
     let textsToTranslate = [...texts];
     
-    // Sprachrichtung für Cache-Hash - MUSS mit content-cache.js übereinstimmen
     const langPair = `${source || 'auto'}:${target || 'de'}`;
-    
-    }
 
     if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
       try {
-        console.log(`[translateBatch] Cache-Check für pageUrl: ${pageUrl}`);
-        
-        // Hashes für alle Texte berechnen (URL + Text + Sprachrichtung)
         for (const text of texts) {
+          const hash = await CacheServer.computeHash(pageUrl, text, langPair);
           textHashMap.set(text, hash);
           hashTextMap.set(hash, text);
         }
