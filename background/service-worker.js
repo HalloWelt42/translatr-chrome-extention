@@ -503,7 +503,8 @@ class TranslatorBackground {
     // 1. Cache-Server prüfen (wenn aktiviert und URL vorhanden)
     if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
       try {
-        const cached = await CacheServer.get(hash, pageUrl);  // pageUrl für url_hash
+        const hash = await CacheServer.computeHash(pageUrl, text, langPair);
+        const cached = await CacheServer.get(hash, pageUrl);
         if (cached) {
           return {
             success: true,
@@ -612,6 +613,7 @@ class TranslatorBackground {
     // 2. Cache-Server prüfen (wenn aktiviert)
     if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
       try {
+        const hash = await CacheServer.computeHash(pageUrl, normalizedText, langPair);
         const cached = await CacheServer.get(hash, pageUrl);
         
         if (cached && cached.translated) {
