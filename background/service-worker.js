@@ -1,4 +1,4 @@
-importScripts('background/cache-server-bg.js', 'background/prompts.js', 'background/providers/libre-translate.js', 'background/providers/lm-studio.js');
+importScripts('cache-server-bg.js', 'prompts.js', 'providers/libre-translate.js', 'providers/lm-studio.js');
 
 // ==========================================================================
 // TRANSLATOR BACKGROUND
