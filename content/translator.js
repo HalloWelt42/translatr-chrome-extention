@@ -952,6 +952,118 @@ class SmartTranslator {
     }
   }
 
+  // === Message Handler ===
+  handleMessage(request, sender, sendResponse) {
+    switch (request.action) {
+      case 'GET_SELECTION':
+        sendResponse({ text: window.getSelection().toString().trim() });
+        break;
+
+      case 'SHOW_TRANSLATION':
+        this.showTooltip(request.original, request.translated, request.alternatives);
+        sendResponse({ success: true });
+        break;
+
+      case 'SHOW_ERROR':
+        this.showNotification(request.message, 'error');
+        sendResponse({ success: true });
+        break;
+
+      case 'TRANSLATE_PAGE':
+        this.translatePage(request.mode || 'replace');
+        sendResponse({ success: true });
+        break;
+
+      case 'RESTORE_PAGE':
+        this.restorePage();
+        sendResponse({ success: true });
+        break;
+
+      case 'TOGGLE_TRANSLATION':
+        this.toggleTranslation();
+        sendResponse({ success: true });
+        break;
+
+      case 'EXPORT_PDF':
+        if (!this._exportLock) {
+          this._exportLock = true;
+          this.exportAsPdf(request.simplified);
+          setTimeout(() => this._exportLock = false, 500);
+        }
+        sendResponse({ success: true });
+        break;
+
+      case 'EXPORT_MARKDOWN':
+        if (!this._exportLock) {
+          this._exportLock = true;
+          this.exportAsMarkdown();
+          setTimeout(() => this._exportLock = false, 500);
+        }
+        sendResponse({ success: true });
+        break;
+
+      case 'EXPORT_TEXT':
+        if (!this._exportLock) {
+          this._exportLock = true;
+          this.exportAsText();
+          setTimeout(() => this._exportLock = false, 500);
+        }
+        sendResponse({ success: true });
+        break;
+
+      case 'LOAD_CACHED_TRANSLATION':
+        this.loadCachedTranslation().then(loaded => {
+          sendResponse({ success: loaded });
+        });
+        return true;
+
+      case 'GET_CACHE_INFO':
+        sendResponse({
+          size: this.getCacheSize?.() || 0,
+          entries: this.getCacheInfo?.() || [],
+          currentPageHasCache: this.hasValidCache?.() || false
+        });
+        break;
+
+      case 'CLEAR_CACHE':
+        if (typeof this.clearCache === 'function') {
+          this.clearCache(request.key).then(() => {
+            sendResponse({ success: true });
+          }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+          });
+          return true;
+        }
+        sendResponse({ success: false });
+        break;
+
+      case 'GET_PAGE_INFO':
+        const remaining = this._plannedNodes
+          ? Math.max(0, this._plannedNodes - this.originalTexts.size)
+          : 0;
+        sendResponse({
+          isTranslated: this.isTranslated,
+          mode: this.translationMode,
+          translatedCount: this.originalTexts.size,
+          remaining: remaining,
+          cacheAvailable: this._cacheAvailable || false,
+          cacheSource: this._cacheSource || null,
+          serverCacheCount: this._serverCacheCount || 0,
+          pageUrl: this.pageUrl
+        });
+        break;
+
+      case 'TRANSLATE_WORD_AT_CURSOR':
+        if (request.word) {
+          this.translateSelection(request.word);
+        }
+        sendResponse({ success: true });
+        break;
+
+      default:
+        sendResponse({ success: false, error: 'Unknown action: ' + request.action });
+    }
+  }
 }
 
 // Initialisieren
