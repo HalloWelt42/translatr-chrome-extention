@@ -388,8 +388,6 @@ class SmartTranslator {
     // Debug: Settings ausgeben
     console.log('[SWT] Settings geladen - showSelectionIcon:', this.settings.showSelectionIcon);
   }
-
-
   // === Event Listeners ===
   setupEventListeners() {
     document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
@@ -831,23 +829,12 @@ class SmartTranslator {
     this.translationMode = mode;
 
     try {
-      // Prüfe ob Plain-Text Seite
-      const isPlainText = this.detectPlainTextPage();
-      
-      // Cache-Objekt für Übersetzungen
       const cacheTranslations = {};
-      
-      let textNodes;
 
-      if (isPlainText) {
-        textNodes = this.handlePlainTextPage();
-      } else {
-        // Leerzeichen bei Inline-Tags normalisieren
-        if (this.settings.fixInlineSpacing) {
-          this.normalizeInlineSpacing();
-        }
-        textNodes = this.findTranslatableTextNodes();
+      if (this.settings.fixInlineSpacing && typeof this.normalizeInlineSpacing === 'function') {
+        this.normalizeInlineSpacing();
       }
+      const textNodes = this.findTranslatableTextNodes();
 
       const total = textNodes ? textNodes.length : 0;
       let translated = 0;
