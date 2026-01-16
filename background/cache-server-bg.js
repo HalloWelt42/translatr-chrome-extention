@@ -263,8 +263,8 @@ const CacheServer = {
     }
     
     try {
-      
-      // Texte Base64-codieren für 2-Zeilen-Format
+      const hash = await this.computeHash(pageUrl, original, langPair);
+      // Texte Base64-codieren
       const encodedOriginal = this.encodeText(original);
       const encodedTranslated = this.encodeText(translated);
       
