@@ -387,8 +387,8 @@ const CacheServer = {
         }
         
         const langPair = t.langPair || defaultLangPair || 'auto:de';
-        
-        // Ersten Hash mit Details loggen
+        const transHash = await this.computeHash(t.pageUrl, t.original, langPair);
+
         if (byUrl.get(urlHash) && Object.keys(byUrl.get(urlHash).items).length === 0) {
           console.log('[CacheServer] Erster Store-Hash:', transHash);
           console.log('[CacheServer] pageUrl:', t.pageUrl);
