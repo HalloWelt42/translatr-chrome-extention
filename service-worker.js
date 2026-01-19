@@ -141,8 +141,6 @@ class TranslatorBackground {
       });
     }
   }
-
-
   async setupContextMenu() {
     try {
       await chrome.contextMenus.removeAll();
@@ -542,14 +540,6 @@ class TranslatorBackground {
       result = await this.translateWithLibreTranslate(text, source, target, settings);
     }
 
-    // 3. Bei Erfolg im Cache speichern (nur wenn original ≠ translated)
-    if (result.success && pageUrl && CacheServer.config.enabled && CacheServer.config.mode !== 'local-only') {
-      // Nicht cachen wenn keine echte Übersetzung
-      if (text.trim() !== result.translatedText.trim()) {
-        CacheServer.store(pageUrl, text, result.translatedText, langPair).catch(() => {});
-      }
-    }
-
     return result;
   }
 
@@ -682,8 +672,6 @@ class TranslatorBackground {
       this.processTranslationQueue();
     }, queue.batchDelay);
   }
-
-
   /**
    * Verarbeitet die Translation Queue (v3.11.5)
    * GARANTIERT: Ergebnisse werden in EXAKT der Reihenfolge zurückgegeben,
