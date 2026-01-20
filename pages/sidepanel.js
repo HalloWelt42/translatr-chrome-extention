@@ -400,38 +400,30 @@ class SidePanelController {
         continueBtn.classList.remove('disabled');
         cacheProgress.textContent = response.remaining;
         cacheProgress.className = 'action-badge partial';
-        continueBtn.title = `${response.remaining} Texte noch zu übersetzen`;
       } else if (response.isTranslated && response.remaining === 0) {
         // Vollständig übersetzt - Fortsetzen deaktivieren
         continueBtn.classList.add('disabled');
         cacheProgress.textContent = '✓';
         cacheProgress.className = 'action-badge complete';
-        continueBtn.title = 'Übersetzung vollständig';
       } else if (hasCacheEntries) {
         continueBtn.classList.remove('disabled');
-        // Badge zeigen
         if (response.serverCacheCount > 0) {
-          cacheProgress.textContent = response.serverCacheCount;
-          cacheProgress.className = 'action-badge partial';
-          continueBtn.title = `${response.serverCacheCount} Einträge im Cache`;
+          cacheProgress.textContent = '✓';
+          cacheProgress.className = 'action-badge complete';
         } else if (response.cacheProgress >= 100) {
           cacheProgress.textContent = '✓';
           cacheProgress.className = 'action-badge complete';
-          continueBtn.title = 'Cache vollständig';
         } else if (response.cacheProgress > 0) {
           cacheProgress.textContent = `${response.cacheProgress}%`;
           cacheProgress.className = 'action-badge partial';
-          continueBtn.title = `${response.cacheProgress}% im Cache`;
         } else {
           cacheProgress.textContent = '✓';
           cacheProgress.className = 'action-badge complete';
-          continueBtn.title = 'Cache verfügbar';
         }
       } else {
         continueBtn.classList.add('disabled');
         cacheProgress.textContent = '–';
         cacheProgress.className = 'action-badge empty';
-        continueBtn.title = 'Kein Cache vorhanden';
       }
 
       // === TRANSLATE-BUTTON ===
