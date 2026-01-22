@@ -390,39 +390,14 @@ class SidePanelController {
 
       // === FORTSETZEN-BUTTON ===
       // Enabled wenn: hasCache ODER cacheProgress > 0 ODER serverCacheCount > 0
-      // Oder wenn übersetzt aber noch verbleibende Texte
-      const hasCacheEntries = response.hasCache || 
-                              (response.cacheProgress && response.cacheProgress > 0) ||
-                              (response.serverCacheCount && response.serverCacheCount > 0);
-      
-      // Wenn übersetzt und noch verbleibende Texte: Zeige remaining
+      // Fortsetzen: Nur aktiv wenn Uebersetzung abgebrochen/unvollstaendig
       if (response.isTranslated && response.remaining > 0) {
         continueBtn.classList.remove('disabled');
         cacheProgress.textContent = response.remaining;
         cacheProgress.className = 'action-badge partial';
-      } else if (response.isTranslated && response.remaining === 0) {
-        // Vollständig übersetzt - Fortsetzen deaktivieren
-        continueBtn.classList.add('disabled');
-        cacheProgress.textContent = '✓';
-        cacheProgress.className = 'action-badge complete';
-      } else if (hasCacheEntries) {
-        continueBtn.classList.remove('disabled');
-        if (response.serverCacheCount > 0) {
-          cacheProgress.textContent = '✓';
-          cacheProgress.className = 'action-badge complete';
-        } else if (response.cacheProgress >= 100) {
-          cacheProgress.textContent = '✓';
-          cacheProgress.className = 'action-badge complete';
-        } else if (response.cacheProgress > 0) {
-          cacheProgress.textContent = `${response.cacheProgress}%`;
-          cacheProgress.className = 'action-badge partial';
-        } else {
-          cacheProgress.textContent = '✓';
-          cacheProgress.className = 'action-badge complete';
-        }
       } else {
         continueBtn.classList.add('disabled');
-        cacheProgress.textContent = '–';
+        cacheProgress.textContent = '';
         cacheProgress.className = 'action-badge empty';
       }
 
