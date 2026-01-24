@@ -140,7 +140,6 @@
     
     // Debug: Prüfen ob total sich ändert
     if (this._lastTotal && this._lastTotal !== total) {
-      console.warn(`[SWT Debug] WARNUNG: total hat sich geändert! ${this._lastTotal} → ${total}`);
     }
     this._lastTotal = total;
     
