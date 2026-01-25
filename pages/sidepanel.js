@@ -667,7 +667,7 @@ class SidePanelController {
       
       // Status für aktuelle Seite
       if (pageInfo) {
-        const cacheStatus = pageInfo.hasCache 
+        const cacheStatus = pageInfo.cacheAvailable 
           ? `<span class="cache-badge available">Cache verfügbar</span>`
           : `<span class="cache-badge none">Kein Cache</span>`;
         
