@@ -716,10 +716,16 @@ class SidePanelController {
           </div>
         `;
         
-        // Server-Einträge für aktuelle Seite als Liste
+        // Server-Eintraege mit Lazy Loading (max 20 initial)
         if (serverEntries?.result?.translations && entryCount > 0) {
+          const allEntries = Object.entries(serverEntries.result.translations);
+          const INITIAL_LIMIT = 20;
+          const visible = allEntries.slice(0, INITIAL_LIMIT);
+          const hasMore = allEntries.length > INITIAL_LIMIT;
+
           html += `<div class="cache-server-entries"><h4>Diese Seite (${entryCount})</h4>`;
-          for (const [hash, entry] of Object.entries(serverEntries.result.translations)) {
+          html += `<div id="cacheEntryList">`;
+          for (const [hash, entry] of visible) {
             const orig = entry.original?.length > 35 ? entry.original.slice(0, 32) + '...' : entry.original;
             const trans = entry.translated?.length > 35 ? entry.translated.slice(0, 32) + '...' : entry.translated;
             html += `
@@ -735,6 +741,16 @@ class SidePanelController {
             `;
           }
           html += `</div>`;
+          if (hasMore) {
+            html += `<button class="btn btn-secondary fullwidth mt-sm" id="loadMoreCache">
+              ${allEntries.length - INITIAL_LIMIT} weitere laden
+            </button>`;
+          }
+          html += `</div>`;
+
+          // Alle Eintraege fuer spaeteres Nachladen speichern
+          this._allCacheEntries = allEntries;
+          this._cacheOffset = INITIAL_LIMIT;
         }
       } else if (mode !== 'local-only' && serverEnabled) {
         html += `
@@ -803,6 +819,37 @@ class SidePanelController {
       });
       
       // Delete-Button Handler (Server)
+      // "Mehr laden" Button
+      const loadMoreBtn = document.getElementById('loadMoreCache');
+      if (loadMoreBtn && this._allCacheEntries) {
+        loadMoreBtn.addEventListener('click', () => {
+          const BATCH = 20;
+          const next = this._allCacheEntries.slice(this._cacheOffset, this._cacheOffset + BATCH);
+          const list = document.getElementById('cacheEntryList');
+          for (const [hash, entry] of next) {
+            const orig = entry.original?.length > 35 ? entry.original.slice(0, 32) + '...' : entry.original;
+            const trans = entry.translated?.length > 35 ? entry.translated.slice(0, 32) + '...' : entry.translated;
+            list.insertAdjacentHTML('beforeend', `
+              <div class="cache-item server" data-hash="${hash}">
+                <div class="cache-item-info">
+                  <div class="cache-item-text">${SWT.Utils.escapeHtml(orig)}</div>
+                  <div class="cache-item-meta">${SWT.Utils.escapeHtml(trans)}</div>
+                </div>
+                <div class="cache-item-actions">
+                  <button class="cache-item-btn delete-server">${SWT.Icons.svg('delete')}</button>
+                </div>
+              </div>
+            `);
+          }
+          this._cacheOffset += BATCH;
+          if (this._cacheOffset >= this._allCacheEntries.length) {
+            loadMoreBtn.remove();
+          } else {
+            loadMoreBtn.textContent = `${this._allCacheEntries.length - this._cacheOffset} weitere laden`;
+          }
+        });
+      }
+
       cacheList.querySelectorAll('.cache-item-btn.delete-server').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
