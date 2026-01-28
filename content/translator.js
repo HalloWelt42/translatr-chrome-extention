@@ -1025,9 +1025,15 @@ class SmartTranslator {
         break;
 
       case 'GET_PAGE_INFO':
-        const remaining = this._plannedNodes
-          ? Math.max(0, this._plannedNodes - this.originalTexts.size)
-          : 0;
+        // Berechne verbleibende: entweder aus plannedNodes oder aus tatsaechlichen TextNodes
+        let remaining = 0;
+        if (this._plannedNodes > 0) {
+          remaining = Math.max(0, this._plannedNodes - this.originalTexts.size);
+        } else if (this.isTranslated && typeof this.findTranslatableTextNodes === 'function') {
+          // Cache-Load Fall: Zaehle untranslated TextNodes
+          const allNodes = this.findTranslatableTextNodes();
+          remaining = Math.max(0, allNodes.length - this.originalTexts.size);
+        }
         sendResponse({
           isTranslated: this.isTranslated,
           mode: this.translationMode,

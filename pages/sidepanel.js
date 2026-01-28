@@ -390,8 +390,8 @@ class SidePanelController {
 
       // === FORTSETZEN-BUTTON ===
       // Enabled wenn: hasCache ODER cacheProgress > 0 ODER serverCacheCount > 0
-      // Fortsetzen: Nur aktiv wenn Uebersetzung abgebrochen/unvollstaendig
-      if (response.isTranslated && response.remaining > 0) {
+      // Fortsetzen: Aktiv wenn Texte fehlen (Abbruch oder teilweise Cache-Load)
+      if (response.remaining > 0) {
         continueBtn.classList.remove('disabled');
         cacheProgress.textContent = response.remaining;
         cacheProgress.className = 'action-badge partial';
