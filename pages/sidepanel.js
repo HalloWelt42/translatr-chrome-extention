@@ -424,10 +424,8 @@ class SidePanelController {
       // === CACHE-LADEN-BUTTON ===
       if (hasCacheEntries) {
         loadCacheBtn.classList.remove('disabled');
-        loadCacheBtn.title = response.isTranslated ? 'Erneut aus Cache laden' : 'Übersetzung aus Cache laden';
       } else {
         loadCacheBtn.classList.add('disabled');
-        loadCacheBtn.title = 'Kein Cache verfügbar';
       }
 
     } catch (e) {
@@ -661,13 +659,26 @@ class SidePanelController {
         }
       }
 
+      // Server-Eintraege fuer aktuelle Seite laden (vor der Anzeige)
+      let serverEntries = null;
+      let entryCount = 0;
+      if (serverStats?.success) {
+        try {
+          serverEntries = await chrome.runtime.sendMessage({
+            action: 'CACHE_SERVER_GET_ALL_BY_URL',
+            pageUrl: tab.url
+          });
+          entryCount = serverEntries?.result?.count || 0;
+        } catch (e) {}
+      }
+
       // Anzeige aktualisieren
       const cacheList = document.getElementById('cacheList');
       let html = '';
-      
-      // Status für aktuelle Seite
+
       if (pageInfo) {
-        const cacheStatus = pageInfo.cacheAvailable 
+        const hasCache = pageInfo.cacheAvailable || entryCount > 0;
+        const cacheStatus = hasCache
           ? `<span class="cache-badge available">Cache verfügbar</span>`
           : `<span class="cache-badge none">Kein Cache</span>`;
         
@@ -690,17 +701,6 @@ class SidePanelController {
         const stats = serverStats.stats;
         document.getElementById('cacheTotalSize').textContent = SWT.Utils.formatBytes(stats.db_size || 0);
         document.getElementById('cachePageCount').textContent = stats.total_entries || 0;
-        
-        // Server-Einträge für aktuelle Seite laden
-        let serverEntries = null;
-        try {
-          serverEntries = await chrome.runtime.sendMessage({ 
-            action: 'CACHE_SERVER_GET_ALL_BY_URL', 
-            pageUrl: tab.url 
-          });
-        } catch (e) {}
-        
-        const entryCount = serverEntries?.result?.count || 0;
         
         html += `
           <div class="cache-server-info">
