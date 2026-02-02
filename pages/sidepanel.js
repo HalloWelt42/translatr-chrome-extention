@@ -645,7 +645,7 @@ class SidePanelController {
         pageInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_PAGE_INFO' });
         console.log('[SWT Sidepanel] Page info:', pageInfo);
       } catch (e) {
-        console.warn('Page info error:', e);
+        // still ignorieren
       }
       
       // Lokale Cache-Info holen (wenn nicht server-only)
