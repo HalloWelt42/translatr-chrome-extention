@@ -1025,11 +1025,14 @@ class SmartTranslator {
         break;
 
       case 'GET_PAGE_INFO':
-        // remaining = Anzahl noch nicht uebersetzter TextNodes
-        // findTranslatableTextNodes schliesst .swt-translated-text aus
+        // remaining = uebersetzbare Nodes die NICHT .swt-translated-text sind
         let remaining = 0;
-        if (this.originalTexts.size > 0 && typeof this.findTranslatableTextNodes === 'function') {
-          remaining = this.findTranslatableTextNodes().length;
+        if (typeof this.findTranslatableTextNodes === 'function') {
+          // Pruefe ob es uebersetzte Spans auf der Seite gibt
+          const hasTranslated = document.querySelectorAll('.swt-translated-text').length > 0;
+          if (hasTranslated) {
+            remaining = this.findTranslatableTextNodes().length;
+          }
         }
         sendResponse({
           isTranslated: this.isTranslated,
