@@ -318,7 +318,8 @@ class SidePanelController {
     loadCacheBtn.addEventListener('click', async () => {
       if (loadCacheBtn.classList.contains('disabled')) return;
       await this.sendPageAction('LOAD_CACHED_TRANSLATION');
-      setTimeout(() => this.updateActionStates(), 500);
+      setTimeout(() => this.updateActionStates(), 2000);
+      setTimeout(() => this.updateActionStates(), 5000);
     });
 
     // Hover-Original Toggle
