@@ -407,7 +407,7 @@ class SidePanelController {
         translateBtn.classList.add('active');
         translateBtn.classList.remove('disabled');
         const svg = translateBtn.querySelector('svg');
-        if (svg) svg.style.fill = 'var(--md-success)';
+        if (svg) svg.style.fill = '#22c55e';
       } else {
         translateBtn.classList.remove('active');
         translateBtn.classList.remove('disabled');

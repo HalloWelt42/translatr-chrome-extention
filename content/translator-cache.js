@@ -41,30 +41,8 @@
     }
     console.log('[SWT] Cache-API ready, mode:', SWT.Cache?.config?.mode);
     
-    const isPlainText = this.detectPlainTextPage?.();
-
-    let sampleTexts = [];
-
-    if (isPlainText) {
-      // Plain-Text: Absätze aus <pre> extrahieren
-      console.log('[SWT PlainText] Cache-Check mit Pre-Elementen');
-      const preElements = document.querySelectorAll('pre');
-      preElements.forEach(pre => {
-        const text = pre.textContent || '';
-        const paragraphs = this.splitIntoParagraphs(text);
-        sampleTexts.push(...paragraphs.slice(0, 20));
-      });
-      sampleTexts = sampleTexts.filter(t => t.length >= 10);
-      console.log('[SWT PlainText] Sample-Texte für Cache:', sampleTexts.length);
-      if (sampleTexts.length > 0) {
-        console.log('[SWT PlainText] Erster Sample:', sampleTexts[0].substring(0, 60));
-      }
-    } else {
-      // Standard: Text-Nodes als Stichprobe
-      console.log('[SWT] Standard Cache-Check mit Text-Nodes');
-      const textNodes = this.findTranslatableTextNodes();
-      sampleTexts = textNodes.slice(0, 50).map(n => n.textContent.trim()).filter(t => t.length >= 2);
-    }
+    const textNodes = this.findTranslatableTextNodes();
+    const sampleTexts = textNodes.slice(0, 50).map(n => n.textContent.trim()).filter(t => t.length >= 2);
     
     if (sampleTexts.length === 0) {
       // Retry nach 500ms -- Seite war evtl. noch nicht fertig gerendert
