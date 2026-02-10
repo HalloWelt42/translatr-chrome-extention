@@ -537,7 +537,7 @@ select {
 }
 
 .action-badge.complete { background: var(--green); }
-.action-badge.partial { background: var(--yellow); }
+.action-badge.partial { background: var(--yellow); color: #1c1917 !important; }
 .action-badge.empty { background: var(--text-muted); }
 
 .action-card.disabled {
