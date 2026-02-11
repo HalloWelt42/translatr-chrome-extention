@@ -41,8 +41,22 @@
     }
     console.log('[SWT] Cache-API ready, mode:', SWT.Cache?.config?.mode);
     
-    const textNodes = this.findTranslatableTextNodes();
-    const sampleTexts = textNodes.slice(0, 50).map(n => n.textContent.trim()).filter(t => t.length >= 2);
+    let sampleTexts = [];
+    const isPlainText = typeof this.detectPlainTextPage === 'function' && this.detectPlainTextPage();
+
+    if (isPlainText) {
+      const preElements = document.querySelectorAll('pre');
+      preElements.forEach(pre => {
+        const text = pre.textContent || '';
+        const paragraphs = typeof this.splitIntoParagraphs === 'function'
+          ? this.splitIntoParagraphs(text) : text.split(/\n\s*\n/).filter(t => t.trim());
+        sampleTexts.push(...paragraphs.slice(0, 20));
+      });
+      sampleTexts = sampleTexts.filter(t => t.length >= 10);
+    } else {
+      const textNodes = this.findTranslatableTextNodes();
+      sampleTexts = textNodes.slice(0, 50).map(n => n.textContent.trim()).filter(t => t.length >= 2);
+    }
     
     if (sampleTexts.length === 0) {
       // Retry nach 500ms -- Seite war evtl. noch nicht fertig gerendert

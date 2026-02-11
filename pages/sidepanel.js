@@ -423,8 +423,8 @@ class SidePanelController {
       }
 
       // === CACHE-LADEN-BUTTON ===
-      // Aktiv wenn Cache verfuegbar (Content-Script) oder Server-Cache > 0
-      if (response.cacheAvailable || response.serverCacheCount > 0) {
+      // Aktiv wenn Cache vorhanden UND noch nicht uebersetzt
+      if (!response.isTranslated && (response.cacheAvailable || response.serverCacheCount > 0)) {
         loadCacheBtn.classList.remove('disabled');
       } else {
         loadCacheBtn.classList.add('disabled');

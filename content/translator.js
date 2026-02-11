@@ -830,11 +830,17 @@ class SmartTranslator {
 
     try {
       const cacheTranslations = {};
+      const isPlainText = this.detectPlainTextPage();
+      let textNodes;
 
-      if (this.settings.fixInlineSpacing && typeof this.normalizeInlineSpacing === 'function') {
-        this.normalizeInlineSpacing();
+      if (isPlainText) {
+        textNodes = this.handlePlainTextPage();
+      } else {
+        if (this.settings.fixInlineSpacing && typeof this.normalizeInlineSpacing === 'function') {
+          this.normalizeInlineSpacing();
+        }
+        textNodes = this.findTranslatableTextNodes();
       }
-      const textNodes = this.findTranslatableTextNodes();
 
       const total = textNodes ? textNodes.length : 0;
       let translated = 0;
@@ -939,6 +945,135 @@ class SmartTranslator {
     }
   }
 
+  detectPlainTextPage() {
+    const url = window.location.href.toLowerCase();
+    const hostname = window.location.hostname.toLowerCase();
+    
+    // URL-basierte Erkennung
+    if (url.endsWith('.txt') || url.endsWith('.text')) return true;
+    
+    // RFC-Seiten
+    if (hostname.includes('ietf.org') || hostname.includes('rfc-editor.org')) return true;
+    if (url.includes('/rfc/') || url.includes('/doc/rfc')) return true;
+    
+    // Content-Type Check (wenn verfügbar)
+    const contentType = document.contentType || '';
+    if (contentType.includes('text/plain')) return true;
+    
+    // DOM-basierte Erkennung: Nur ein Pre-Element mit viel Text?
+    const body = document.body;
+    const preElements = body.querySelectorAll('pre');
+    
+    if (preElements.length === 1) {
+      const pre = preElements[0];
+      const preText = pre.textContent.length;
+      const bodyText = body.textContent.length;
+      // Wenn Pre mehr als 80% des Seiteninhalts ausmacht
+      if (preText > 1000 && preText / bodyText > 0.8) return true;
+    }
+    
+    // Keine anderen Block-Elemente außer Pre?
+    const blocks = body.querySelectorAll('p, div, article, section, h1, h2, h3, h4, h5, h6');
+    if (blocks.length < 3 && preElements.length > 0) return true;
+    
+    return false;
+  }
+  handlePlainTextPage() {
+    const preElements = document.querySelectorAll('pre');
+    const textNodes = [];
+    
+    preElements.forEach(pre => {
+      // Pre-Element in logische Abschnitte aufteilen
+      const text = pre.textContent;
+      const paragraphs = this.splitIntoParagraphs(text);
+      
+      // Erstelle für jeden Absatz einen virtuellen Container
+      pre.innerHTML = ''; // Leeren
+      
+      paragraphs.forEach(para => {
+        if (para.trim().length < 3) {
+          // Leerzeilen beibehalten
+          pre.appendChild(document.createTextNode(para + '\n\n'));
+          return;
+        }
+        
+        const span = document.createElement('span');
+        span.className = 'swt-pre-paragraph';
+        span.textContent = para;
+        pre.appendChild(span);
+        pre.appendChild(document.createTextNode('\n\n'));
+        
+        // TextNode aus dem Span für Übersetzung
+        if (span.firstChild) {
+          textNodes.push(span.firstChild);
+        }
+      });
+    });
+    
+    // Falls keine Pre-Elemente, versuche Body-Text
+    if (textNodes.length === 0) {
+      return this.findTranslatableTextNodes();
+    }
+    
+    return textNodes;
+  }
+  splitIntoParagraphs(text) {
+    // Strategie:
+    // 1. Doppelte Leerzeilen = eindeutige Absatzgrenze
+    // 2. Satzende (. ! ?) + einzelne Newline + Großbuchstabe = Absatzgrenze
+    // 3. Mindestlänge für sinnvolle Übersetzung
+    
+    const paragraphs = [];
+    let currentParagraph = '';
+    
+    // Erst bei doppelten Newlines splitten
+    const blocks = text.split(/\n\s*\n/);
+    
+    blocks.forEach(block => {
+      const trimmed = block.trim();
+      if (!trimmed) return;
+      
+      // Block ist kurz genug → direkt verwenden
+      if (trimmed.length < 500) {
+        paragraphs.push(trimmed);
+        return;
+      }
+      
+      // Langer Block → bei Satzenden + Newlines aufteilen
+      const lines = trimmed.split('\n');
+      let currentChunk = '';
+      
+      lines.forEach((line, idx) => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return;
+        
+        if (currentChunk) {
+          currentChunk += '\n';
+        }
+        currentChunk += trimmedLine;
+        
+        // Prüfe ob Satzende und nächste Zeile mit Großbuchstabe beginnt
+        const endsWithSentence = trimmedLine.match(/[.!?]$/);
+        const nextLine = lines[idx + 1]?.trim();
+        const nextStartsWithCapital = nextLine?.match(/^[A-ZÄÖÜ]/);
+        
+        if (endsWithSentence && (!nextLine || nextStartsWithCapital)) {
+          // Mindestlänge prüfen
+          if (currentChunk.length >= 50) {
+            paragraphs.push(currentChunk);
+            currentChunk = '';
+          }
+        }
+      });
+      
+      // Rest hinzufügen
+      if (currentChunk.trim()) {
+        paragraphs.push(currentChunk.trim());
+      }
+    });
+    
+    return paragraphs.filter(p => p.length > 0);
+  }
   // === Message Handler ===
   handleMessage(request, sender, sendResponse) {
     switch (request.action) {
