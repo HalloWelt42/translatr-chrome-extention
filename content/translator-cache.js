@@ -236,23 +236,13 @@
         }
       });
       
-      const coveragePercent = Math.round((applied / allTexts.length) * 100);
-      console.log(`[SWT Cache] ${applied} von ${allTexts.length} Texten aus Cache (${coveragePercent}%)`);
-      
       if (applied > 0) {
-        // Nur als "übersetzt" markieren wenn mindestens 50% abgedeckt
-        // Bei weniger: Teilübersetzung, User sollte nochmal "Übersetzen" klicken können
-        if (coveragePercent >= 50) {
-          this.isTranslated = true;
-          this.translationMode = 'replace';
-          this.notifyStatusChange();
-          console.log('[SWT Cache] isTranslated = true (>= 50%)');
-        } else {
-          console.log('[SWT Cache] Nur teilweise gecacht, isTranslated bleibt false');
-        }
-        
+        this.isTranslated = true;
+        this.translationMode = 'replace';
+        this.notifyStatusChange();
+
         const sourceText = result.source === 'server' ? 'Server-Cache' : 'Lokalem Cache';
-        this.showNotification(`${applied} Übersetzungen aus ${sourceText} geladen (${coveragePercent}%)`, 'success');
+        this.showNotification(`${applied} von ${allTexts.length} Texten geladen`, 'success');
         return true;
       }
       
