@@ -1188,6 +1188,17 @@ class SmartTranslator {
         sendResponse({ success: true });
         break;
 
+      case 'TOGGLE_HIGHLIGHT':
+        document.querySelectorAll('.swt-translated-text').forEach(el => {
+          if (request.enabled) {
+            el.style.removeProperty('background');
+          } else {
+            el.style.background = 'none';
+          }
+        });
+        sendResponse({ success: true });
+        break;
+
       default:
         sendResponse({ success: false, error: 'Unknown action: ' + request.action });
     }
