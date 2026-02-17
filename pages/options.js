@@ -65,7 +65,6 @@ async function loadSettings() {
       'sourceLang', 'targetLang',
       // Anzeige
       'showSelectionIcon', 'enableTTS', 'showOriginalInTooltip',
-      'showAlternatives', 'highlightTranslated',
       // Inhaltsfilter
       'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
       // Batch
@@ -120,7 +119,6 @@ async function loadSettings() {
     setChecked('showSelectionIcon', settings.showSelectionIcon !== false);
     setChecked('showOriginalInTooltip', settings.showOriginalInTooltip !== false);
     setChecked('showAlternatives', settings.showAlternatives !== false);
-    setChecked('highlightTranslated', settings.highlightTranslated || false);
     
     // Inhaltsfilter
     setChecked('skipCodeBlocks', settings.skipCodeBlocks !== false);
@@ -375,7 +373,6 @@ async function saveSettings() {
       enableTTS: getChecked('enableTTS', true),
       showOriginalInTooltip: getChecked('showOriginalInTooltip', true),
       showAlternatives: getChecked('showAlternatives', true),
-      highlightTranslated: getChecked('highlightTranslated', false),
       
       // Inhaltsfilter
       skipCodeBlocks: getChecked('skipCodeBlocks', true),
@@ -426,7 +423,6 @@ async function resetSettings() {
     enableTTS: true,
     showOriginalInTooltip: true,
     showAlternatives: true,
-    highlightTranslated: false,
     skipCodeBlocks: true,
     skipBlockquotes: true,
     fixInlineSpacing: true,
