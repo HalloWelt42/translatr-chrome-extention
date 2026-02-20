@@ -352,6 +352,17 @@ class SidePanelController {
       });
     }
 
+    // Auto-Load Cache Toggle
+    const autoLoadToggle = document.getElementById('toggleAutoLoadCache');
+    if (autoLoadToggle) {
+      chrome.storage.sync.get(['autoLoadCache'], (s) => {
+        autoLoadToggle.checked = s.autoLoadCache === true;
+      });
+      autoLoadToggle.addEventListener('change', () => {
+        chrome.storage.sync.set({ autoLoadCache: autoLoadToggle.checked });
+      });
+    }
+
     document.getElementById('openOptions').addEventListener('click', (e) => {
       e.preventDefault();
       chrome.runtime.openOptionsPage();
