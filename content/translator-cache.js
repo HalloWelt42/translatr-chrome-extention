@@ -88,7 +88,9 @@
       // Cache-Status setzen
       this.setCacheAvailable(true, cacheResult.source, cacheResult.count || 0);
 
+      console.log('[SWT] autoLoadCache:', this.settings.autoLoadCache);
       if (this.settings.autoLoadCache) {
+        console.log('[SWT] Auto-Loading Cache...');
         await this.loadCachedTranslation();
       } else {
         this.showCacheIndicator(cacheResult.source, cacheResult.count, sampleTexts.length);
