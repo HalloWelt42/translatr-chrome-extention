@@ -339,16 +339,8 @@ class SidePanelController {
       chrome.storage.sync.get(['highlightTranslated'], (s) => {
         highlightToggle.checked = s.highlightTranslated !== false;
       });
-      highlightToggle.addEventListener('change', async () => {
+      highlightToggle.addEventListener('change', () => {
         chrome.storage.sync.set({ highlightTranslated: highlightToggle.checked });
-        // Sofort auf der Seite anwenden
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tab) {
-          chrome.tabs.sendMessage(tab.id, {
-            action: 'TOGGLE_HIGHLIGHT',
-            enabled: highlightToggle.checked
-          }).catch(() => {});
-        }
       });
     }
 

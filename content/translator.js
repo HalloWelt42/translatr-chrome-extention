@@ -171,6 +171,13 @@ class SmartTranslator {
             } else {
               window.swtInstance.settings[key] = newValue;
             }
+
+            // Markierung live anwenden
+            if (key === 'highlightTranslated') {
+              document.querySelectorAll('.swt-translated-text').forEach(el => {
+                el.style.background = newValue ? '' : 'none';
+              });
+            }
           }
         }
       });
@@ -1185,17 +1192,6 @@ class SmartTranslator {
         if (request.word) {
           this.translateSelection(request.word);
         }
-        sendResponse({ success: true });
-        break;
-
-      case 'TOGGLE_HIGHLIGHT':
-        document.querySelectorAll('.swt-translated-text').forEach(el => {
-          if (request.enabled) {
-            el.style.removeProperty('background');
-          } else {
-            el.style.background = 'none';
-          }
-        });
         sendResponse({ success: true });
         break;
 

@@ -42,6 +42,11 @@
     wrapper.dataset.original = original;
     wrapper.dataset.translated = translated;
 
+    // Markierung nur wenn in Settings aktiviert
+    if (this.settings.highlightTranslated === false) {
+      wrapper.style.background = 'none';
+    }
+
     node.parentNode.replaceChild(wrapper, node);
   };
 
