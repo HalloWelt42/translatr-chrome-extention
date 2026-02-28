@@ -386,25 +386,21 @@ body { min-height: 100vh; }
 .cache-item-actions { flex-shrink: 0; }
 
 .cache-item-btn {
-  width: 20px;
-  height: 20px;
+  background: none;
   border: none;
-  border-radius: 3px;
-  background: var(--red);
-  color: white;
+  color: var(--red);
   cursor: pointer;
+  padding: 2px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all var(--transition-normal);
-  padding: 0;
+  transition: opacity var(--transition-fast);
 }
 
-.cache-item-btn:hover { background: #dc2626; }
+.cache-item-btn:hover { opacity: 0.7; }
 
 .cache-item-btn svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   fill: white;
 }
 
