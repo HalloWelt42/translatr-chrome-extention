@@ -401,7 +401,7 @@ body { min-height: 100vh; }
 .cache-item-btn svg {
   width: 14px;
   height: 14px;
-  fill: white;
+  fill: currentColor;
 }
 
 /* Server Cache Info */

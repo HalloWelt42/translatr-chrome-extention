@@ -733,12 +733,27 @@ class SidePanelController {
         document.getElementById('cacheTotalSize').textContent = SWT.Utils.formatBytes(stats.db_size || 0);
         document.getElementById('cachePageCount').textContent = stats.total_entries || 0;
         
+        // Domain-Eintraege zaehlen
+        let domainCount = 0;
+        try {
+          const hostname = new URL(tab.url).hostname;
+          const domainStats = await chrome.runtime.sendMessage({
+            action: 'CACHE_SERVER_GET_URL_STATS',
+            pageUrl: 'https://' + hostname + '/'
+          });
+          domainCount = domainStats?.result?.count || 0;
+        } catch (e) {}
+
         html += `
           <div class="cache-server-info">
             <h4>Server-Cache</h4>
             <div class="server-stat">
               <span class="stat-label">Gesamt:</span>
               <span class="stat-value">${stats.total_entries || 0} Einträge · ${SWT.Utils.formatBytes(stats.db_size || 0)}</span>
+            </div>
+            <div class="server-stat">
+              <span class="stat-label">Diese Domain:</span>
+              <span class="stat-value">${domainCount} Einträge</span>
             </div>
             <div class="server-stat">
               <span class="stat-label">Diese Seite:</span>
