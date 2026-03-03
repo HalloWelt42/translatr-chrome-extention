@@ -786,13 +786,7 @@ class SidePanelController {
               </div>
             `;
           }
-          html += `</div>`;
-          if (hasMore) {
-            html += `<button class="btn btn-secondary fullwidth mt-sm" id="loadMoreCache">
-              ${allEntries.length - INITIAL_LIMIT} weitere laden
-            </button>`;
-          }
-          html += `</div>`;
+          html += `</div></div>`;
 
           // Alle Eintraege fuer spaeteres Nachladen speichern
           this._allCacheEntries = allEntries;
@@ -864,14 +858,15 @@ class SidePanelController {
         });
       });
       
-      // Delete-Button Handler (Server)
-      // "Mehr laden" Button
-      const loadMoreBtn = document.getElementById('loadMoreCache');
-      if (loadMoreBtn && this._allCacheEntries) {
-        loadMoreBtn.addEventListener('click', () => {
+      // Infinite Scroll fuer Cache-Eintraege
+      const cacheSection = document.querySelector('.cache-section');
+      if (cacheSection && this._allCacheEntries) {
+        const loadMore = () => {
+          if (this._cacheOffset >= this._allCacheEntries.length) return;
           const BATCH = 20;
           const next = this._allCacheEntries.slice(this._cacheOffset, this._cacheOffset + BATCH);
           const list = document.getElementById('cacheEntryList');
+          if (!list) return;
           for (const [hash, entry] of next) {
             const orig = entry.original?.length > 35 ? entry.original.slice(0, 32) + '...' : entry.original;
             const trans = entry.translated?.length > 35 ? entry.translated.slice(0, 32) + '...' : entry.translated;
@@ -888,10 +883,11 @@ class SidePanelController {
             `);
           }
           this._cacheOffset += BATCH;
-          if (this._cacheOffset >= this._allCacheEntries.length) {
-            loadMoreBtn.remove();
-          } else {
-            loadMoreBtn.textContent = `${this._allCacheEntries.length - this._cacheOffset} weitere laden`;
+        };
+        cacheSection.addEventListener('scroll', () => {
+          const { scrollTop, scrollHeight, clientHeight } = cacheSection;
+          if (scrollTop + clientHeight >= scrollHeight - 50) {
+            loadMore();
           }
         });
       }
