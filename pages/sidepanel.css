@@ -1,25 +1,38 @@
 /* Sidepanel-spezifisches Layout */
 
+/* Header Layout */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.app-header h1 {
+  flex: 1;
+  text-align: center;
+}
+
 /* Donate Heart */
 .donate-heart {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: var(--red);
   animation: heartbeat 1.5s ease-in-out infinite;
 }
 
 .donate-heart svg {
-  width: 18px;
-  height: 18px;
-  fill: var(--red);
+  width: 12px;
+  height: 12px;
+  fill: #e53e3e;
+  filter: drop-shadow(0 0 3px rgba(229, 62, 62, 0.5));
 }
 
 @keyframes heartbeat {
   0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.25); }
+  15% { transform: scale(1.3); }
   30% { transform: scale(1); }
-  45% { transform: scale(1.15); }
+  45% { transform: scale(1.2); }
   60% { transform: scale(1); }
 }
 
