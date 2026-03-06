@@ -1,16 +1,34 @@
 /* Sidepanel-spezifisches Layout */
 
 /* Header Layout */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+}
+
 .header-logo {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
+.header-logo > [data-swt-icon] svg {
+  width: 24px;
+  height: 24px;
+}
+
 .app-header h1 {
-  flex: 1;
-  text-align: center;
+  font-size: 15px;
+  margin: 0;
+}
+
+.app-header .api-badge {
+  position: absolute;
+  right: 0;
 }
 
 /* Donate Heart */
@@ -22,10 +40,10 @@
 }
 
 .donate-heart svg {
-  width: 12px;
-  height: 12px;
-  fill: #e53e3e;
-  filter: drop-shadow(0 0 3px rgba(229, 62, 62, 0.5));
+  width: 16px;
+  height: 16px;
+  fill: #ff0000;
+  filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.6));
 }
 
 @keyframes heartbeat {
@@ -521,4 +539,25 @@ body { min-height: 100vh; }
 
 .cache-local-section {
   margin-top: var(--spacing-sm);
+}
+
+/* Kompakte Toggle-Box */
+.toggle-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.toggle-row:not(:last-child) {
+  border-bottom: 1px solid var(--border-subtle);
 }
