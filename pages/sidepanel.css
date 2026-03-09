@@ -562,3 +562,9 @@ body { min-height: 100vh; }
 .toggle-row:not(:last-child) {
   border-bottom: 1px solid var(--border-subtle);
 }
+
+/* Nur die Item-Liste scrollt, Rest bleibt fest */
+#cacheEntryList {
+  overflow-y: auto;
+  max-height: 300px;
+}

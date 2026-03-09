@@ -859,8 +859,8 @@ class SidePanelController {
       });
       
       // Infinite Scroll fuer Cache-Eintraege
-      const cacheSection = document.querySelector('.cache-section');
-      if (cacheSection && this._allCacheEntries) {
+      const scrollContainer = document.getElementById('cacheList');
+      if (scrollContainer && this._allCacheEntries) {
         const loadMore = () => {
           if (this._cacheOffset >= this._allCacheEntries.length) return;
           const BATCH = 20;
@@ -884,12 +884,15 @@ class SidePanelController {
           }
           this._cacheOffset += BATCH;
         };
-        cacheSection.addEventListener('scroll', () => {
-          const { scrollTop, scrollHeight, clientHeight } = cacheSection;
-          if (scrollTop + clientHeight >= scrollHeight - 50) {
-            loadMore();
-          }
-        });
+        const entryList = document.getElementById('cacheEntryList');
+        if (entryList) {
+          entryList.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = entryList;
+            if (scrollTop + clientHeight >= scrollHeight - 50) {
+              loadMore();
+            }
+          });
+        }
       }
 
       cacheList.querySelectorAll('.cache-item-btn.delete-server').forEach(btn => {
