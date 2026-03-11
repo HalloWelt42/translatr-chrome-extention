@@ -479,11 +479,9 @@ class SidePanelController {
 
   setupHistory() {
     document.getElementById('clearHistory').addEventListener('click', async () => {
-      if (confirm('Verlauf wirklich löschen?')) {
-        await chrome.runtime.sendMessage({ action: 'CLEAR_HISTORY' });
-        this.loadHistory();
-        SWT.Toast.show('Verlauf gelöscht');
-      }
+      await chrome.runtime.sendMessage({ action: 'CLEAR_HISTORY' });
+      this.loadHistory();
+      SWT.Toast.show('Verlauf gelöscht');
     });
   }
 
@@ -569,23 +567,18 @@ class SidePanelController {
       try {
         const url = new URL(tab.url);
         const domain = url.hostname;
-        
-        if (confirm(`Cache für "${domain}" löschen?\n(Alle Seiten dieser Domain)`)) {
-          // Server-Cache für Domain löschen
-          const result = await chrome.runtime.sendMessage({ 
-            action: 'CACHE_SERVER_DELETE_BY_DOMAIN', 
-            domain: domain 
-          });
-          
-          // Lokalen Cache auch löschen
-          await this.sendPageAction('CLEAR_CACHE');
-          
-          this.loadCache();
-          this.updateActionStates();
-          
-          const count = result?.deleted || 0;
-          SWT.Toast.show(`${count} Einträge für ${domain} gelöscht`);
-        }
+
+        const result = await chrome.runtime.sendMessage({
+          action: 'CACHE_SERVER_DELETE_BY_DOMAIN',
+          domain: domain
+        });
+
+        await this.sendPageAction('CLEAR_CACHE');
+        this.loadCache();
+        this.updateActionStates();
+
+        const count = result?.deleted || 0;
+        SWT.Toast.show(`${count} Einträge für ${domain} gelöscht`);
       } catch (e) {
         SWT.Toast.show('Fehler: ' + e.message, 'error');
       }

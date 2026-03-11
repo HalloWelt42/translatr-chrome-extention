@@ -398,10 +398,6 @@ async function saveSettings() {
 }
 
 async function resetSettings() {
-  if (!confirm('Alle Einstellungen auf Standardwerte zurücksetzen?')) {
-    return;
-  }
-
   const defaultSettings = {
     apiType: 'libretranslate',
     serviceUrl: '',
