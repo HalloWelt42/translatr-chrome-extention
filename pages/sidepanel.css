@@ -568,3 +568,9 @@ body { min-height: 100vh; }
   overflow-y: auto;
   max-height: 300px;
 }
+
+/* ALLE Tonnen-Icons rot */
+[data-swt-icon="delete"] svg,
+[data-swt-icon="trash"] svg {
+  fill: var(--red) !important;
+}
