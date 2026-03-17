@@ -492,7 +492,9 @@ class SidePanelController {
       const response = await chrome.runtime.sendMessage({ action: 'GET_HISTORY' });
       const history = response.history || [];
 
+      const clearBtn = document.getElementById('clearHistory');
       if (history.length === 0) {
+        if (clearBtn) clearBtn.disabled = true;
         historyList.innerHTML = `
           <div class="history-empty">
             ${SWT.Icons.svg('history')}
@@ -501,6 +503,7 @@ class SidePanelController {
         `;
         return;
       }
+      if (clearBtn) clearBtn.disabled = false;
 
       historyList.innerHTML = history.map((item, idx) => `
         <div class="history-item" data-index="${idx}" data-original="${SWT.Utils.escapeAttr(item.original)}" data-translated="${SWT.Utils.escapeAttr(item.translated)}">
@@ -726,17 +729,6 @@ class SidePanelController {
         document.getElementById('cacheTotalSize').textContent = SWT.Utils.formatBytes(stats.db_size || 0);
         document.getElementById('cachePageCount').textContent = stats.total_entries || 0;
         
-        // Domain-Eintraege zaehlen
-        let domainCount = 0;
-        try {
-          const hostname = new URL(tab.url).hostname;
-          const domainStats = await chrome.runtime.sendMessage({
-            action: 'CACHE_SERVER_GET_URL_STATS',
-            pageUrl: 'https://' + hostname + '/'
-          });
-          domainCount = domainStats?.result?.count || 0;
-        } catch (e) {}
-
         html += `
           <div class="cache-server-info">
             <h4>Server-Cache</h4>
@@ -746,10 +738,6 @@ class SidePanelController {
             </div>
             <div class="server-stat">
               <span class="stat-label">Diese Domain:</span>
-              <span class="stat-value">${domainCount} Einträge</span>
-            </div>
-            <div class="server-stat">
-              <span class="stat-label">Diese Seite:</span>
               <span class="stat-value">${entryCount} Einträge</span>
             </div>
           </div>
@@ -837,6 +825,12 @@ class SidePanelController {
       }
       
       cacheList.innerHTML = html;
+
+      // Löschbuttons aktivieren/deaktivieren
+      const clearPageBtn = document.getElementById('clearPageCache');
+      const clearDomainBtn = document.getElementById('clearDomainCache');
+      if (clearPageBtn) clearPageBtn.disabled = entryCount === 0;
+      if (clearDomainBtn) clearDomainBtn.disabled = entryCount === 0;
 
       // Delete-Button Handler (lokal)
       cacheList.querySelectorAll('.cache-item-btn.delete').forEach(btn => {
