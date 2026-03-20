@@ -72,7 +72,6 @@ async function loadSettings() {
       'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode',
       'cacheServerTimeout', 'autoLoadCache',
       // Sonstiges
-      'excludedDomains'
     ]);
 
     // Hilfsfunktion für sicheres Setzen
@@ -124,7 +123,6 @@ async function loadSettings() {
     setChecked('fixInlineSpacing', settings.fixInlineSpacing !== false);
     
     // Ausgeschlossene Domains
-    setVal('excludedDomains', settings.excludedDomains || '');
 
     // Cache-Server
     setChecked('cacheServerEnabled', settings.cacheServerEnabled !== false);
@@ -377,7 +375,6 @@ async function saveSettings() {
       fixInlineSpacing: getChecked('fixInlineSpacing', true),
       
       // Ausgeschlossene Domains
-      excludedDomains: getVal('excludedDomains', '').trim(),
       
       
       // Cache-Server (v3.8)
@@ -418,7 +415,6 @@ async function resetSettings() {
     skipCodeBlocks: true,
     skipBlockquotes: true,
     fixInlineSpacing: true,
-    excludedDomains: '',
     cacheServerEnabled: true,
     cacheServerUrl: '',
     cacheServerMode: 'server-only',

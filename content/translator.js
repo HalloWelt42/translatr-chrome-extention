@@ -358,7 +358,6 @@ class SmartTranslator {
       'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
       'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioContext',
       'cacheServerEnabled', 'cacheServerMode',
-      'autoLoadCache', 'excludedDomains'
     ]);
 
     // String-Defaults
