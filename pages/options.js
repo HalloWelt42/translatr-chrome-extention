@@ -60,9 +60,7 @@ async function loadSettings() {
       // API
       'apiType', 'serviceUrl', 'apiKey',
       'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
-      'lmStudioMaxTokens', 'lmStudioContext', 'lmStudioCustomPrompt',
       // Sprachen
-      'sourceLang', 'targetLang',
       // Anzeige
       // Inhaltsfilter
       'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
@@ -92,8 +90,6 @@ async function loadSettings() {
     setVal('lmStudioUrl', settings.lmStudioUrl);
     setVal('lmStudioTemperature', settings.lmStudioTemperature ?? 0.1);
     setVal('lmStudioMaxTokens', settings.lmStudioMaxTokens || 2000);
-    setVal('lmStudioContext', settings.lmStudioContext || 'general');
-    setVal('lmStudioCustomPrompt', settings.lmStudioCustomPrompt || '');
     
     // Batch
     const pageBatchSize = settings.pageBatchSize || 20;
@@ -107,11 +103,8 @@ async function loadSettings() {
     setApiType(apiType);
     
     // Custom Prompt anzeigen wenn ausgewählt
-    toggleCustomPrompt(settings.lmStudioContext);
     
     // Sprachen
-    setVal('sourceLang', settings.sourceLang || 'auto');
-    setVal('targetLang', settings.targetLang || 'de');
     
     // UI Optionen
     setChecked('showSelectionIcon', settings.showSelectionIcon !== false);
@@ -196,10 +189,8 @@ function setupEventListeners() {
   }
   
   // Kontext Auswahl
-  const contextSelect = document.getElementById('lmStudioContext');
   if (contextSelect) {
     contextSelect.addEventListener('change', (e) => {
-      toggleCustomPrompt(e.target.value);
     });
   }
   
@@ -249,12 +240,6 @@ function setApiType(type) {
   }
 }
 
-function toggleCustomPrompt(context) {
-  const customGroup = document.getElementById('customPromptGroup');
-  if (customGroup) {
-    customGroup.style.display = context === 'custom' ? 'block' : 'none';
-  }
-}
 
 async function loadLMStudioModels() {
   const urlEl = document.getElementById('lmStudioUrl');
@@ -353,16 +338,12 @@ async function saveSettings() {
       lmStudioModel: getVal('lmStudioModel', ''),
       lmStudioTemperature: getFloat('lmStudioTemperature', 0.1),
       lmStudioMaxTokens: getInt('lmStudioMaxTokens', 2000),
-      lmStudioContext: getVal('lmStudioContext', 'general'),
-      lmStudioCustomPrompt: getVal('lmStudioCustomPrompt', '').trim(),
       
       // Batch
       pageBatchSize: getInt('pageBatchSize', 20),
       useCacheFirst: getChecked('useCacheFirst', true),
       
       // Sprachen
-      sourceLang: getVal('sourceLang', 'auto'),
-      targetLang: getVal('targetLang', 'de'),
       
       // UI Optionen
       showSelectionIcon: getChecked('showSelectionIcon', true),
@@ -403,12 +384,8 @@ async function resetSettings() {
     lmStudioModel: '',
     lmStudioTemperature: 0.1,
     lmStudioMaxTokens: 2000,
-    lmStudioContext: 'general',
-    lmStudioCustomPrompt: '',
     pageBatchSize: 20,
     useCacheFirst: true,
-    sourceLang: 'auto',
-    targetLang: 'de',
     showSelectionIcon: true,
     enableTTS: true,
     showAlternatives: true,
@@ -480,7 +457,6 @@ async function testConnection(apiType) {
 async function testLibreTranslate(testInput) {
   const serviceUrl = document.getElementById('serviceUrl').value.trim();
   const apiKey = document.getElementById('apiKey').value.trim();
-  const targetLang = document.getElementById('targetLang').value;
 
   const response = await fetch(serviceUrl, {
     method: 'POST',
@@ -488,7 +464,6 @@ async function testLibreTranslate(testInput) {
     body: JSON.stringify({
       q: testInput,
       source: 'auto',
-      target: targetLang,
       format: 'text',
       api_key: apiKey
     })
@@ -516,10 +491,6 @@ async function testLMStudio(testInput) {
   const model = document.getElementById('lmStudioModel').value;
   const temperature = parseFloat(document.getElementById('lmStudioTemperature').value);
   const maxTokens = parseInt(document.getElementById('lmStudioMaxTokens').value);
-  const context = document.getElementById('lmStudioContext').value;
-  const customPrompt = document.getElementById('lmStudioCustomPrompt').value;
-  const sourceLang = document.getElementById('sourceLang').value;
-  const targetLang = document.getElementById('targetLang').value;
   
   if (!url) throw new Error('LM Studio URL fehlt');
   if (!model) throw new Error('Kein Modell ausgewählt');
@@ -530,8 +501,6 @@ async function testLMStudio(testInput) {
     : CONTEXT_PROMPTS[context] || CONTEXT_PROMPTS.general;
   
   // Platzhalter ersetzen
-  const sourceLabel = sourceLang === 'auto' ? 'der Quellsprache' : getLanguageName(sourceLang);
-  const targetLabel = getLanguageName(targetLang);
   systemPrompt = systemPrompt
     .replace(/{source}/g, sourceLabel)
     .replace(/{target}/g, targetLabel);
@@ -737,8 +706,6 @@ async function syncLocalToServer() {
         translations.push({
           original: value.original,
           translated: value.translated,
-          source_lang: value.sourceLang || 'auto',
-          target_lang: value.targetLang || 'de',
           translator: value.translator || 'local'
         });
       }

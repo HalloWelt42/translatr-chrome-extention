@@ -90,24 +90,6 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="lmStudioContext">Fachkontext</label>
-          <div class="description">Optimierte Prompts für verschiedene Fachgebiete</div>
-          <select id="lmStudioContext">
-            <option value="general">Allgemein</option>
-            <option value="automotive">Kfz / Automotive</option>
-            <option value="technical">Technisch / IT</option>
-            <option value="medical">Medizin</option>
-            <option value="legal">Recht / Juristisch</option>
-            <option value="custom">Benutzerdefiniert</option>
-          </select>
-        </div>
-
-        <div class="form-group hidden" id="customPromptGroup">
-          <label for="lmStudioCustomPrompt">Benutzerdefinierter Prompt</label>
-          <div class="description">Verwende {source} und {target} als Platzhalter</div>
-          <textarea id="lmStudioCustomPrompt" placeholder="Du bist ein Übersetzer von {source} nach {target}..."></textarea>
-        </div>
 
         <div class="test-connection">
           <button class="btn btn-secondary" id="testLmStudio">Verbindung testen</button>
@@ -142,45 +124,6 @@
       </div>
     </div>
 
-    <!-- Language Settings -->
-    <div class="card">
-      <h2>
-        <span data-swt-icon="translate"></span>
-        Sprachen
-      </h2>
-
-      <div class="row">
-        <div class="form-group">
-          <label for="sourceLang">Quellsprache</label>
-          <select id="sourceLang">
-            <option value="auto">Automatisch erkennen</option>
-            <option value="en">Englisch</option>
-            <option value="de">Deutsch</option>
-            <option value="fr">Französisch</option>
-            <option value="es">Spanisch</option>
-            <option value="it">Italienisch</option>
-            <option value="pt">Portugiesisch</option>
-            <option value="ru">Russisch</option>
-            <option value="zh">Chinesisch</option>
-            <option value="ja">Japanisch</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="targetLang">Zielsprache</label>
-          <select id="targetLang">
-            <option value="de">Deutsch</option>
-            <option value="en">Englisch</option>
-            <option value="fr">Französisch</option>
-            <option value="es">Spanisch</option>
-            <option value="it">Italienisch</option>
-            <option value="pt">Portugiesisch</option>
-            <option value="ru">Russisch</option>
-            <option value="zh">Chinesisch</option>
-            <option value="ja">Japanisch</option>
-          </select>
-        </div>
-      </div>
-    </div>
 
     <!-- Display Settings -->
     <div class="card">

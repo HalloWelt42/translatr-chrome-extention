@@ -29,7 +29,7 @@ SWT.Storage = {
     lmStudioCustomPrompt: '',
 
     // Sprachen
-    sourceLang: 'auto',
+    sourceLang: 'en',
     targetLang: 'de',
 
     // UI
