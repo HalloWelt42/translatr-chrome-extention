@@ -590,3 +590,12 @@ body { min-height: 100vh; }
 .clear-btn:hover:not(:disabled) svg {
   fill: white !important;
 }
+
+/* Delete-Buttons: KEIN Hintergrund, nur rotes Icon */
+.cache-item-btn,
+.cache-item-btn:hover,
+.cache-item-btn:active {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}

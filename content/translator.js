@@ -432,16 +432,17 @@ class SmartTranslator {
       const text = selection.toString().trim();
 
       // Debug: Einstellung prüfen
-      console.log('[SWT] handleMouseUp - showSelectionIcon:', this.settings.showSelectionIcon, 'Type:', typeof this.settings.showSelectionIcon);
 
       // Expliziter Boolean-Check (nicht nur truthy/falsy)
-      const showIcon = this.settings.showSelectionIcon === true;
+      chrome.storage.sync.get(["showSelectionIcon"], (s) => {
+        const showIcon = s.showSelectionIcon !== false;
       
       if (text.length > 0 && showIcon) {
         this.showSelectionIcon(selection, e);
       } else {
         this.hideSelectionIcon();
       }
+      });
     }, this.settings.selectionIconDelay);
   }
 

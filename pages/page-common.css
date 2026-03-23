@@ -725,24 +725,23 @@ select {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 28px;
-  height: 28px;
+  background: none;
   border: none;
-  border-radius: var(--radius-sm);
-  background: var(--red);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: all var(--transition-fast);
+  transition: opacity var(--transition-fast);
   z-index: 10;
+  padding: 4px;
+  color: var(--red);
 }
 
 .text-field-wrapper .field-clear-btn svg {
-  width: 14px;
-  height: 14px;
-  fill: white;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 .text-field-wrapper:hover .field-clear-btn,
@@ -751,7 +750,7 @@ select {
 }
 
 .text-field-wrapper .field-clear-btn:hover {
-  background: #dc2626;
+  opacity: 0.7;
 }
 
 /* ==========================================================================
@@ -918,8 +917,8 @@ kbd {
 .app-header h1 span { flex: 1; }
 
 .app-header svg {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   fill: var(--accent);
 }
 
@@ -1083,3 +1082,27 @@ kbd {
 .led-red { background: var(--red); box-shadow: 0 0 4px var(--red-glow); }
 .led-off { background: var(--bg-track); }
 .led-pulse { animation: pulse-dot 2s ease-in-out infinite; }
+
+/* === GLOBALE LÖSCHTONNE === */
+/* Eine einzige Definition fuer alle Loeschbuttons ueberall */
+.delete-icon,
+[data-swt-icon="delete"],
+[data-swt-icon="trash"],
+.cache-item-btn,
+.field-clear-btn,
+.delete-history {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.delete-icon svg,
+[data-swt-icon="delete"] svg,
+[data-swt-icon="trash"] svg,
+.cache-item-btn svg,
+.field-clear-btn svg,
+.delete-history svg {
+  fill: var(--red) !important;
+  width: 16px;
+  height: 16px;
+}
