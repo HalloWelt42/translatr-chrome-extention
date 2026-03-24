@@ -729,6 +729,9 @@ class SidePanelController {
         document.getElementById('cacheTotalSize').textContent = SWT.Utils.formatBytes(stats.db_size || 0);
         document.getElementById('cachePageCount').textContent = stats.total_entries || 0;
         
+        // Seiten-Count: serverCacheCount aus Content-Script (Stichproben-basiert)
+        const pageCount = pageInfo?.serverCacheCount || 0;
+
         html += `
           <div class="cache-server-info">
             <h4>Server-Cache</h4>
@@ -739,6 +742,10 @@ class SidePanelController {
             <div class="server-stat">
               <span class="stat-label">Diese Domain:</span>
               <span class="stat-value">${entryCount} Einträge</span>
+            </div>
+            <div class="server-stat">
+              <span class="stat-label">Diese Seite:</span>
+              <span class="stat-value">${pageCount} Einträge</span>
             </div>
           </div>
         `;
