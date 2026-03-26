@@ -37,7 +37,6 @@ const CacheServer = {
       // Status zurücksetzen bei Neuinitialisierung
       this.status = { online: null, lastCheck: 0, failCount: 0, lastError: null };
       
-      // console.log('[CacheServer] Initialisiert:', this.config.enabled ? 'aktiviert' : 'deaktiviert');
     } catch (e) {
       if (!String(e).includes('invalidated')) console.warn('[CacheServer] Init:', e.message);
     }
@@ -363,10 +362,7 @@ const CacheServer = {
   // translations: [{ pageUrl, original, translated, langPair }]
   // Format: { url_hash, items: { trans_hash: [original_b64, translated_b64] } }
   async bulkStore(translations, defaultLangPair = null) {
-    console.log('[CacheServer] bulkStore aufgerufen:', translations.length, 'Übersetzungen');
-    
     if (!this.shouldTryServer() || !translations.length) {
-      console.log('[CacheServer] bulkStore abgebrochen - shouldTryServer:', this.shouldTryServer());
       return null;
     }
     
@@ -377,7 +373,6 @@ const CacheServer = {
       for (const t of translations) {
         // Nicht speichern wenn original === translated
         if (t.original.trim() === t.translated.trim()) {
-          console.log('[CacheServer] Überspringe identisch:', t.original.substring(0, 30));
           continue;
         }
         
@@ -389,12 +384,6 @@ const CacheServer = {
         const langPair = t.langPair || defaultLangPair || 'auto:de';
         const transHash = await this.computeHash(t.pageUrl, t.original, langPair);
 
-        if (byUrl.get(urlHash) && Object.keys(byUrl.get(urlHash).items).length === 0) {
-          console.log('[CacheServer] Erster Store-Hash:', transHash);
-          console.log('[CacheServer] pageUrl:', t.pageUrl);
-          console.log('[CacheServer] Text:', t.original.substring(0, 50));
-        }
-        
         // Nur 2 Felder: original + translated (langPair ist im Hash codiert)
         byUrl.get(urlHash).items[transHash] = [
           this.encodeText(t.original),
@@ -403,7 +392,6 @@ const CacheServer = {
       }
       
       if (byUrl.size === 0) {
-        console.log('[CacheServer] Nichts zu speichern');
         return null;
       }
       
@@ -412,8 +400,6 @@ const CacheServer = {
       // Für jede URL einen Request (normalerweise nur einer)
       for (const [urlHash, { items }] of byUrl) {
         if (Object.keys(items).length === 0) continue;
-        
-        console.log('[CacheServer] Speichere', Object.keys(items).length, 'Items für urlHash:', urlHash);
         
         const response = await this.fetchWithRetry(
           `${this.config.serverUrl}/cache/bulk`,
@@ -428,7 +414,6 @@ const CacheServer = {
         if (response.ok) {
           const result = await response.json();
           totalCreated += result.created || Object.keys(items).length;
-          console.log('[CacheServer] Gespeichert:', result.created || Object.keys(items).length);
         } else {
           console.warn('[CacheServer] Speichern fehlgeschlagen:', response.status);
         }
@@ -530,7 +515,6 @@ const CacheServer = {
       
       if (response.ok) {
         const result = await response.json();
-        console.log(`[CacheServer] URL-Cache gelöscht: ${result.url_hash}, ${result.deleted} Einträge`);
         return result;
       }
       return { deleted: 0, error: 'Server-Fehler oder Endpunkt nicht verfügbar' };
@@ -664,8 +648,6 @@ const CacheServer = {
         }
       });
       
-      console.log(`[CacheServer] Domain ${domain}: ${domainUrls.length} URLs gefunden`);
-      
       if (domainUrls.length === 0) {
         return { deleted: 0 };
       }
@@ -677,7 +659,6 @@ const CacheServer = {
         totalDeleted += result.deleted || 0;
       }
       
-      console.log(`[CacheServer] Domain ${domain}: ${totalDeleted} Einträge gelöscht`);
       return { deleted: totalDeleted, urls: domainUrls.length };
       
     } catch (e) {

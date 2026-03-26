@@ -198,9 +198,6 @@ SWT.Storage = {
         await chrome.storage.local.remove(oldLocalKeys);
       }
 
-      console.log('[SWT Storage] Migration abgeschlossen:',
-        Object.keys(settings).length, 'Settings,',
-        Object.keys(data).length, 'Data-Keys');
       return true;
     } catch (e) {
       console.warn('[SWT Storage] Migration fehlgeschlagen:', e.message);

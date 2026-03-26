@@ -2,8 +2,6 @@
 // Modulares System für domainspezifische Anpassungen
 // Kann unabhängig erweitert werden
 
-console.log('[SWT DomainStrategies] Modul wird geladen...');
-
 const DomainStrategies = {
   
   // Registry aller Strategien
@@ -12,7 +10,6 @@ const DomainStrategies = {
   // Strategie registrieren
   register(name, strategy) {
     this.strategies[name] = strategy;
-    console.log('[SWT DomainStrategies] Strategie registriert:', name);
   },
 
   // Passende Strategie für URL finden
@@ -22,7 +19,6 @@ const DomainStrategies = {
       
       // SPEZIALFALL: Plain-Text prüfen (vor allen anderen)
       if (this.strategies.plaintext?.shouldActivate()) {
-        console.log('[SWT Strategy] Plain-Text erkannt');
         return this.strategies.plaintext;
       }
       
@@ -31,13 +27,11 @@ const DomainStrategies = {
         if (name === 'default' || name === 'plaintext') continue; // Skip
         
         if (strategy.matches && strategy.matches(hostname)) {
-          console.log('[SWT Strategy] Matched:', name, 'für', hostname);
           return strategy;
         }
       }
       
       // Fallback zu default
-      console.log('[SWT Strategy] Fallback zu default für', hostname);
       return this.strategies.default;
     } catch (e) {
       console.warn('[SWT Strategy] Fehler:', e);
@@ -51,8 +45,6 @@ const DomainStrategies = {
     return strategy && strategy !== this.strategies.default;
   }
 };
-
-console.log('[SWT DomainStrategies] DomainStrategies Objekt erstellt');
 
 // === Standard-Strategie ===
 DomainStrategies.register('default', {
@@ -405,14 +397,12 @@ DomainStrategies.register('plaintext', {
     
     // URL-basierte Erkennung
     if (url.match(/\.txt(\?|#|$)/i)) {
-      console.log('[SWT PlainText] Erkannt via URL:', url);
       return true;
     }
     
     // DOM-basierte Erkennung: nur ein <pre> im Body
     const body = document.body;
     if (body && body.children.length === 1 && body.children[0].tagName === 'PRE') {
-      console.log('[SWT PlainText] Erkannt via DOM: einzelnes <pre>');
       return true;
     }
     
@@ -476,7 +466,6 @@ DomainStrategies.register('plaintext', {
       chunks.push(currentChunk.trim());
     }
     
-    console.log('[SWT PlainText] Text aufgeteilt in', chunks.length, 'Chunks');
     return chunks;
   },
   
@@ -514,4 +503,3 @@ if (typeof window !== 'undefined') {
   window.DomainStrategies = DomainStrategies;
 }
 
-console.log('[SWT DomainStrategies] Modul komplett geladen. Registrierte Strategien:', Object.keys(DomainStrategies.strategies));

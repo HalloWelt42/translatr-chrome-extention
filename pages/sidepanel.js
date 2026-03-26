@@ -461,7 +461,6 @@ class SidePanelController {
 
     } catch (e) {
       // Bei Fehler: Buttons nicht ändern
-      console.log('updateActionStates Fehler:', e.message);
     }
   }
 
@@ -641,11 +640,9 @@ class SidePanelController {
   }
 
   async loadCache() {
-    console.log('[SWT Sidepanel] loadCache called');
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab) {
-        console.log('[SWT Sidepanel] No active tab');
         return;
       }
 
@@ -653,14 +650,12 @@ class SidePanelController {
       const settings = await chrome.storage.sync.get(['cacheServerMode', 'cacheServerEnabled']);
       const mode = settings.cacheServerMode || 'server-only';
       const serverEnabled = settings.cacheServerEnabled !== false;
-      console.log('[SWT Sidepanel] Mode:', mode, 'ServerEnabled:', serverEnabled);
       
       // Server-Cache-Stats holen
       let serverStats = null;
       if (serverEnabled && mode !== 'local-only') {
         try {
           serverStats = await chrome.runtime.sendMessage({ action: 'GET_CACHE_SERVER_STATS' });
-          console.log('[SWT Sidepanel] Server stats:', serverStats);
         } catch (e) {
           console.warn('Server stats error:', e);
         }
@@ -670,7 +665,6 @@ class SidePanelController {
       let pageInfo = null;
       try {
         pageInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_PAGE_INFO' });
-        console.log('[SWT Sidepanel] Page info:', pageInfo);
       } catch (e) {
         // still ignorieren
       }
@@ -680,7 +674,6 @@ class SidePanelController {
       if (mode !== 'server-only') {
         try {
           localResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_CACHE_INFO' });
-          console.log('[SWT Sidepanel] Local cache:', localResponse);
         } catch (e) {
           console.warn('Local cache error:', e);
         }
@@ -852,19 +845,17 @@ class SidePanelController {
         });
       });
       
-      // Infinite Scroll fuer Cache-Eintraege
-      const scrollContainer = document.getElementById('cacheList');
-      if (scrollContainer && this._allCacheEntries) {
+      // Infinite Scroll auf der Eintrags-Liste
+      const entryList = document.getElementById('cacheEntryList');
+      if (entryList && this._allCacheEntries && this._cacheOffset < this._allCacheEntries.length) {
         const loadMore = () => {
           if (this._cacheOffset >= this._allCacheEntries.length) return;
           const BATCH = 20;
           const next = this._allCacheEntries.slice(this._cacheOffset, this._cacheOffset + BATCH);
-          const list = document.getElementById('cacheEntryList');
-          if (!list) return;
           for (const [hash, entry] of next) {
             const orig = entry.original?.length > 35 ? entry.original.slice(0, 32) + '...' : entry.original;
             const trans = entry.translated?.length > 35 ? entry.translated.slice(0, 32) + '...' : entry.translated;
-            list.insertAdjacentHTML('beforeend', `
+            entryList.insertAdjacentHTML('beforeend', `
               <div class="cache-item server" data-hash="${hash}">
                 <div class="cache-item-info">
                   <div class="cache-item-text">${SWT.Utils.escapeHtml(orig)}</div>
@@ -878,31 +869,29 @@ class SidePanelController {
           }
           this._cacheOffset += BATCH;
         };
-        const entryList = document.getElementById('cacheEntryList');
-        if (entryList) {
-          entryList.addEventListener('scroll', () => {
-            const { scrollTop, scrollHeight, clientHeight } = entryList;
-            if (scrollTop + clientHeight >= scrollHeight - 50) {
-              loadMore();
-            }
-          });
-        }
+        entryList.addEventListener('scroll', () => {
+          const { scrollTop, scrollHeight, clientHeight } = entryList;
+          if (scrollTop + clientHeight >= scrollHeight - 80) {
+            loadMore();
+          }
+        });
       }
 
-      cacheList.querySelectorAll('.cache-item-btn.delete-server').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const item = btn.closest('.cache-item');
-          const hash = item.dataset.hash;
-          await chrome.runtime.sendMessage({ 
-            action: 'CACHE_SERVER_DELETE_BY_HASH', 
-            pageUrl: tab.url, 
-            hash 
-          });
-          item.remove();
-          SWT.Toast.show('Server-Cache-Eintrag gelöscht');
-          this.loadCache(); // Stats aktualisieren
+      // Event-Delegation für Server-Delete-Buttons (auch für nachgeladene Einträge)
+      cacheList.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.cache-item-btn.delete-server');
+        if (!btn) return;
+        e.stopPropagation();
+        const item = btn.closest('.cache-item');
+        const hash = item.dataset.hash;
+        await chrome.runtime.sendMessage({
+          action: 'CACHE_SERVER_DELETE_BY_HASH',
+          pageUrl: tab.url,
+          hash
         });
+        item.remove();
+        SWT.Toast.show('Server-Cache-Eintrag gelöscht');
+        this.loadCache();
       });
     } catch (e) {
       console.warn('Cache error:', e);

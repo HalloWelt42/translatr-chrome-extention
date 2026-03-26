@@ -17,11 +17,9 @@ window.SWT.ApiBadge = {
     if (apiType === 'lmstudio') {
       badge.classList.add('lmstudio');
       badgeText.textContent = 'LLM';
-      badge.title = 'LM Studio (Lokales LLM)';
     } else {
       badge.classList.remove('lmstudio');
       badgeText.textContent = 'Libre';
-      badge.title = 'LibreTranslate';
     }
   }
 };

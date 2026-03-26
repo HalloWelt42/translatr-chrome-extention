@@ -58,7 +58,7 @@ SWT.CacheServer = {
       } catch (e) {
         // Still bei Extension-Reload
         if (!String(e).includes('invalidated')) {
-          // console.warn('[CacheServer] Init:', e.message);
+          // still bei Extension-Reload
         }
         this._ready = true;
       }
@@ -212,9 +212,9 @@ SWT.CacheServer = {
         return null;
       }
       
-      // console.warn('[CacheServer] HTTP', response.status); return null;
+      return null;
     } catch (e) {
-      // console.warn('[CacheServer] Get-Fehler:', e.message);
+      // still
       return null;
     }
   },
@@ -248,9 +248,9 @@ SWT.CacheServer = {
         return { hash, created: true };
       }
       
-      // console.warn('[CacheServer] HTTP', response.status); return null;
+      return null;
     } catch (e) {
-      // console.warn('[CacheServer] Store-Fehler:', e.message);
+      // still
       return null;
     }
   },
@@ -267,7 +267,7 @@ SWT.CacheServer = {
       });
       return response.ok;
     } catch (e) {
-      // console.warn('[CacheServer] Delete-Fehler:', e.message);
+      // still
       return false;
     }
   },
@@ -343,9 +343,9 @@ SWT.CacheServer = {
         return { created: count };
       }
       
-      // console.warn('[CacheServer] HTTP', response.status); return null;
+      return null;
     } catch (e) {
-      // console.warn('[CacheServer] BulkStore-Fehler:', e.message);
+      // still
       return { created: 0, error: e.message };
     }
   },
@@ -367,7 +367,7 @@ SWT.CacheServer = {
       }
       return null;
     } catch (e) {
-      // console.warn('[CacheServer] Stats-Fehler:', e.message);
+      // still
       return null;
     }
   },

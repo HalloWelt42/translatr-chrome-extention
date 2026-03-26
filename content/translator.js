@@ -86,8 +86,6 @@ class SmartTranslator {
     const url = window.location.href;
     const hostname = new URL(url).hostname;
     
-    console.log('[SWT] generateCacheKey für:', hostname);
-    
     if (typeof DomainStrategies !== 'undefined') {
       const strategy = DomainStrategies.getStrategy(url);
       if (strategy && typeof strategy.generateCacheKey === 'function') {
@@ -106,10 +104,8 @@ class SmartTranslator {
   getActiveStrategy() {
     if (typeof DomainStrategies !== 'undefined') {
       const strategy = DomainStrategies.getStrategy(window.location.href);
-      console.log('[SWT] getActiveStrategy:', strategy?.name || 'default');
       return strategy;
     }
-    console.log('[SWT] DomainStrategies nicht verfügbar in getActiveStrategy!');
     return null;
   }
   
@@ -157,8 +153,6 @@ class SmartTranslator {
         if (window.swtInstance) {
           for (const [key, { newValue }] of Object.entries(changes)) {
             // Logging für Debug
-            console.log(`[SWT] Setting changed: ${key} =`, newValue, 'Type:', typeof newValue);
-            
             // Boolean-Settings explizit casten
             const booleanSettings = [
               'showSelectionIcon', 'enableTTS', 'showOriginalInTooltip',
@@ -183,7 +177,6 @@ class SmartTranslator {
       });
     }
 
-    console.log('[SWT] init() abgeschlossen');
     } catch (e) {
       if (!String(e).includes('invalidated')) console.warn('[SWT] init:', e.message);
     }
@@ -226,8 +219,6 @@ class SmartTranslator {
       }
     }, 2000);
     
-    
-    // console.log('[SWT] URL-Tracking aktiviert');
   }
   
   /**
@@ -265,13 +256,9 @@ class SmartTranslator {
     // Nochmal prüfen ob URL sich wirklich geändert hat
     if (url === this.lastUrl) return;
     
-    console.log(`[SWT] URL-Wechsel erkannt (${source}): ${this.lastUrl} → ${url}`);
-    console.log(`[SWT] isTranslated vor Reset: ${this.isTranslated}`);
-    
     // Bei SPA-Navigation mit aktiver Übersetzung: Seite neu laden
     // Verhindert "Schatten" von alten Übersetzungen
     if (this.isTranslated && !this._reloadPending) {
-      console.log('[SWT] Übersetzung aktiv bei URL-Wechsel → Seite wird neu geladen');
       this._reloadPending = true;
       window.location.reload();
       return;
@@ -285,19 +272,13 @@ class SmartTranslator {
     // Cache-Key für neue URL generieren
     this.pageUrl = url;
     this.cacheKey = this.generateCacheKey();
-    console.log(`[SWT] Neuer cacheKey: ${this.cacheKey?.substring(0, 30)}...`);
-    
     // Nach kurzer Verzögerung (DOM muss sich aufbauen) Cache prüfen
     setTimeout(() => {
-      console.log(`[SWT] Cache-Check für: ${window.location.href}`);
-      console.log(`[SWT] pageUrl gespeichert: ${this.pageUrl}`);
       this.checkForCachedTranslation();
     }, 300);
   }
   
   resetTranslationState() {
-    console.log('[SWT] resetTranslationState aufgerufen');
-    
     // Übersetzungs-State zurücksetzen
     this.isTranslated = false;
     this.translationMode = null;
@@ -339,7 +320,6 @@ class SmartTranslator {
         try {
           if (iframe.contentDocument) {
             removeWrappers(iframe.contentDocument);
-            console.log('[SWT] Wrapper aus iframe entfernt');
           }
         } catch (e) {
           // Cross-origin
@@ -347,7 +327,6 @@ class SmartTranslator {
       });
     }
     
-    console.log('[SWT] Translation-State zurückgesetzt');
   }
 
   async loadSettings() {
@@ -391,8 +370,6 @@ class SmartTranslator {
 
     // Array-Defaults
     
-    // Debug: Settings ausgeben
-    console.log('[SWT] Settings geladen - showSelectionIcon:', this.settings.showSelectionIcon);
   }
   // === Event Listeners ===
   setupEventListeners() {
@@ -735,7 +712,6 @@ class SmartTranslator {
 
       // Prüfe ob dies noch die aktuelle Anfrage ist
       if (requestId !== this.translationRequestId) {
-        // console.log('Veraltete Übersetzungsantwort ignoriert');
         return;
       }
 
@@ -802,13 +778,8 @@ class SmartTranslator {
 
   // === Seitenübersetzung ===
   async translatePage(mode = 'replace') {
-    console.log(`[SWT] translatePage aufgerufen - mode: ${mode}, isTranslated: ${this.isTranslated}`);
-    console.log(`[SWT] pageUrl: ${this.pageUrl}`);
-    console.log(`[SWT] window.location.href: ${window.location.href}`);
-    
     // WICHTIG: Prüfen ob URL sich geändert hat aber State nicht zurückgesetzt wurde
     if (this.pageUrl !== window.location.href) {
-      console.log('[SWT] URL Mismatch! Reset State...');
       this.resetTranslationState();
       this.pageUrl = window.location.href;
       this.cacheKey = this.generateCacheKey();
@@ -822,7 +793,6 @@ class SmartTranslator {
     
     // Continue-Mode: Übersetzung fortsetzen ohne Reset
     if (mode === 'continue') {
-      console.log('[SWT] Continue-Mode: Übersetze nur fehlende Texte');
     }
 
     const apiSettings = await chrome.storage.sync.get([
@@ -861,8 +831,6 @@ class SmartTranslator {
 
       const batchSettings = await chrome.storage.sync.get(['pageBatchSize', 'lmBatchSize']);
       const batchSize = Math.max(1, Math.min(50, batchSettings.pageBatchSize || batchSettings.lmBatchSize || 20));
-
-      console.log(`[SWT] Übersetzung gestartet: ${total} Text-Nodes (Batch-Größe: ${batchSize})`);
 
       // Batch-weise Übersetzung: Requests gleichzeitig abfeuern, Ergebnisse in Reihenfolge anwenden
       for (let i = 0; i < textNodes.length; i += batchSize) {

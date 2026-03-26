@@ -59,9 +59,9 @@ async function loadSettings() {
     const settings = await chrome.storage.sync.get([
       // API
       'apiType', 'serviceUrl', 'apiKey',
-      'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
-      // Sprachen
+      'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature', 'lmStudioMaxTokens',
       // Anzeige
+      'showSelectionIcon', 'enableTTS', 'showAlternatives',
       // Inhaltsfilter
       'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
       // Batch
@@ -69,7 +69,6 @@ async function loadSettings() {
       // Cache
       'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode',
       'cacheServerTimeout', 'autoLoadCache',
-      // Sonstiges
     ]);
 
     // Hilfsfunktion für sicheres Setzen
@@ -90,7 +89,11 @@ async function loadSettings() {
     setVal('lmStudioUrl', settings.lmStudioUrl);
     setVal('lmStudioTemperature', settings.lmStudioTemperature ?? 0.1);
     setVal('lmStudioMaxTokens', settings.lmStudioMaxTokens || 2000);
-    
+
+    // Gespeichertes Modell merken (wird nach dem Laden der Modellliste angewendet)
+    const modelEl = document.getElementById('lmStudioModel');
+    if (modelEl) modelEl.dataset.savedModel = settings.lmStudioModel || '';
+
     // Batch
     const pageBatchSize = settings.pageBatchSize || 20;
     setVal('pageBatchSize', pageBatchSize);
@@ -102,12 +105,9 @@ async function loadSettings() {
     const apiType = settings.apiType || 'libretranslate';
     setApiType(apiType);
     
-    // Custom Prompt anzeigen wenn ausgewählt
-    
-    // Sprachen
-    
     // UI Optionen
     setChecked('showSelectionIcon', settings.showSelectionIcon !== false);
+    setChecked('enableTTS', settings.enableTTS !== false);
     setChecked('showAlternatives', settings.showAlternatives !== false);
     
     // Inhaltsfilter
@@ -115,8 +115,6 @@ async function loadSettings() {
     setChecked('skipBlockquotes', settings.skipBlockquotes !== false);
     setChecked('fixInlineSpacing', settings.fixInlineSpacing !== false);
     
-    // Ausgeschlossene Domains
-
     // Cache-Server
     setChecked('cacheServerEnabled', settings.cacheServerEnabled !== false);
     setVal('cacheServerUrl', settings.cacheServerUrl);
@@ -125,7 +123,6 @@ async function loadSettings() {
     setChecked('autoLoadCache', settings.autoLoadCache || false);
     updateCacheServerUI(settings.cacheServerEnabled !== false);
     
-    console.log('Smart Translator: Settings loaded', settings.apiType);
   } catch (e) {
     console.warn('Smart Translator: Error loading settings', e);
   }
@@ -188,12 +185,6 @@ function setupEventListeners() {
     });
   }
   
-  // Kontext Auswahl
-  if (contextSelect) {
-    contextSelect.addEventListener('change', (e) => {
-    });
-  }
-  
   // Cache-Server Enabled Checkbox (v3.8)
   const cacheServerEnabledEl = document.getElementById('cacheServerEnabled');
   if (cacheServerEnabledEl) {
@@ -218,7 +209,6 @@ function setupEventListeners() {
     syncDownloadBtn.addEventListener('click', syncServerToLocal);
   }
   
-  console.log('Smart Translator: Event listeners initialized');
 }
 
 function setApiType(type) {
@@ -279,9 +269,14 @@ async function loadLMStudioModels() {
         const option = document.createElement('option');
         option.value = model.id;
         option.textContent = model.id.split('/').pop();
-        option.title = model.id;
         modelSelect.appendChild(option);
       });
+      // Gespeichertes Modell wiederherstellen (einmalig nach Seitenaufruf)
+      const savedModel = modelSelect.dataset.savedModel;
+      if (savedModel && Array.from(modelSelect.options).some(o => o.value === savedModel)) {
+        modelSelect.value = savedModel;
+        delete modelSelect.dataset.savedModel;
+      }
       SWT.Toast.show(`${data.data.length} Modell(e) geladen`, 'success');
     } else {
       modelSelect.innerHTML = '<option value="">Keine Modelle</option>';
@@ -343,8 +338,6 @@ async function saveSettings() {
       pageBatchSize: getInt('pageBatchSize', 20),
       useCacheFirst: getChecked('useCacheFirst', true),
       
-      // Sprachen
-      
       // UI Optionen
       showSelectionIcon: getChecked('showSelectionIcon', true),
       enableTTS: getChecked('enableTTS', true),
@@ -355,10 +348,7 @@ async function saveSettings() {
       skipBlockquotes: getChecked('skipBlockquotes', true),
       fixInlineSpacing: getChecked('fixInlineSpacing', true),
       
-      // Ausgeschlossene Domains
-      
-      
-      // Cache-Server (v3.8)
+      // Cache-Server
       cacheServerEnabled: getChecked('cacheServerEnabled', true),
       cacheServerUrl: getVal('cacheServerUrl', '').trim(),
       cacheServerMode: getVal('cacheServerMode', 'server-only'),
@@ -368,10 +358,8 @@ async function saveSettings() {
 
     await chrome.storage.sync.set(settings);
     SWT.Toast.show('Einstellungen gespeichert!');
-    console.log('Smart Translator: Settings saved', settings);
   } catch (error) {
     SWT.Toast.show('Fehler beim Speichern: ' + error.message, 'error');
-    console.warn('Smart Translator: Error saving settings', error);
   }
 }
 
@@ -495,15 +483,9 @@ async function testLMStudio(testInput) {
   if (!url) throw new Error('LM Studio URL fehlt');
   if (!model) throw new Error('Kein Modell ausgewählt');
   
-  // System-Prompt aufbauen
-  let systemPrompt = context === 'custom' && customPrompt 
-    ? customPrompt 
-    : CONTEXT_PROMPTS[context] || CONTEXT_PROMPTS.general;
-  
-  // Platzhalter ersetzen
-  systemPrompt = systemPrompt
-    .replace(/{source}/g, sourceLabel)
-    .replace(/{target}/g, targetLabel);
+  const systemPrompt = CONTEXT_PROMPTS.general
+    .replace(/{source}/g, 'Englisch')
+    .replace(/{target}/g, 'Deutsch');
 
   const response = await fetch(`${url}/v1/chat/completions`, {
     method: 'POST',
@@ -669,7 +651,6 @@ async function testCacheServer() {
     
     if (statsResponse.ok && statsEl) {
       const stats = await statsResponse.json();
-      console.log('[Options] Cache-Server Stats:', stats);
       statsEl.classList.remove('hidden');
       
       // Verschiedene mögliche Feldnamen unterstützen
@@ -756,7 +737,7 @@ style.textContent = `
     width: 14px;
     height: 14px;
     border: 2px solid #D1D5DB;
-    border-top-color: var(--md-primary);
+    border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }

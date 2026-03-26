@@ -1,8 +1,5 @@
 /* Options-spezifisches Layout */
 
-.text-muted { color: var(--text-secondary); }
-.hint { font-size: 13px; color: var(--text-secondary); }
-
 /* Status Feedback */
 .status {
   position: fixed;
@@ -41,19 +38,6 @@
   opacity: 1;
   transform: translateX(0);
 }
-
-/* Badges */
-.badge-warning {
-  font-size: 11px;
-  color: var(--yellow);
-  font-weight: normal;
-}
-
-/* Inputs */
-.input-sm { width: 80px; }
-.input-md { width: 100px; }
-.select-sm { width: 120px; }
-
 
 /* Layout */
 .container {
@@ -131,122 +115,6 @@ header p {
 /* Settings Panel */
 .settings-panel { display: none; }
 .settings-panel.active { display: block; }
-
-/* Domain List */
-.domain-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  min-height: 40px;
-  max-height: 200px;
-  overflow-y: auto;
-  padding: var(--spacing-sm);
-  background: var(--bg-base);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-}
-
-.domain-list:empty::before {
-  content: 'Keine Domains konfiguriert';
-  color: var(--text-muted);
-  font-style: italic;
-  font-size: 13px;
-}
-
-.domain-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--bg-card);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  border: 1px solid var(--border-subtle);
-}
-
-.domain-item span {
-  font-family: monospace;
-  color: var(--text);
-}
-
-.domain-item button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: var(--red-glow);
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  color: var(--red);
-  transition: all 0.2s;
-}
-
-.domain-item button:hover {
-  background: var(--red);
-  color: white;
-}
-
-.domain-item button svg {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-}
-
-/* Domain Tag */
-.domain-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--accent-glow);
-  color: var(--accent);
-  border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.domain-tag button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  color: inherit;
-  opacity: 0.7;
-}
-
-.domain-tag button:hover { opacity: 1; }
-
-.domain-tag button svg {
-  width: 14px;
-  height: 14px;
-  fill: currentColor;
-}
-
-.domain-input-row {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.domain-input-row input { flex: 1; }
-
-/* Shortcut List */
-.shortcut-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.shortcut-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-md);
-  background: var(--bg-base);
-  border-radius: var(--radius-sm);
-}
 
 /* Actions Footer */
 .actions {
@@ -344,49 +212,6 @@ footer a:hover { text-decoration: underline; }
 .stat-label {
   font-size: 11px;
   color: var(--text-secondary);
-}
-
-/* Cache Backend Selector */
-.cache-backend-option {
-  padding: var(--spacing-md);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-
-.cache-backend-option:hover {
-  border-color: var(--accent);
-  background: var(--bg-elevated);
-}
-
-.cache-backend-option.active {
-  border-color: var(--accent);
-  background: var(--accent-glow);
-}
-
-.cache-backend-option h3 {
-  margin: 0 0 4px;
-  font-size: 14px;
-}
-
-.cache-backend-option p {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-/* Sync Actions */
-.sync-actions h4 {
-  margin: 0 0 4px 0;
-  font-size: 13px;
-  color: var(--text);
-}
-
-.btn-group {
-  display: flex;
-  gap: var(--spacing-sm);
 }
 
 /* Range Slider */

@@ -29,7 +29,6 @@ class TranslatorBackground {
       if (area === 'sync' && (changes.pageBatchSize || changes.lmBatchSize)) {
         const newSize = changes.pageBatchSize?.newValue || changes.lmBatchSize?.newValue || 20;
         this.translationQueue.maxBatchSize = Math.max(1, Math.min(50, newSize));
-        console.log(`[Queue] Batch-Größe geändert auf ${this.translationQueue.maxBatchSize}`);
       }
     });
   }
@@ -39,7 +38,6 @@ class TranslatorBackground {
       const settings = await chrome.storage.sync.get(['pageBatchSize', 'lmBatchSize']);
       const batchSize = settings.pageBatchSize || settings.lmBatchSize || 20;
       this.translationQueue.maxBatchSize = Math.max(1, Math.min(50, batchSize));
-      console.log(`[Queue] Batch-Größe geladen: ${this.translationQueue.maxBatchSize}`);
     } catch (e) {
       console.warn('[Queue] Settings-Laden fehlgeschlagen:', e);
     }
@@ -119,7 +117,6 @@ class TranslatorBackground {
       const oldLocalKeys = Object.keys(oldLocal).filter(k => k !== 'swt-data');
       if (oldLocalKeys.length > 0) await chrome.storage.local.remove(oldLocalKeys);
 
-      console.log('[SWT] Storage-Migration:', Object.keys(settings).length, 'Settings migriert');
     } catch (e) {
       console.warn('[SWT] Storage-Migration fehlgeschlagen:', e.message);
     }
@@ -377,9 +374,7 @@ class TranslatorBackground {
 
         // === Cache Server Proxy (für Mixed Content) ===
         case 'CACHE_SERVER_BULK_GET':
-          console.log('[Background] cacheServerBulkGet:', request.hashes?.length, 'hashes');
           const bulkGetResult = await CacheServer.bulkGet(request.hashes, request.pageUrl);
-          console.log('[Background] bulkGet result:', Object.keys(bulkGetResult?.translations || {}).length, 'translations');
           sendResponse({ success: true, result: bulkGetResult });
           break;
 
@@ -693,8 +688,6 @@ class TranslatorBackground {
     const texts = entries.map(entry => entry.text);
     const { source, target, pageUrl, langPair, settings } = entries[0];
     
-    console.log(`[Queue] Verarbeite Batch: ${texts.length} Texte (Index ${entries[0].index} bis ${entries[entries.length-1].index})`);
-    
     // Sammle Übersetzungen für Bulk-Cache-Speicherung
     const toCache = [];
     
@@ -704,8 +697,6 @@ class TranslatorBackground {
       
       if (result.success && result.items && result.items.length === texts.length) {
         // INDEX-BASIERTE Zuordnung: result.items[i] gehört zu entries[i]
-        console.log(`[Queue] Batch erfolgreich: ${result.items.length} Ergebnisse in Reihenfolge`);
-        
         for (let i = 0; i < entries.length; i++) {
           const entry = entries[i];
           const resultItem = result.items[i];
@@ -738,8 +729,6 @@ class TranslatorBackground {
         
       } else if (result.success && result.items) {
         // Fallback: Anzahl stimmt nicht - Text-basiertes Matching als Backup
-        console.warn(`[Queue] Batch-Größe mismatch: erwartet ${texts.length}, erhalten ${result.items.length} - Fallback auf Text-Matching`);
-        
         const resultMap = new Map();
         result.items.forEach(item => {
           resultMap.set(item.original.trim(), item.translation);
@@ -771,8 +760,6 @@ class TranslatorBackground {
         
       } else {
         // Batch fehlgeschlagen - einzeln übersetzen (in Reihenfolge!)
-        console.warn('[Queue] Batch fehlgeschlagen, Fallback auf sequentielle Einzelübersetzung');
-        
         for (const entry of entries) {
           try {
             const singleResult = await this.translateWithLMStudio(entry.text, source, target, settings);
@@ -845,17 +832,9 @@ class TranslatorBackground {
           hashTextMap.set(hash, text);
         }
         
-        // Debug: Ersten Hash loggen
-        if (texts.length > 0) {
-          const firstHash = textHashMap.get(texts[0]);
-          console.log(`[translateBatch] Erster Hash: ${firstHash} für "${texts[0].substring(0, 40)}..."`);
-        }
-        
         // Bulk-Abfrage - WICHTIG: pageUrl für url_hash übergeben!
         const hashes = Array.from(textHashMap.values());
         const cacheResult = await CacheServer.bulkGet(hashes, pageUrl);
-        
-        console.log(`[translateBatch] Server returned: ${Object.keys(cacheResult.translations || {}).length} translations`);
         
         // Gecachte Ergebnisse extrahieren
         for (const [hash, cached] of Object.entries(cacheResult.translations || {})) {
@@ -873,7 +852,6 @@ class TranslatorBackground {
         if (cachedResults.length > 0) {
           const cachedTexts = new Set(cachedResults.map(r => r.original));
           textsToTranslate = texts.filter(t => !cachedTexts.has(t));
-          // console.log(`[CacheServer] Batch: ${cachedResults.length} aus Cache, ${textsToTranslate.length} zu übersetzen`);
         }
       } catch (e) {
         console.warn('[CacheServer] Batch-Cache-Check fehlgeschlagen:', e);
@@ -882,7 +860,6 @@ class TranslatorBackground {
 
     // Cache-Only Modus: Nur gecachte Ergebnisse zurückgeben (keine Übersetzung)
     if (cacheOnly) {
-      console.log(`[Background] cacheOnly: ${cachedResults.length} aus Cache`);
       return {
         success: true,
         items: cachedResults,
@@ -925,8 +902,6 @@ class TranslatorBackground {
 
       // 3. Neue Übersetzungen im Cache speichern (nur wenn original ≠ translated)
       if (translatedResults.length > 0 && pageUrl && CacheServer.config.enabled && CacheServer.config.mode !== 'local-only') {
-        console.log('[Background] Speichere Übersetzungen, pageUrl:', pageUrl);
-        
         const toStore = translatedResults
           .filter(r => r.original.trim() !== r.translation.trim()) // Keine identischen
           .map(r => ({
@@ -936,7 +911,6 @@ class TranslatorBackground {
           }));
         
         if (toStore.length > 0) {
-          console.log('[Background] toStore:', toStore.length, 'Items, erster Text:', toStore[0].original.substring(0, 50));
           CacheServer.bulkStore(toStore, langPair).catch((e) => console.warn('[Background] bulkStore Fehler:', e));
         }
       }
@@ -1078,8 +1052,6 @@ class TranslatorBackground {
         });
         
         if (receivedItems.length !== chunk.length) {
-          console.warn(`[Batch] WARNUNG: Erwartet ${chunk.length} Übersetzungen, erhalten: ${receivedItems.length}`);
-          
           // Finde fehlende Texte (mit normalisiertem Vergleich)
           // Vergleiche mit Platzhalter-Versionen, da LLM diese zurückgibt
           const receivedNormalized = new Set(receivedItems.map(item => normalizeText(item.original)));
@@ -1089,11 +1061,9 @@ class TranslatorBackground {
           
           if (missingIndices.length > 0) {
             const missingTexts = missingIndices.map(idx => chunk[idx]);
-            console.log(`[Batch] Fehlende Texte (${missingTexts.length}):`, missingTexts.map(t => t.substring(0, 50)));
-            
+
             // Retry: Fehlende Texte einzeln übersetzen (Original ohne Platzhalter)
             for (const missingText of missingTexts) {
-              console.log(`[Batch] Retry für fehlenden Text:`, missingText.substring(0, 50));
               const retryResult = await this.translateWithLMStudio(missingText, source, target, settings);
               if (retryResult.success) {
                 receivedItems.push({
@@ -1103,7 +1073,6 @@ class TranslatorBackground {
                 totalTokensUsed += retryResult.tokens || 0;
               } else {
                 // Fallback: Original Text verwenden
-                console.warn(`[Batch] Retry fehlgeschlagen für:`, missingText.substring(0, 50));
                 receivedItems.push({
                   original: missingText.replace(/\n/g, NEWLINE_PLACEHOLDER),
                   translation: missingText
@@ -1203,7 +1172,6 @@ class TranslatorBackground {
       chunks.push(currentChunk);
     }
     
-    // console.log(`[Batch] ${texts.length} Texte → ${chunks.length} Chunks (max ${maxBatchTokens} Tokens)`);
     return chunks;
   }
 

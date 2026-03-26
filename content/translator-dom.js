@@ -124,136 +124,6 @@
   };
 
   /**
-   * DIAGNOSE: Warum wird ein bestimmter Text nicht gefunden?
-   * Aufruf in Console: window.swtDiagnose("Previously, each member")
-   */
-  window.swtDiagnose = function(searchText) {
-    console.log('=== SWT Diagnose für:', searchText.substring(0, 50), '===');
-    
-    // Alle Text-Nodes durchsuchen
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT,
-      null
-    );
-    
-    let found = false;
-    let node;
-    while (node = walker.nextNode()) {
-      if (node.textContent.includes(searchText.substring(0, 30))) {
-        found = true;
-        const parent = node.parentElement;
-        console.log('--- Gefunden! ---');
-        console.log('Text:', node.textContent.substring(0, 100));
-        console.log('Parent-Tag:', parent?.tagName);
-        console.log('Parent-Classes:', parent?.className);
-        console.log('Parent-ID:', parent?.id);
-        
-        // Prüfe alle Ausschluss-Gründe
-        const reasons = [];
-        
-        if (!parent) {
-          reasons.push('Kein Parent-Element');
-        } else {
-          const tag = parent.tagName.toLowerCase();
-          
-          // Immer ausgeschlossen
-          if (['script', 'style', 'noscript', 'textarea', 'input', 'svg'].includes(tag)) {
-            reasons.push(`Tag "${tag}" ist immer ausgeschlossen`);
-          }
-          
-          // Code-Tags
-          if (['code', 'pre', 'kbd', 'samp', 'var'].includes(tag)) {
-            reasons.push(`Tag "${tag}" ist Code-Element`);
-          }
-          
-          // Code-Container
-          const codeContainer = parent.closest('code, pre, kbd, samp');
-          if (codeContainer) {
-            reasons.push(`In Code-Container: ${codeContainer.tagName}`);
-          }
-          
-          // Code-Klassen
-          const codeClasses = [
-            'highlight', 'hljs', 'prism', 'codehilite', 'syntaxhighlighter',
-            'code-block', 'codeblock', 'sourceCode', 'source-code',
-            'language-', 'lang-', 'brush:', 'prettyprint',
-            'monaco-editor', 'ace_editor', 'CodeMirror'
-          ];
-          
-          for (const cls of codeClasses) {
-            if (parent.className?.includes?.(cls)) {
-              reasons.push(`Parent hat Code-Klasse: "${cls}" in "${parent.className}"`);
-            }
-            const ancestor = parent.closest(`[class*="${cls}"]`);
-            if (ancestor) {
-              reasons.push(`Vorfahre hat Code-Klasse: "${cls}" in "${ancestor.className}"`);
-            }
-          }
-          
-          // Data-Attribute
-          const dataLang = parent.closest('[data-language], [data-lang], [data-code]');
-          if (dataLang) {
-            reasons.push(`Vorfahre hat data-lang Attribut: ${dataLang.tagName} - data-language="${dataLang.dataset.language}" data-lang="${dataLang.dataset.lang}" data-code="${dataLang.dataset.code}"`);
-          }
-          
-          // Blockquote
-          if (tag === 'blockquote' || parent.closest('blockquote')) {
-            reasons.push('In blockquote (wird übersprungen wenn skipQuotes aktiv)');
-          }
-          
-          // UI-Elemente
-          if (parent.closest('.swt-ui')) {
-            reasons.push('In .swt-ui Container');
-          }
-          if (parent.closest('.swt-translated-text')) {
-            reasons.push('Bereits als übersetzt markiert (.swt-translated-text)');
-          }
-          
-          // Text-Filter
-          const text = node.textContent.trim();
-          if (text.length < 3) {
-            reasons.push(`Text zu kurz: ${text.length} Zeichen`);
-          }
-          if (/^[\s\d\W]*$/.test(text)) {
-            reasons.push('Text enthält nur Whitespace/Zahlen/Sonderzeichen');
-          }
-        }
-        
-        if (reasons.length > 0) {
-          console.log('[X] AUSSCHLUSS-GRÜNDE:');
-          reasons.forEach(r => console.log('  -', r));
-        } else {
-          console.log('[OK] Sollte gefunden werden! (kein Ausschlussgrund)');
-        }
-        
-        // Zeige DOM-Pfad
-        let path = [];
-        let el = parent;
-        while (el && el !== document.body) {
-          let selector = el.tagName.toLowerCase();
-          if (el.id) selector += '#' + el.id;
-          if (el.className) selector += '.' + el.className.split(' ').join('.');
-          path.unshift(selector);
-          el = el.parentElement;
-        }
-        console.log('DOM-Pfad:', path.join(' > '));
-        console.log('---');
-      }
-    }
-    
-    if (!found) {
-      console.log('[!] Text nicht im DOM gefunden!');
-      console.log('Mögliche Gründe:');
-      console.log('  - Text ist in einem iframe');
-      console.log('  - Text wurde dynamisch geladen (nach dem Scan)');
-      console.log('  - Unsichtbare Zeichen im Suchtext');
-    }
-  };
-  
-  console.log('[SWT] Diagnose verfügbar: window.swtDiagnose("Text...")');
-
-  /**
    * Übersetzbare Text-Nodes finden
    */
   SmartTranslator.prototype.findTranslatableTextNodes = function() {
@@ -261,8 +131,6 @@
     const skipQuotes = this.settings.skipBlockquotes !== false;
     
     const documents = [document];
-    
-    console.log('[SWT] Durchsuche', documents.length, 'Dokumente');
     
     const nodes = [];
     
@@ -339,10 +207,8 @@
         nodes.push(node);
         docNodes++;
       }
-      console.log('[SWT] Gefundene Nodes in Dokument:', docNodes, doc === document ? '(main)' : '(iframe)');
     });
-    
-    console.log('[SWT] Gesamt gefundene Text-Nodes:', nodes.length);
+
     return nodes;
   };
   

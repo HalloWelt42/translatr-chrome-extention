@@ -58,7 +58,10 @@
 #translateBtn { width: 100%; }
 #resultActions { display: none; }
 
-body { min-height: 100vh; }
+body {
+  height: 100vh;
+  overflow: hidden;
+}
 
 .container {
   display: flex;
@@ -570,12 +573,11 @@ body { min-height: 100vh; }
   border-bottom: 1px solid var(--border-subtle);
 }
 
-/* Nur die Item-Liste scrollt, Rest bleibt fest */
+/* Cache-Einträge scrollen innerhalb des verfügbaren Platzes */
 #cacheEntryList {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 450px);
-  
+  min-height: 0;
 }
 
 /* ALLE Tonnen-Icons rot */

@@ -22,15 +22,8 @@
   SmartTranslator.prototype.checkForCachedTranslation = async function() {
     if (!chrome.runtime?.id) return; // Extension-Kontext ungültig
     try {
-    console.log('[SWT] checkForCachedTranslation gestartet...');
-    console.log('[SWT] Current URL:', window.location.href);
-    console.log('[SWT] this.pageUrl:', this.pageUrl);
-    console.log('[SWT] this.isTranslated:', this.isTranslated);
-    console.log('[SWT] Settings - sourceLang:', this.settings.sourceLang, 'targetLang:', this.settings.targetLang);
-    
     // WICHTIG: URL-Konsistenz prüfen
     if (this.pageUrl !== window.location.href) {
-      console.log('[SWT] URL Mismatch in checkForCachedTranslation! Aktualisiere...');
       this.pageUrl = window.location.href;
       this.cacheKey = this.generateCacheKey();
     }
@@ -39,8 +32,6 @@
     if (SWT.Cache?.waitForReady) {
       await SWT.Cache.waitForReady();
     }
-    console.log('[SWT] Cache-API ready, mode:', SWT.Cache?.config?.mode);
-    
     let sampleTexts = [];
     const isPlainText = typeof this.detectPlainTextPage === 'function' && this.detectPlainTextPage();
 
@@ -62,11 +53,9 @@
       // Retry nach 500ms -- Seite war evtl. noch nicht fertig gerendert
       if (!this._cacheCheckRetried) {
         this._cacheCheckRetried = true;
-        console.log('[SWT] Keine Texte gefunden, Retry in 500ms');
         await new Promise(r => setTimeout(r, 500));
         return this.checkForCachedTranslation();
       }
-      console.log('[SWT] Keine Sample-Texte nach Retry');
       this.setCacheAvailable(false);
       return;
     }
@@ -81,8 +70,6 @@
       { sourceLang: this.settings.sourceLang, targetLang: this.settings.targetLang },
       sampleTexts
     );
-    
-    console.log('[SWT] Cache check result:', cacheResult);
     
     if (cacheResult.hasCache) {
       // Cache-Status setzen
@@ -179,14 +166,9 @@
    * Nutzt die abstrakte Cache-API
    */
   SmartTranslator.prototype.loadCachedTranslation = async function() {
-    console.log('[SWT Cache] loadCachedTranslation gestartet');
-    console.log('[SWT Cache] window.location.href:', window.location.href);
-    console.log('[SWT Cache] this.pageUrl:', this.pageUrl);
-    
     // URL-Konsistenz prüfen
     const currentUrl = window.location.href;
     if (this.pageUrl !== currentUrl) {
-      console.log('[SWT Cache] URL Mismatch! Abbruch.');
       return false;
     }
     
@@ -196,12 +178,8 @@
       const allTexts = textNodes.map(n => n.textContent.trim()).filter(t => t.length >= 2);
       
       if (allTexts.length === 0) {
-        console.log('[SWT Cache] Keine Texte gefunden');
         return false;
       }
-      
-      console.log('[SWT Cache] Lade Übersetzungen für', allTexts.length, 'Texte');
-      console.log('[SWT Cache] Erster Text:', allTexts[0]?.substring(0, 50));
       
       // Übersetzungen aus Cache laden (lokal oder Server)
       const result = await SWT.Cache.loadTranslations(
@@ -212,12 +190,9 @@
       );
       
       if (result.translations.size === 0) {
-        console.log('[SWT Cache] Keine Übersetzungen im Cache gefunden');
         this.showNotification('Kein Cache gefunden', 'info');
         return false;
       }
-      
-      console.log('[SWT Cache] Cache enthält', result.translations.size, 'Übersetzungen');
       
       // Übersetzungen anwenden
       let applied = 0;
@@ -378,7 +353,6 @@
       const queriedCount = Math.min(totalTexts.length, 500);
       const progress = Math.round((cacheHits / queriedCount) * 100);
       
-      console.log(`[SWT] Cache-Progress: ${cacheHits}/${queriedCount} = ${progress}%`);
       return progress;
       
     } catch (e) {
@@ -414,8 +388,7 @@
     };
     
     const results = await SWT.Cache.clearCache(options);
-    console.log('[SWT] Cache gelöscht:', results);
-    
+
     // Cache-Status zurücksetzen
     this.setCacheAvailable(false);
     
