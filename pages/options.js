@@ -231,69 +231,77 @@ function setApiType(type) {
 }
 
 
+// Modell-Select Rendering -- getrennt von Datenlogik
+function setModelSelectState(select, state, models = []) {
+  const states = {
+    loading: '<option value="">Lade...</option>',
+    empty:   '<option value="">Keine Modelle</option>',
+    error:   '<option value="">Nicht erreichbar</option>'
+  };
+
+  if (states[state]) {
+    select.innerHTML = states[state];
+    return;
+  }
+
+  // state === 'loaded'
+  select.innerHTML = '';
+  for (const model of models) {
+    const option = document.createElement('option');
+    option.value = model.id;
+    option.textContent = model.id.split('/').pop();
+    select.appendChild(option);
+  }
+
+  // Gespeichertes Modell wiederherstellen (einmalig nach Seitenaufruf)
+  const saved = select.dataset.savedModel;
+  if (saved && Array.from(select.options).some(o => o.value === saved)) {
+    select.value = saved;
+    delete select.dataset.savedModel;
+  }
+}
+
+function setRefreshBtnState(btn, loading) {
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<div class="spinner-small"></div>' : SWT.Icons.svg('sync');
+}
+
 async function loadLMStudioModels() {
   const urlEl = document.getElementById('lmStudioUrl');
   const modelSelect = document.getElementById('lmStudioModel');
   const refreshBtn = document.getElementById('refreshModelsBtn');
-  
   const url = urlEl ? urlEl.value.trim() : '';
-  
-  if (!url || !modelSelect) {
-    return;
-  }
-  
-  // Loading-State
-  if (refreshBtn) {
-    refreshBtn.disabled = true;
-    refreshBtn.innerHTML = '<div class="spinner-small"></div>';
-  }
-  modelSelect.innerHTML = '<option value="">Lade...</option>';
-  
+
+  if (!url || !modelSelect) return;
+
+  setRefreshBtnState(refreshBtn, true);
+  setModelSelectState(modelSelect, 'loading');
+
   try {
-    // Timeout nach 5 Sekunden
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const response = await fetch(`${url}/v1/models`, {
-      signal: controller.signal
-    });
+    const response = await fetch(`${url}/v1/models`, { signal: controller.signal });
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
     const data = await response.json();
-    modelSelect.innerHTML = '';
-    
+
     if (data.data && data.data.length > 0) {
-      data.data.forEach(model => {
-        const option = document.createElement('option');
-        option.value = model.id;
-        option.textContent = model.id.split('/').pop();
-        modelSelect.appendChild(option);
-      });
-      // Gespeichertes Modell wiederherstellen (einmalig nach Seitenaufruf)
-      const savedModel = modelSelect.dataset.savedModel;
-      if (savedModel && Array.from(modelSelect.options).some(o => o.value === savedModel)) {
-        modelSelect.value = savedModel;
-        delete modelSelect.dataset.savedModel;
-      }
+      setModelSelectState(modelSelect, 'loaded', data.data);
       SWT.Toast.show(`${data.data.length} Modell(e) geladen`, 'success');
     } else {
-      modelSelect.innerHTML = '<option value="">Keine Modelle</option>';
+      setModelSelectState(modelSelect, 'empty');
     }
   } catch (error) {
     console.warn('LM Studio:', error);
-    modelSelect.innerHTML = '<option value="">Nicht erreichbar</option>';
+    setModelSelectState(modelSelect, 'error');
     if (error.name === 'AbortError') {
       SWT.Toast.show('Timeout - Server nicht erreichbar');
     }
   }
-  
-  // Loading-State zurücksetzen
-  if (refreshBtn) {
-    refreshBtn.disabled = false;
-    refreshBtn.innerHTML = SWT.Icons.svg('sync');
-  }
+
+  setRefreshBtnState(refreshBtn, false);
 }
 
 async function saveSettings() {

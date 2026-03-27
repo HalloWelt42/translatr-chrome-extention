@@ -1,6 +1,99 @@
 // Side Panel
 // Refactored: Nutzt SWT.Utils, SWT.Toast, SWT.ApiBadge
 
+// ==========================================================================
+// PageState: Reine Logik, leitet Aktionszustaende aus Seitendaten ab.
+// Kein DOM, kein Rendering -- nur Daten rein, Zustand raus.
+// ==========================================================================
+const PageState = {
+  // Hauptzustand der Seite
+  derive(response) {
+    if (!response) return 'unavailable';
+    if (response.isTranslated) return 'translated';
+    if (response.translatedCount > 0 || response.remaining > 0) return 'partial';
+    return 'idle';
+  },
+
+  // Zustand aller Aktions-Buttons ableiten
+  deriveActions(response) {
+    const state = this.derive(response);
+    const hasCache = response?.cacheAvailable || response?.serverCacheCount > 0;
+
+    return {
+      translate: {
+        enabled: state !== 'unavailable',
+        active: state === 'translated'
+      },
+      continue: {
+        enabled: state === 'partial',
+        badge: state === 'translated'
+          ? { text: response.translatedCount || '', type: 'complete' }
+          : state === 'partial'
+            ? { text: response.remaining, type: 'partial' }
+            : { text: '', type: 'empty' }
+      },
+      restore: {
+        enabled: state === 'translated' || state === 'partial'
+      },
+      loadCache: {
+        enabled: state === 'idle' && hasCache
+      }
+    };
+  }
+};
+
+// ==========================================================================
+// ActionRenderer: Wendet Zustandsobjekte auf DOM-Elemente an.
+// Keine Logik -- nur Zustand rein, DOM-Aenderungen raus.
+// ==========================================================================
+const ActionRenderer = {
+  _els: null,
+
+  init() {
+    this._els = {
+      translate: document.getElementById('translatePage'),
+      continue: document.getElementById('continuePage'),
+      restore: document.getElementById('restorePage'),
+      loadCache: document.getElementById('loadCache'),
+      badge: document.getElementById('cacheProgress')
+    };
+  },
+
+  apply(actions) {
+    this._setButton(this._els.translate, actions.translate);
+    this._setButton(this._els.continue, actions.continue);
+    this._setButton(this._els.restore, actions.restore);
+    this._setButton(this._els.loadCache, actions.loadCache);
+    this._setBadge(actions.continue.badge);
+  },
+
+  disableAll() {
+    for (const [key, el] of Object.entries(this._els)) {
+      if (key === 'badge') continue;
+      el.classList.add('disabled');
+      el.classList.remove('active');
+      const svg = el.querySelector('svg');
+      if (svg) svg.style.fill = '';
+    }
+    this._setBadge({ text: '–', type: 'empty' });
+  },
+
+  _setButton(el, state) {
+    el.classList.toggle('disabled', !state.enabled);
+    el.classList.toggle('active', !!state.active);
+    const svg = el.querySelector('svg');
+    if (svg) svg.style.fill = state.active ? 'var(--green)' : '';
+  },
+
+  _setBadge(badge) {
+    const el = this._els.badge;
+    el.textContent = badge.text || '';
+    el.className = `action-badge ${badge.type}`;
+  }
+};
+
+// ==========================================================================
+
 class SidePanelController {
   constructor() {
     this.currentTranslation = '';
@@ -109,11 +202,11 @@ class SidePanelController {
       });
     });
     
-    // Auto-Refresh alle 2 Sekunden für aktive Daten-Tabs
+    // Auto-Refresh: Stats live aktualisieren, Cache-Liste nie (nur Stats-Zahlen)
     this.activeTab = 'translate';
     setInterval(() => {
       if (this.activeTab === 'history') this.loadHistory();
-      if (this.activeTab === 'cache') this.loadCache();
+      if (this.activeTab === 'cache') this.refreshCacheStats();
       if (this.activeTab === 'stats') this.loadStats();
     }, 2000);
   }
@@ -168,37 +261,24 @@ class SidePanelController {
       SWT.Toast.show('Kopiert!');
     });
 
-    document.getElementById('speakResult').addEventListener('click', (e) => {
-      const btn = e.currentTarget;
-      
-      // Wenn gerade spricht → stoppen
+    const speakBtn = document.getElementById('speakResult');
+    const setSpeakState = (mode) => {
+      const icons = { idle: 'volumeUp', speaking: 'stop' };
+      const labels = { idle: 'Vorlesen', speaking: 'Stoppen' };
+      speakBtn.innerHTML = `${SWT.Icons.svg(icons[mode])} ${labels[mode]}`;
+    };
+
+    speakBtn.addEventListener('click', () => {
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
-        btn.innerHTML = `
-          ${SWT.Icons.svg('volumeUp')}
-          Vorlesen
-        `;
+        setSpeakState('idle');
         return;
       }
-      
-      // Button auf Stop ändern
-      btn.innerHTML = `
-        ${SWT.Icons.svg('stop')}
-        Stoppen
-      `;
-      
+      setSpeakState('speaking');
       const targetLang = document.getElementById('targetLang').value;
       const utterance = new SpeechSynthesisUtterance(this.currentTranslation);
       utterance.lang = SWT.Utils.getLangCode(targetLang);
-      
-      // Wenn fertig, Button zurücksetzen
-      utterance.onend = () => {
-        btn.innerHTML = `
-          ${SWT.Icons.svg('volumeUp')}
-          Vorlesen
-        `;
-      };
-      
+      utterance.onend = () => setSpeakState('idle');
       speechSynthesis.speak(utterance);
     });
 
@@ -231,28 +311,31 @@ class SidePanelController {
     const sourceLang = document.getElementById('sourceLang').value;
     const targetLang = document.getElementById('targetLang').value;
 
-    translateBtn.disabled = true;
-    translateBtn.innerHTML = '<div class="spinner"></div> Übersetze...';
-    
-    // Context Notes ausblenden während der Übersetzung
+    const setTranslateLoading = (loading) => {
+      translateBtn.disabled = loading;
+      translateBtn.innerHTML = loading
+        ? '<div class="spinner"></div> Übersetze...'
+        : `${SWT.Icons.svg('translate')} Übersetzen`;
+    };
+
+    const showResult = (text, isError) => {
+      resultBox.classList.toggle('error', isError);
+      resultBox.textContent = text;
+      if (!isError) resultActions.style.display = 'flex';
+    };
+
+    setTranslateLoading(true);
     if (contextNotes) contextNotes.classList.remove('show');
 
     try {
       const result = await chrome.runtime.sendMessage({
-        action: 'TRANSLATE',
-        text: sourceText,
-        source: sourceLang,
-        target: targetLang
+        action: 'TRANSLATE', text: sourceText, source: sourceLang, target: targetLang
       });
 
-      resultBox.classList.remove('error');
-
       if (result.success) {
-        resultBox.textContent = result.translatedText;
+        showResult(result.translatedText, false);
         this.currentTranslation = result.translatedText;
-        resultActions.style.display = 'flex';
 
-        // Kontext-Notizen anzeigen (nur bei LM Studio)
         if (result.contextNotes && contextNotes && contextNotesText) {
           contextNotesText.textContent = result.contextNotes;
           contextNotes.classList.add('show');
@@ -260,29 +343,18 @@ class SidePanelController {
 
         await chrome.runtime.sendMessage({
           action: 'ADD_TO_HISTORY',
-          entry: {
-            original: sourceText,
-            translated: result.translatedText,
-            source: sourceLang,
-            target: targetLang,
-            timestamp: Date.now(),
-            apiType: result.apiType
-          }
+          entry: { original: sourceText, translated: result.translatedText,
+                   source: sourceLang, target: targetLang,
+                   timestamp: Date.now(), apiType: result.apiType }
         });
       } else {
-        resultBox.textContent = 'Fehler: ' + (result.error || 'Unbekannt');
-        resultBox.classList.add('error');
+        showResult('Fehler: ' + (result.error || 'Unbekannt'), true);
       }
     } catch (error) {
-      resultBox.textContent = 'Verbindungsfehler: ' + error.message;
-      resultBox.classList.add('error');
+      showResult('Verbindungsfehler: ' + error.message, true);
     }
 
-    translateBtn.disabled = false;
-    translateBtn.innerHTML = `
-      ${SWT.Icons.svg('translate')}
-      Übersetzen
-    `;
+    setTranslateLoading(false);
   }
 
   async saveLanguages() {
@@ -292,66 +364,40 @@ class SidePanelController {
   }
 
   setupActions() {
-    const translateBtn = document.getElementById('translatePage');
-    const continueBtn = document.getElementById('continuePage');
-    const restoreBtn = document.getElementById('restorePage');
-    const loadCacheBtn = document.getElementById('loadCache');
+    ActionRenderer.init();
 
-    translateBtn.addEventListener('click', async () => {
-      if (translateBtn.classList.contains('disabled')) return;
-      await this.sendPageAction('TRANSLATE_PAGE', { mode: 'replace' });
-      setTimeout(() => this.updateActionStates(), 500);
-    });
+    const actions = {
+      translatePage:  { action: 'TRANSLATE_PAGE', data: { mode: 'replace' }, delays: [500] },
+      continuePage:   { action: 'TRANSLATE_PAGE', data: { mode: 'continue' }, delays: [500] },
+      restorePage:    { action: 'RESTORE_PAGE', data: {}, delays: [500] },
+      loadCache:      { action: 'LOAD_CACHED_TRANSLATION', data: {}, delays: [2000, 5000] }
+    };
 
-    continueBtn.addEventListener('click', async () => {
-      if (continueBtn.classList.contains('disabled')) return;
-      await this.sendPageAction('TRANSLATE_PAGE', { mode: 'continue' });
-      setTimeout(() => this.updateActionStates(), 500);
-    });
-
-    restoreBtn.addEventListener('click', async () => {
-      if (restoreBtn.classList.contains('disabled')) return;
-      await this.sendPageAction('RESTORE_PAGE');
-      setTimeout(() => this.updateActionStates(), 500);
-    });
-
-    loadCacheBtn.addEventListener('click', async () => {
-      if (loadCacheBtn.classList.contains('disabled')) return;
-      await this.sendPageAction('LOAD_CACHED_TRANSLATION');
-      setTimeout(() => this.updateActionStates(), 2000);
-      setTimeout(() => this.updateActionStates(), 5000);
-    });
-
-    // Hover-Original Toggle
-    const hoverToggle = document.getElementById('toggleHoverOriginal');
-    if (hoverToggle) {
-      chrome.storage.sync.get(['showOriginalInTooltip'], (s) => {
-        hoverToggle.checked = s.showOriginalInTooltip !== false;
-      });
-      hoverToggle.addEventListener('change', () => {
-        chrome.storage.sync.set({ showOriginalInTooltip: hoverToggle.checked });
+    for (const [id, cfg] of Object.entries(actions)) {
+      document.getElementById(id).addEventListener('click', async () => {
+        if (document.getElementById(id).classList.contains('disabled')) return;
+        await this.sendPageAction(cfg.action, cfg.data);
+        for (const ms of cfg.delays) {
+          setTimeout(() => this.updateActionStates(), ms);
+        }
       });
     }
 
-    // Markierung Toggle
-    const highlightToggle = document.getElementById('toggleHighlight');
-    if (highlightToggle) {
-      chrome.storage.sync.get(['highlightTranslated'], (s) => {
-        highlightToggle.checked = s.highlightTranslated !== false;
-      });
-      highlightToggle.addEventListener('change', () => {
-        chrome.storage.sync.set({ highlightTranslated: highlightToggle.checked });
-      });
-    }
+    // Toggles: ID -> { storageKey, default }
+    const toggles = {
+      toggleHoverOriginal: { key: 'showOriginalInTooltip', default: true },
+      toggleHighlight:     { key: 'highlightTranslated',   default: true },
+      toggleAutoLoadCache: { key: 'autoLoadCache',         default: false }
+    };
 
-    // Auto-Load Cache Toggle
-    const autoLoadToggle = document.getElementById('toggleAutoLoadCache');
-    if (autoLoadToggle) {
-      chrome.storage.sync.get(['autoLoadCache'], (s) => {
-        autoLoadToggle.checked = s.autoLoadCache === true;
+    for (const [id, cfg] of Object.entries(toggles)) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      chrome.storage.sync.get([cfg.key], (s) => {
+        el.checked = cfg.default ? s[cfg.key] !== false : s[cfg.key] === true;
       });
-      autoLoadToggle.addEventListener('change', () => {
-        chrome.storage.sync.set({ autoLoadCache: autoLoadToggle.checked });
+      el.addEventListener('change', () => {
+        chrome.storage.sync.set({ [cfg.key]: el.checked });
       });
     }
 
@@ -386,82 +432,20 @@ class SidePanelController {
   }
 
   async updateActionStates() {
-    const translateBtn = document.getElementById('translatePage');
-    const continueBtn = document.getElementById('continuePage');
-    const restoreBtn = document.getElementById('restorePage');
-    const loadCacheBtn = document.getElementById('loadCache');
-    const cacheProgress = document.getElementById('cacheProgress');
-
-    // NICHT mehr alle Buttons zurücksetzen - das verursacht Flackern!
-
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab || !tab.id) return;
+      if (!tab?.id) return;
 
-      // Nur versuchen wenn es eine normale Webseite ist
       if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-        // Alle Buttons deaktivieren für Nicht-Webseiten
-        translateBtn.classList.add('disabled');
-        continueBtn.classList.add('disabled');
-        restoreBtn.classList.add('disabled');
-        loadCacheBtn.classList.add('disabled');
-        cacheProgress.textContent = '–';
-        cacheProgress.className = 'action-badge empty';
+        ActionRenderer.disableAll();
         return;
       }
 
       const response = await chrome.tabs.sendMessage(tab.id, { action: 'GET_PAGE_INFO' }).catch(() => null);
-      
-      if (!response) {
-        // Content-Script nicht bereit - Buttons bleiben im aktuellen Zustand
-        return;
-      }
+      if (!response) return;
 
-      // === FORTSETZEN-BUTTON ===
-      // Enabled wenn: hasCache ODER cacheProgress > 0 ODER serverCacheCount > 0
-      // Fortsetzen: Aktiv wenn Texte fehlen (Abbruch oder teilweise Cache-Load)
-      if (response.remaining > 0) {
-        continueBtn.classList.remove('disabled');
-        cacheProgress.textContent = response.remaining;
-        cacheProgress.className = 'action-badge partial';
-      } else {
-        continueBtn.classList.add('disabled');
-        cacheProgress.textContent = '';
-        cacheProgress.className = 'action-badge empty';
-      }
-
-      // === TRANSLATE-BUTTON ===
-      if (response.isTranslated) {
-        translateBtn.classList.add('active');
-        translateBtn.classList.remove('disabled');
-        const svg = translateBtn.querySelector('svg');
-        if (svg) svg.style.fill = '#22c55e';
-      } else {
-        translateBtn.classList.remove('active');
-        translateBtn.classList.remove('disabled');
-        const svg = translateBtn.querySelector('svg');
-        if (svg) svg.style.fill = '';
-      }
-
-      // === RESTORE-BUTTON ===
-      if (response.isTranslated) {
-        restoreBtn.classList.remove('disabled');
-      } else {
-        restoreBtn.classList.add('disabled');
-      }
-
-      // === CACHE-LADEN-BUTTON ===
-      // Aktiv wenn Cache vorhanden UND noch nichts geladen (weder voll noch teil)
-      const alreadyLoaded = response.isTranslated || response.translatedCount > 0;
-      if (!alreadyLoaded && (response.cacheAvailable || response.serverCacheCount > 0)) {
-        loadCacheBtn.classList.remove('disabled');
-      } else {
-        loadCacheBtn.classList.add('disabled');
-      }
-
-    } catch (e) {
-      // Bei Fehler: Buttons nicht ändern
-    }
+      ActionRenderer.apply(PageState.deriveActions(response));
+    } catch (e) {}
   }
 
   async sendPageAction(action, data = {}) {
@@ -481,6 +465,31 @@ class SidePanelController {
       await chrome.runtime.sendMessage({ action: 'CLEAR_HISTORY' });
       this.loadHistory();
       SWT.Toast.show('Verlauf gelöscht');
+    });
+
+    // Event-Delegation: Einmal binden, funktioniert auch nach innerHTML-Rebuild
+    const historyList = document.getElementById('historyList');
+    historyList.addEventListener('click', async (e) => {
+      // Löschen
+      const deleteBtn = e.target.closest('.delete-history');
+      if (deleteBtn) {
+        e.stopPropagation();
+        const idx = parseInt(deleteBtn.dataset.index);
+        await chrome.runtime.sendMessage({ action: 'DELETE_HISTORY_ENTRY', index: idx });
+        this.loadHistory();
+        return;
+      }
+
+      // Klick auf Eintrag -> in Übersetzen-Tab übernehmen
+      const content = e.target.closest('.history-item-content');
+      if (content) {
+        const item = content.closest('.history-item');
+        document.getElementById('sourceText').value = item.dataset.original;
+        document.getElementById('resultBox').textContent = item.dataset.translated;
+        this.currentTranslation = item.dataset.translated;
+        document.getElementById('resultActions').style.display = 'flex';
+        document.querySelector('.tab[data-tab="translate"]').click();
+      }
     });
   }
 
@@ -515,25 +524,7 @@ class SidePanelController {
         </div>
       `).join('');
 
-      historyList.querySelectorAll('.history-item-content').forEach(content => {
-        content.addEventListener('click', () => {
-          const item = content.closest('.history-item');
-          document.getElementById('sourceText').value = item.dataset.original;
-          document.getElementById('resultBox').textContent = item.dataset.translated;
-          this.currentTranslation = item.dataset.translated;
-          document.getElementById('resultActions').style.display = 'flex';
-          document.querySelector('.tab[data-tab="translate"]').click();
-        });
-      });
-
-      historyList.querySelectorAll('.delete-history').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const idx = parseInt(btn.dataset.index);
-          await chrome.runtime.sendMessage({ action: 'DELETE_HISTORY_ENTRY', index: idx });
-          this.loadHistory();
-        });
-      });
+      // Event-Handling per Delegation in setupHistory()
     } catch (e) {
       console.warn('History error:', e);
     }
@@ -639,6 +630,42 @@ class SidePanelController {
     return num.toLocaleString('de-DE');
   }
 
+  // Nur Stat-Zahlen aktualisieren, Liste/Scroll unangetastet
+  async refreshCacheStats() {
+    try {
+      const settings = await chrome.storage.sync.get(['cacheServerMode', 'cacheServerEnabled']);
+      if (settings.cacheServerEnabled === false || settings.cacheServerMode === 'local-only') return;
+
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const el = (id) => document.getElementById(id);
+
+      // Server-Stats
+      const serverStats = await chrome.runtime.sendMessage({ action: 'GET_CACHE_SERVER_STATS' });
+      if (serverStats?.success && serverStats.stats) {
+        const s = serverStats.stats;
+        if (el('cacheTotalSize')) el('cacheTotalSize').textContent = SWT.Utils.formatBytes(s.db_size || 0);
+        if (el('cachePageCount')) el('cachePageCount').textContent = s.total_entries || 0;
+        if (el('cacheStatTotal')) el('cacheStatTotal').textContent = `${s.total_entries || 0} Einträge · ${SWT.Utils.formatBytes(s.db_size || 0)}`;
+      }
+
+      // Domain-Einträge
+      if (tab?.url) {
+        try {
+          const domainEntries = await chrome.runtime.sendMessage({
+            action: 'CACHE_SERVER_GET_ALL_BY_URL', pageUrl: tab.url
+          });
+          if (el('cacheStatDomain')) el('cacheStatDomain').textContent = `${domainEntries?.result?.count || 0} Einträge`;
+        } catch (e) {}
+
+        // Seiten-Einträge
+        try {
+          const pageInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_PAGE_INFO' }).catch(() => null);
+          if (el('cacheStatPage')) el('cacheStatPage').textContent = `${pageInfo?.serverCacheCount || 0} Einträge`;
+        } catch (e) {}
+      }
+    } catch (e) {}
+  }
+
   async loadCache() {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -730,15 +757,15 @@ class SidePanelController {
             <h4>Server-Cache</h4>
             <div class="server-stat">
               <span class="stat-label">Gesamt:</span>
-              <span class="stat-value">${stats.total_entries || 0} Einträge · ${SWT.Utils.formatBytes(stats.db_size || 0)}</span>
+              <span class="stat-value" id="cacheStatTotal">${stats.total_entries || 0} Einträge · ${SWT.Utils.formatBytes(stats.db_size || 0)}</span>
             </div>
             <div class="server-stat">
               <span class="stat-label">Diese Domain:</span>
-              <span class="stat-value">${entryCount} Einträge</span>
+              <span class="stat-value" id="cacheStatDomain">${entryCount} Einträge</span>
             </div>
             <div class="server-stat">
               <span class="stat-label">Diese Seite:</span>
-              <span class="stat-value">${pageCount} Einträge</span>
+              <span class="stat-value" id="cacheStatPage">${pageCount} Einträge</span>
             </div>
           </div>
         `;

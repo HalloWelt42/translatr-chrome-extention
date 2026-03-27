@@ -872,6 +872,7 @@ kbd {
   display: none;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .tab-content.active {

@@ -105,6 +105,7 @@ body {
   padding: var(--spacing-lg);
   background: var(--bg-card);
   border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
 }
 
 .actions-section h3 {
@@ -119,7 +120,10 @@ body {
 /* History Section */
 .history-section {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .history-header {
@@ -129,8 +133,7 @@ body {
   padding: 14px var(--spacing-lg);
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
 }
 
 .history-header h2 {
@@ -162,6 +165,9 @@ body {
 }
 
 .history-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
   padding: var(--spacing-md);
 }
 
@@ -354,7 +360,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
-  overflow-y: auto;
+  overflow: hidden;
   min-height: 0;
 }
 
@@ -537,6 +543,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .cache-server-entries h4 {
@@ -546,10 +555,12 @@ body {
   margin-bottom: 4px;
   padding-bottom: 2px;
   border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
 }
 
 .cache-local-section {
   margin-top: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
 /* Kompakte Toggle-Box */

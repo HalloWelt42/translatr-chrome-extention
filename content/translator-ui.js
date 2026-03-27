@@ -82,22 +82,22 @@
         
         // Pause/Resume Button
         const pauseBtn = this.progressOverlay.querySelector('.swt-progress-pause');
+        const setPauseState = (paused) => {
+          const icon = paused ? 'play' : 'pause';
+          const label = paused ? 'Fortsetzen' : 'Pausieren';
+          pauseBtn.innerHTML = SWT.Icons.svg(icon);
+          pauseBtn.title = label;
+          pauseBtn.classList.toggle('swt-paused', paused);
+          self.progressOverlay.classList.toggle('swt-paused', paused);
+        };
+
         pauseBtn.addEventListener('click', () => {
           self.isPaused = !self.isPaused;
+          setPauseState(self.isPaused);
           if (self.isPaused) {
-            pauseBtn.innerHTML = SWT.Icons.svg('play');
-            pauseBtn.title = 'Fortsetzen';
-            pauseBtn.classList.add('swt-paused');
-            self.progressOverlay.classList.add('swt-paused');
             self.pauseStartTime = Date.now();
-          } else {
-            pauseBtn.innerHTML = SWT.Icons.svg('pause');
-            pauseBtn.title = 'Pausieren';
-            pauseBtn.classList.remove('swt-paused');
-            self.progressOverlay.classList.remove('swt-paused');
-            if (self.pauseStartTime) {
-              self.translationStartTime += (Date.now() - self.pauseStartTime);
-            }
+          } else if (self.pauseStartTime) {
+            self.translationStartTime += (Date.now() - self.pauseStartTime);
           }
         });
         
@@ -304,39 +304,23 @@
    * @param {string} type - 'loading', 'cache', 'ai', oder null
    * @param {boolean} active - Ob Animation angezeigt werden soll
    */
+  const STATUS_TYPES = ['loading', 'cache', 'ai'];
+  const STATUS_LABELS = { loading: 'Lade...', cache: 'Aus Server-Cache', ai: 'KI-Übersetzung' };
+
   SmartTranslator.prototype.updateSourceStatus = function(type, active = true) {
     if (!this.progressOverlay) return;
-    
-    const statusDot = this.progressOverlay.querySelector('.swt-status-dot');
-    
-    if (statusDot) {
-      // Klassen zurücksetzen
-      statusDot.classList.remove('loading', 'cache', 'ai', 'active');
-      
-      if (type) {
-        statusDot.classList.add(type);
-        if (active) {
-          statusDot.classList.add('active');
-        }
-        
-        // Tooltip
-        const tooltips = {
-          loading: 'Lade...',
-          cache: 'Aus Server-Cache',
-          ai: 'KI-Übersetzung'
-        };
-        statusDot.title = tooltips[type] || '';
-      } else {
-        statusDot.title = 'Bereit';
-      }
+
+    // Status-Dot
+    const dot = this.progressOverlay.querySelector('.swt-status-dot');
+    if (dot) {
+      for (const t of STATUS_TYPES) dot.classList.toggle(t, t === type);
+      dot.classList.toggle('active', !!type && active);
+      dot.title = STATUS_LABELS[type] || 'Bereit';
     }
-    
-    // Ring-Farbe auch anpassen
-    if (this.progressOverlay) {
-      this.progressOverlay.classList.remove('status-loading', 'status-cache', 'status-ai');
-      if (type) {
-        this.progressOverlay.classList.add('status-' + type);
-      }
+
+    // Ring-Farbe
+    for (const t of STATUS_TYPES) {
+      this.progressOverlay.classList.toggle('status-' + t, t === type);
     }
   };
 
