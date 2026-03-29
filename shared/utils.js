@@ -56,6 +56,20 @@ window.SWT.Utils = {
    * @param {string} lang - Sprachkürzel (de, en, fr, ...)
    * @returns {string} BCP 47 Tag (de-DE, en-US, ...)
    */
+  /**
+   * Sprachkürzel in lesbaren Namen
+   */
+  getLangName(code) {
+    const names = {
+      'auto': 'Auto', 'de': 'Deutsch', 'en': 'Englisch', 'fr': 'Französisch',
+      'es': 'Spanisch', 'it': 'Italienisch', 'pt': 'Portugiesisch',
+      'ru': 'Russisch', 'zh': 'Chinesisch', 'ja': 'Japanisch',
+      'ko': 'Koreanisch', 'nl': 'Niederländisch', 'pl': 'Polnisch',
+      'tr': 'Türkisch', 'ar': 'Arabisch'
+    };
+    return names[code] || code;
+  },
+
   getLangCode(lang) {
     const codes = {
       'de': 'de-DE',

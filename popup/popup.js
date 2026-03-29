@@ -7,9 +7,10 @@
 const PopupState = {
   derivePage(response) {
     if (!response) return { translate: true, restore: false, active: false };
+    const busy = !!response.isTranslating;
     return {
-      translate: true,
-      restore: response.isTranslated || response.translatedCount > 0,
+      translate: !busy,
+      restore: !busy && (response.isTranslated || response.translatedCount > 0),
       active: !!response.isTranslated
     };
   },
@@ -47,11 +48,15 @@ const PopupRenderer = {
     if (text) text.textContent = state.text;
   },
 
-  setButtonLoading(btn, loading) {
+  setButtonLoading(btn, loading, sourceLang, targetLang) {
     btn.disabled = loading;
-    btn.innerHTML = loading
-      ? '<div class="spinner"></div> Übersetze...'
-      : `${SWT.Icons.svg('translate')} Übersetzen`;
+    if (loading) {
+      const from = SWT.Utils.getLangName(sourceLang || 'auto');
+      const to = SWT.Utils.getLangName(targetLang || 'de');
+      btn.innerHTML = `<div class="spinner"></div> ${from} \u2192 ${to}`;
+    } else {
+      btn.innerHTML = `${SWT.Icons.svg('translate')} Übersetzen`;
+    }
   },
 
   setSpeakButton(btn, mode) {
@@ -82,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSettings();
   await checkPageCache();
   setupEventListeners();
+  setupShortcuts();
   updateActionStates();
 
   setInterval(updateActionStates, 5000);
@@ -162,7 +168,7 @@ function setupEventListeners() {
     const sourceLang = document.getElementById('sourceLang').value;
     const targetLang = document.getElementById('targetLang').value;
 
-    PopupRenderer.setButtonLoading(translateBtn, true);
+    PopupRenderer.setButtonLoading(translateBtn, true, sourceLang, targetLang);
 
     try {
       const response = await chrome.runtime.sendMessage({
@@ -296,6 +302,25 @@ function setupEventListeners() {
     e.preventDefault();
     chrome.tabs.create({ url: chrome.runtime.getURL('pages/donate.html') });
   });
+}
+
+function setupShortcuts() {
+  const isMac = navigator.platform.includes('Mac');
+  const shortcuts = [
+    { label: 'Auswahl übersetzen', key: isMac ? '\u2318+Shift+T' : 'Ctrl+Shift+T' },
+    { label: 'Seite übersetzen',   key: isMac ? '\u2318+Shift+P' : 'Ctrl+Shift+P' },
+    { label: 'Side Panel',         key: isMac ? '\u2318+Shift+S' : 'Ctrl+Shift+S' }
+  ];
+
+  const container = document.getElementById('shortcutsSection');
+  if (!container) return;
+
+  for (const s of shortcuts) {
+    const row = document.createElement('div');
+    row.className = 'shortcut-row';
+    row.innerHTML = `<span>${s.label}</span><kbd>${s.key}</kbd>`;
+    container.appendChild(row);
+  }
 }
 
 async function saveLanguages() {

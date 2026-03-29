@@ -1146,6 +1146,7 @@ class SmartTranslator {
         }
         sendResponse({
           isTranslated: this.isTranslated,
+          isTranslating: !!this.progressOverlay,
           mode: this.translationMode,
           translatedCount: this.originalTexts.size,
           remaining: remaining,

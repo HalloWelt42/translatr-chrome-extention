@@ -37,6 +37,18 @@ textarea {
   grid-template-columns: repeat(4, 1fr);
 }
 
+/* Header Badges auf gleicher Höhe */
+.header-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-badges .api-badge {
+  padding: 3px 8px;
+  font-size: 10px;
+}
+
 .cache-status {
   margin-bottom: var(--spacing-sm);
 }

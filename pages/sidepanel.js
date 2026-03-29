@@ -9,6 +9,7 @@ const PageState = {
   // Hauptzustand der Seite
   derive(response) {
     if (!response) return 'unavailable';
+    if (response.isTranslating) return 'translating';
     if (response.isTranslated) return 'translated';
     if (response.translatedCount > 0 || response.remaining > 0) return 'partial';
     return 'idle';
@@ -18,25 +19,28 @@ const PageState = {
   deriveActions(response) {
     const state = this.derive(response);
     const hasCache = response?.cacheAvailable || response?.serverCacheCount > 0;
+    const busy = state === 'translating';
 
     return {
       translate: {
-        enabled: state !== 'unavailable',
+        enabled: !busy && state !== 'unavailable',
         active: state === 'translated'
       },
       continue: {
-        enabled: state === 'partial',
-        badge: state === 'translated'
-          ? { text: response.translatedCount || '', type: 'complete' }
-          : state === 'partial'
-            ? { text: response.remaining, type: 'partial' }
-            : { text: '', type: 'empty' }
+        enabled: !busy && state === 'partial',
+        badge: busy
+          ? { text: response.translatedCount || '', type: 'partial' }
+          : state === 'translated'
+            ? { text: response.translatedCount || '', type: 'complete' }
+            : state === 'partial'
+              ? { text: response.remaining, type: 'partial' }
+              : { text: '', type: 'empty' }
       },
       restore: {
-        enabled: state === 'translated' || state === 'partial'
+        enabled: !busy && (state === 'translated' || state === 'partial')
       },
       loadCache: {
-        enabled: state === 'idle' && hasCache
+        enabled: !busy && state === 'idle' && hasCache
       }
     };
   }
@@ -313,9 +317,13 @@ class SidePanelController {
 
     const setTranslateLoading = (loading) => {
       translateBtn.disabled = loading;
-      translateBtn.innerHTML = loading
-        ? '<div class="spinner"></div> Übersetze...'
-        : `${SWT.Icons.svg('translate')} Übersetzen`;
+      if (loading) {
+        const from = SWT.Utils.getLangName(sourceLang);
+        const to = SWT.Utils.getLangName(targetLang);
+        translateBtn.innerHTML = `<div class="spinner"></div> ${from} \u2192 ${to}`;
+      } else {
+        translateBtn.innerHTML = `${SWT.Icons.svg('translate')} Übersetzen`;
+      }
     };
 
     const showResult = (text, isError) => {
