@@ -1,11 +1,23 @@
 // Options
 // Refactored: Nutzt SWT.Toast
 
+// Validierungsstatus der Provider
+const providerState = {
+  libretranslate: { configured: false, tested: null },  // tested: true/false/null
+  lmstudio: { configured: false, tested: null },
+  cacheServer: { configured: false, tested: null }
+};
+
+// Sprachenlisten (wird aus Storage geladen)
+let languagesLibre = [];
+let languagesLM = [];
+
 document.addEventListener('DOMContentLoaded', async () => {
   const versionEl = document.getElementById('appVersion');
   if (versionEl) versionEl.textContent = chrome.runtime.getManifest().version;
   await loadSettings();
   setupEventListeners();
+  updateProviderStates();
 });
 
 // Fachkontext System-Prompts
@@ -69,12 +81,14 @@ async function loadSettings() {
       // Cache
       'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode',
       'cacheServerTimeout', 'autoLoadCache',
+      // Sprachen
+      'languagesLibre', 'languagesLM',
     ]);
 
     // Hilfsfunktion für sicheres Setzen
     const setVal = (id, value) => {
       const el = document.getElementById(id);
-      if (el) el.value = value;
+      if (el) el.value = value ?? '';
     };
     const setChecked = (id, value) => {
       const el = document.getElementById(id);
@@ -82,11 +96,11 @@ async function loadSettings() {
     };
 
     // LibreTranslate Werte
-    setVal('serviceUrl', settings.serviceUrl);
+    setVal('serviceUrl', settings.serviceUrl || '');
     setVal('apiKey', settings.apiKey || '');
-    
+
     // LM Studio Werte
-    setVal('lmStudioUrl', settings.lmStudioUrl);
+    setVal('lmStudioUrl', settings.lmStudioUrl || '');
     setVal('lmStudioTemperature', settings.lmStudioTemperature ?? 0.1);
     setVal('lmStudioMaxTokens', settings.lmStudioMaxTokens || 2000);
 
@@ -117,23 +131,55 @@ async function loadSettings() {
     
     // Cache-Server
     setChecked('cacheServerEnabled', settings.cacheServerEnabled !== false);
-    setVal('cacheServerUrl', settings.cacheServerUrl);
+    setVal('cacheServerUrl', settings.cacheServerUrl || '');
     setVal('cacheServerMode', settings.cacheServerMode || 'server-only');
     setVal('cacheServerTimeout', settings.cacheServerTimeout || 5000);
     setChecked('autoLoadCache', settings.autoLoadCache || false);
     updateCacheServerUI(settings.cacheServerEnabled !== false);
-    
+    updateCacheServerFields();
+
+    // Sprachenlisten laden
+    languagesLibre = settings.languagesLibre || SWT.Storage.defaultSettings.languagesLibre;
+    languagesLM = settings.languagesLM || SWT.Storage.defaultSettings.languagesLM;
+    renderLanguageList('Libre', languagesLibre);
+    renderLanguageList('LM', languagesLM);
+
   } catch (e) {
     console.warn('Smart Translator: Error loading settings', e);
   }
 }
 
 function setupEventListeners() {
-  // Speichern
-  const saveBtn = document.getElementById('saveBtn');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', saveSettings);
+  // Anleitung öffnen
+  const guideBtn = document.getElementById('openGuide');
+  if (guideBtn) {
+    guideBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.tabs.create({ url: chrome.runtime.getURL('pages/guide.html') });
+    });
   }
+
+  // Auto-Save: alle Eingaben speichern automatisch
+  let saveTimer = null;
+  const autoSave = (delay = 400) => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveSettings, delay);
+  };
+  document.querySelectorAll('.container input[type="text"], .container input[type="url"], .container input[type="number"]').forEach(el => {
+    el.addEventListener('input', () => {
+      autoSave();
+      // URL-Felder: Status zurücksetzen und Provider-State aktualisieren
+      if (el.id === 'serviceUrl' || el.id === 'lmStudioUrl' || el.id === 'cacheServerUrl') {
+        if (el.id === 'serviceUrl') providerState.libretranslate.tested = null;
+        if (el.id === 'lmStudioUrl') providerState.lmstudio.tested = null;
+        if (el.id === 'cacheServerUrl') providerState.cacheServer.tested = null;
+        updateProviderStates();
+      }
+    });
+  });
+  document.querySelectorAll('.container input[type="checkbox"], .container select, .container input[type="range"]').forEach(el => {
+    el.addEventListener('change', () => autoSave(0));
+  });
 
   // Zurücksetzen
   const resetBtn = document.getElementById('resetBtn');
@@ -153,11 +199,13 @@ function setupEventListeners() {
     testLmBtn.addEventListener('click', () => testConnection('lmstudio'));
   }
   
-  // API-Typ Buttons
-  document.querySelectorAll('.api-type-option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const type = btn.dataset.type;
-      setApiType(type);
+  // Provider-Sections (Accordion-Auswahl)
+  document.querySelectorAll('.provider-section .section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const section = header.closest('.provider-section');
+      if (section && !section.classList.contains('active')) {
+        setApiType(section.dataset.provider, true);
+      }
     });
   });
   
@@ -192,6 +240,12 @@ function setupEventListeners() {
       updateCacheServerUI(e.target.checked);
     });
   }
+
+  // Cache-Modus: Server-Felder ein/ausblenden
+  const cacheModeEl = document.getElementById('cacheServerMode');
+  if (cacheModeEl) {
+    cacheModeEl.addEventListener('change', updateCacheServerFields);
+  }
   
   // Cache-Server Test Button
   const testCacheBtn = document.getElementById('testCacheServer');
@@ -199,6 +253,10 @@ function setupEventListeners() {
     testCacheBtn.addEventListener('click', testCacheServer);
   }
   
+  // Sprachen hinzufügen
+  setupLanguageAdd('Libre');
+  setupLanguageAdd('LM');
+
   // Sync Buttons
   const syncUploadBtn = document.getElementById('syncUpload');
   const syncDownloadBtn = document.getElementById('syncDownload');
@@ -211,22 +269,26 @@ function setupEventListeners() {
   
 }
 
-function setApiType(type) {
-  // Buttons aktualisieren
-  document.querySelectorAll('.api-type-option').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.type === type);
+function setApiType(type, save = false) {
+  // Provider-Sections umschalten (Accordion)
+  document.querySelectorAll('.provider-section').forEach(section => {
+    section.classList.toggle('active', section.dataset.provider === type);
   });
-  
-  // Einstellungsbereiche umschalten (mit CSS-Klassen)
-  const librePanel = document.getElementById('libretranslate-settings');
-  const lmPanel = document.getElementById('lmstudio-settings');
-  
-  if (librePanel) librePanel.classList.toggle('active', type === 'libretranslate');
-  if (lmPanel) lmPanel.classList.toggle('active', type === 'lmstudio');
-  
+
+  // Aktiv-Badges umschalten
+  const libreBadge = document.getElementById('libreBadge');
+  const lmBadge = document.getElementById('lmBadge');
+  if (libreBadge) libreBadge.classList.toggle('hidden', type !== 'libretranslate');
+  if (lmBadge) lmBadge.classList.toggle('hidden', type !== 'lmstudio');
+
   // Wenn LM Studio ausgewählt, Modelle laden
   if (type === 'lmstudio') {
     loadLMStudioModels();
+  }
+
+  // Sofort speichern wenn vom User geklickt
+  if (save) {
+    chrome.storage.sync.set({ apiType: type });
   }
 }
 
@@ -325,8 +387,8 @@ async function saveSettings() {
     };
 
     // Aktiven API-Typ ermitteln
-    const activeOption = document.querySelector('.api-type-option.active');
-    const apiType = activeOption ? activeOption.dataset.type : 'libretranslate';
+    const activeSection = document.querySelector('.provider-section.active');
+    const apiType = activeSection ? activeSection.dataset.provider : 'libretranslate';
     
     const settings = {
       // API-Typ
@@ -361,7 +423,11 @@ async function saveSettings() {
       cacheServerUrl: getVal('cacheServerUrl', '').trim(),
       cacheServerMode: getVal('cacheServerMode', 'server-only'),
       cacheServerTimeout: getInt('cacheServerTimeout', 5000),
-      autoLoadCache: getChecked('autoLoadCache', false)
+      autoLoadCache: getChecked('autoLoadCache', false),
+
+      // Sprachenlisten
+      languagesLibre,
+      languagesLM
     };
 
     await chrome.storage.sync.set(settings);
@@ -437,6 +503,7 @@ async function testConnection(apiType) {
     if (result.success) {
       testResultEl.textContent = `✓ OK: "${result.translation}"`;
       testResultEl.classList.add('success');
+      setProviderTested(apiType === 'libretranslate' ? 'libretranslate' : 'lmstudio', true);
     } else {
       throw new Error(result.error);
     }
@@ -444,6 +511,7 @@ async function testConnection(apiType) {
   } catch (error) {
     testResultEl.textContent = `✗ ${error.message}`;
     testResultEl.classList.add('error');
+    setProviderTested(apiType === 'libretranslate' ? 'libretranslate' : 'lmstudio', false);
   }
 
   testBtn.disabled = false;
@@ -451,7 +519,8 @@ async function testConnection(apiType) {
 }
 
 async function testLibreTranslate(testInput) {
-  const serviceUrl = document.getElementById('serviceUrl').value.trim();
+  const rawUrl = document.getElementById('serviceUrl').value.trim();
+  const serviceUrl = rawUrl.replace(/\/translate\/?$/, '') + '/translate';
   const apiKey = document.getElementById('apiKey').value.trim();
 
   const response = await fetch(serviceUrl, {
@@ -460,6 +529,7 @@ async function testLibreTranslate(testInput) {
     body: JSON.stringify({
       q: testInput,
       source: 'auto',
+      target: 'de',
       format: 'text',
       api_key: apiKey
     })
@@ -600,10 +670,70 @@ function showStatus(message, type) {
  * Cache-Server UI aktualisieren
  */
 function updateCacheServerUI(enabled) {
-  const serverPanel = document.getElementById('cacheserver-settings');
-  if (serverPanel) {
-    serverPanel.classList.toggle('active', enabled);
+  const panel = document.getElementById('cacheserver-settings');
+  if (panel) panel.classList.toggle('active', enabled);
+  updateCacheServerFields();
+}
+
+function updateCacheServerFields() {
+  const mode = document.getElementById('cacheServerMode')?.value || 'local-only';
+  const needsServer = mode !== 'local-only';
+  const serverFields = document.getElementById('cacheServerFields');
+  if (serverFields) serverFields.classList.toggle('hidden', !needsServer);
+
+  // Server-Optionen im Dropdown deaktivieren wenn keine Cache-URL
+  const url = document.getElementById('cacheServerUrl')?.value.trim();
+  const modeSelect = document.getElementById('cacheServerMode');
+  if (modeSelect) {
+    for (const opt of modeSelect.options) {
+      if (opt.value !== 'local-only') {
+        opt.disabled = !url;
+      }
+    }
   }
+}
+
+// === Provider-Status ===
+
+function updateProviderStates() {
+  const libreUrl = document.getElementById('serviceUrl')?.value.trim();
+  const lmUrl = document.getElementById('lmStudioUrl')?.value.trim();
+  const cacheUrl = document.getElementById('cacheServerUrl')?.value.trim();
+
+  providerState.libretranslate.configured = !!libreUrl;
+  providerState.lmstudio.configured = !!lmUrl;
+  providerState.cacheServer.configured = !!cacheUrl;
+
+  // URL geändert -> Test-Status zurücksetzen
+  updateStatusBadge('libreStatus', providerState.libretranslate);
+  updateStatusBadge('lmStatus', providerState.lmstudio);
+
+  updateCacheServerFields();
+}
+
+function updateStatusBadge(id, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  if (!state.configured) {
+    el.textContent = 'nicht konfiguriert';
+    el.className = 'api-status unconfigured';
+  } else if (state.tested === true) {
+    el.textContent = 'verbunden';
+    el.className = 'api-status ok';
+  } else if (state.tested === false) {
+    el.textContent = 'Fehler';
+    el.className = 'api-status error';
+  } else {
+    el.textContent = 'nicht getestet';
+    el.className = 'api-status pending';
+  }
+}
+
+function setProviderTested(provider, success) {
+  providerState[provider].tested = success;
+  if (provider === 'libretranslate') updateStatusBadge('libreStatus', providerState.libretranslate);
+  if (provider === 'lmstudio') updateStatusBadge('lmStatus', providerState.lmstudio);
 }
 
 /**
@@ -735,6 +865,65 @@ async function syncLocalToServer() {
  */
 async function syncServerToLocal() {
   SWT.Toast.show('Download-Funktion wird in zukünftiger Version implementiert', 'warning');
+}
+
+// ============================================================================
+// Sprachenlisten-Verwaltung
+// ============================================================================
+
+const PROTECTED_LANG_CODES = ['auto', 'en', 'de'];
+
+function renderLanguageList(provider, languages) {
+  const container = document.getElementById(`languages${provider}List`);
+  if (!container) return;
+  container.innerHTML = '';
+  languages.forEach((lang, index) => {
+    const tag = document.createElement('span');
+    const isProtected = PROTECTED_LANG_CODES.includes(lang.code);
+    tag.className = 'language-tag' + (isProtected ? ' protected' : '');
+    tag.innerHTML = `<span class="lang-code">${lang.code}</span>${lang.name}`
+      + (isProtected ? '' : `<button class="lang-remove" data-index="${index}">\u00d7</button>`);
+    container.appendChild(tag);
+  });
+
+  // Remove-Handler
+  container.querySelectorAll('.lang-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.index);
+      const list = provider === 'Libre' ? languagesLibre : languagesLM;
+      list.splice(idx, 1);
+      renderLanguageList(provider, list);
+      saveSettings();
+    });
+  });
+}
+
+function setupLanguageAdd(provider) {
+  const addBtn = document.getElementById(`languages${provider}Add`);
+  const codeInput = document.getElementById(`languages${provider}Code`);
+  const nameInput = document.getElementById(`languages${provider}Name`);
+  if (!addBtn || !codeInput || !nameInput) return;
+
+  const doAdd = () => {
+    const code = codeInput.value.trim().toLowerCase();
+    const name = nameInput.value.trim();
+    if (!code || !name) return;
+
+    const list = provider === 'Libre' ? languagesLibre : languagesLM;
+    if (list.some(l => l.code === code)) {
+      SWT.Toast.show(`Sprache "${code}" existiert bereits`, 'error');
+      return;
+    }
+    list.push({ code, name });
+    renderLanguageList(provider, list);
+    codeInput.value = '';
+    nameInput.value = '';
+    saveSettings();
+  };
+
+  addBtn.addEventListener('click', doAdd);
+  nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doAdd(); });
+  codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') nameInput.focus(); });
 }
 
 // CSS für Spinner

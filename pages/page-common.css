@@ -367,6 +367,14 @@ select {
   margin-bottom: 8px;
 }
 
+.form-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  opacity: 0.7;
+}
+
 /* ==========================================================================
    TOGGLE SWITCH
    ========================================================================== */
@@ -657,6 +665,12 @@ select {
   height: 14px;
 }
 
+.api-badge-source {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
 /* ==========================================================================
    RESULT BOX
    ========================================================================== */
@@ -795,47 +809,6 @@ select {
 }
 
 /* ==========================================================================
-   SHORTCUTS
-   ========================================================================== */
-
-.shortcuts {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  margin-top: var(--spacing-lg);
-}
-
-.shortcuts h3 {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
-}
-
-.shortcut-row,
-.shortcut-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 0;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-kbd {
-  background: var(--bg-base);
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  font-family: monospace;
-  font-size: 11px;
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-/* ==========================================================================
    TABS
    ========================================================================== */
 
@@ -913,6 +886,7 @@ kbd {
   align-items: center;
   gap: 10px;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .app-header h1 span { flex: 1; }
@@ -921,6 +895,31 @@ kbd {
   width: 28px;
   height: 28px;
   fill: var(--accent);
+}
+
+/* Info-Button im Header */
+.header-info-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all var(--transition-normal);
+  flex-shrink: 0;
+}
+
+.header-info-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--accent);
+}
+
+.header-info-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 .app-footer {
@@ -1106,4 +1105,20 @@ kbd {
   fill: var(--red) !important;
   width: 16px;
   height: 16px;
+}
+
+/* ==========================================================================
+   DONATE HEART (shared)
+   ========================================================================== */
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.donate-heart svg,
+.donate-card svg {
+  fill: #ff0000 !important;
+  filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.6));
+  animation: heartbeat 1.5s ease-in-out infinite;
 }

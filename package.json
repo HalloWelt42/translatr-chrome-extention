@@ -1,0 +1,28 @@
+{
+  "name": "smart-translator",
+  "version": "1.0.0",
+  "description": "Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTranslate und LM Studio.",
+  "main": "service-worker.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HalloWelt42/translatr-chrome-extention.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/HalloWelt42/translatr-chrome-extention/issues"
+  },
+  "homepage": "https://github.com/HalloWelt42/translatr-chrome-extention#readme",
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
+}

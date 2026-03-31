@@ -1,279 +1,138 @@
-# Smart Web Translator - Architektur (v3.13.38+)
+# Smart Web Translator -- Architektur
 
 ## Übersicht
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CONTENT SCRIPT                                  │
-│                                                                             │
-│  translatePage() / translateEbookBlocks() / translatePlainText()            │
-│      │                                                                      │
-│      ├─ findTranslatableTextNodes()                                        │
-│      │                                                                      │
-│      └─ FOR EACH node:                                                      │
-│           chrome.runtime.sendMessage({                                      │
-│             action: 'translate',      ← Einzel-Request (für ALLE Provider) │
-│             text: originalText,                                             │
-│             pageUrl: url                                                    │
-│           })                                                                │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            BACKGROUND SCRIPT                                 │
-│                                                                             │
-│  translateText(text, source, target, pageUrl)                               │
-│      │                                                                      │
-│      ├─ Cache-Server Check (wenn aktiviert)                                │
-│      │                                                                      │
-│      ├─ LibreTranslate → translateWithLibreTranslate() → Direkt            │
-│      │                                                                      │
-│      └─ LM Studio → translateWithLMStudioQueue() ─────────────────┐        │
-│                                                                    │        │
-│  ┌─────────────────────────────────────────────────────────────────▼──────┐ │
-│  │                      TRANSLATION QUEUE                                 │ │
-│  │                                                                        │ │
-│  │  translateWithLMStudioQueue(text, ...)                                │ │
-│  │      │                                                                 │ │
-│  │      ├─ 1. Buffer-Check (lokaler RAM-Cache)                           │ │
-│  │      ├─ 2. Cache-Server-Check (wenn aktiviert)                        │ │
-│  │      └─ 3. Zur Queue hinzufügen mit Promise                           │ │
-│  │                                                                        │ │
-│  │  scheduleQueueProcessing()                                            │ │
-│  │      └─ Nach 50ms ODER wenn 20 Texte: processTranslationQueue()       │ │
-│  │                                                                        │ │
-│  │  processTranslationQueue()                                            │ │
-│  │      │                                                                 │ │
-│  │      ├─ Snapshot: max 20 Texte aus Queue                              │ │
-│  │      ├─ batchTranslateWithLMStudio(texts[])                           │ │
-│  │      ├─ Für jeden Text: Promise resolven                              │ │
-│  │      ├─ In Buffer speichern                                           │ │
-│  │      ├─ CacheServer.bulkStore() (async, nicht blockierend)            │ │
-│  │      └─ Falls noch Items: scheduleQueueProcessing()                   │ │
-│  │                                                                        │ │
-│  │  Queue-Struktur:                                                       │ │
-│  │  {                                                                     │ │
-│  │    pending: Map<bufferKey, { text, resolve, reject, promise, ... }>,  │ │
-│  │    buffer: Map<bufferKey, translation>,                               │ │
-│  │    batchDelay: 50,     // ms                                          │ │
-│  │    maxBatchSize: 20    // Texte                                       │ │
-│  │  }                                                                     │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CACHE SERVER                                    │
-│                              (FastAPI)                                       │
-│                                                                             │
-│  POST /cache/bulk    ← bulkStore() speichert neue Übersetzungen            │
-│  POST /cache/get     ← bulkGet() holt gecachte Übersetzungen               │
-│                                                                             │
-│  Struktur:                                                                  │
-│  /data/cache/{url_hash}/{trans_hash}.txt                                   │
-│       │           │                                                         │
-│       │           └─ SHA256(url + text + langPair)                         │
-│       └─ SHA256(hostname)[:12]                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+Content Script                    Service Worker                   Cache Server
+(translator.js)                   (service-worker.js)              (FastAPI)
+
+translatePage()                   translateText()
+  findTranslatableTextNodes()       apiType?
+  Batch-Loop (pageBatchSize)          libretranslate --> direkt
+    Promise.all(batch)                lmstudio --> Queue
+      TRANSLATE message   ------->     Buffer/Cache check
+                                       Queue sammeln (50ms/20 Texte)
+                                       batchTranslateWithLMStudio()
+                          <-------   Result + source + tokens
+    wrapWithHoverOriginal()
+                                   CacheServer.bulkStore()  ------->  POST /cache/bulk
 ```
-
----
-
-## Datenfluss: Übersetzen einer Seite
-
-```
-1. User klickt "Übersetzen"
-   │
-   ▼
-2. Content: findTranslatableTextNodes() → 65 Nodes
-   │
-   ▼
-3. Content: Parallel-Loop (5er Batches)
-   │
-   FOR i = 0; i < 65; i += 5:
-   │   Promise.all([
-   │     translate(node[i].text),
-   │     translate(node[i+1].text),
-   │     ...
-   │   ])
-   │
-   ▼
-4. Background: translateText() aufgerufen (65x)
-   │
-   ├─ LM Studio? → translateWithLMStudioQueue()
-   │   │
-   │   ├─ Schon im Buffer? → Sofort returnen
-   │   ├─ Im Cache-Server? → Sofort returnen
-   │   └─ Zur Queue hinzufügen
-   │
-   └─ LibreTranslate? → Direkt übersetzen
-   │
-   ▼
-5. Queue sammelt (50ms oder 20 Texte)
-   │
-   ▼
-6. processTranslationQueue()
-   │
-   ├─ batchTranslateWithLMStudio([20 Texte])
-   │   │
-   │   └─ Ein LLM-Call mit JSON-Format:
-   │      { items: [{ original, translation }, ...] }
-   │
-   ├─ Promises resolven (20x)
-   │
-   ├─ Buffer aktualisieren
-   │
-   └─ CacheServer.bulkStore() → POST /cache/bulk
-   │
-   ▼
-7. Content erhält Übersetzungen (Promises resolved)
-   │
-   ▼
-8. Content: wrapWithHoverOriginal() → DOM aktualisieren
-```
-
----
-
-## Datenfluss: Seite mit Cache neu laden
-
-```
-1. Seite geladen
-   │
-   ▼
-2. Content: checkForCachedTranslation()
-   │
-   ├─ findTranslatableTextNodes() → Sample (50 Texte)
-   │
-   └─ SMT.Cache.checkCache(url, sampleTexts)
-       │
-       ├─ _checkLocalCache() → localStorage
-       │
-       └─ _checkServerCache() → 
-           │
-           ├─ Hashes berechnen (50x)
-           │
-           └─ SMT.CacheServer.bulkGet(hashes)
-               │
-               └─ chrome.runtime.sendMessage({
-                    action: 'cacheServerBulkGet',
-                    hashes: [...]
-                  })
-                  │
-                  ▼
-               Background: CacheServer.bulkGet()
-                  │
-                  └─ POST /cache/get → Server
-   │
-   ▼
-3. Cache gefunden? (≥30% Match)
-   │
-   ├─ JA → setCacheAvailable(true)
-   │        │
-   │        └─ autoLoadCache? → loadCachedTranslation()
-   │                            │
-   │                            └─ Alle Texte laden & anwenden
-   │
-   └─ NEIN → checkAutoTranslateDomain()
-```
-
----
 
 ## Komponenten
 
-### Content Script (`content.js` + `content/*.js`)
+### Content Script (`content/`)
 
 | Datei | Verantwortung |
 |-------|---------------|
-| `content.js` | Haupt-Klasse SmartTranslator, Event-Handler |
-| `content/content-dom.js` | DOM-Manipulation, Text-Node-Suche |
-| `content/content-cache.js` | Cache-Check, Cache-Laden |
-| `content/content-ui.js` | UI-Elemente (Tooltip, Icon, Progress) |
-| `content/content-export.js` | PDF/HTML Export |
+| `translator.js` | SmartTranslator Klasse, translatePage(), Message-Handler |
+| `translator-dom.js` | DOM-Manipulation, findTranslatableTextNodes(), wrapWithHoverOriginal() |
+| `translator-cache.js` | Cache-Check beim Seitenaufruf, Cache-Laden |
+| `translator-ui.js` | UI-Elemente (Selection-Icon, Progress-Overlay, Notifications) |
+| `translator-export.js` | PDF/HTML Export |
+| `domain-strategies.js` | Domain-spezifische Filter (Wikipedia, GitHub, StackOverflow) |
 
-### Background Script (`background.js`)
+### Service Worker (`service-worker.js`)
 
 | Bereich | Verantwortung |
 |---------|---------------|
-| `CacheServer` | Objekt für Server-Kommunikation |
-| `TranslatorModule` | Übersetzungs-Logik |
-| `translationQueue` | Queue-basiertes Batching für LM Studio |
-| Message Handler | `chrome.runtime.onMessage` |
+| Message Handler | `TRANSLATE`, `TRANSLATE_BATCH`, `TRANSLATE_PAGE`, `RETRANSLATE_PAGE`, `RESTORE_PAGE` |
+| `translateText()` | Routing: Cache-Check, Provider-Auswahl, Ergebnis mit source-Feld |
+| `translationQueue` | Queue-basiertes Batching für LM Studio (Buffer, Pending, Batch-Verarbeitung) |
+| `CLEAR_TRANSLATION_BUFFER` | Buffer leeren bei Provider-Wechsel |
+| CacheServer (Background) | Direkte HTTP-Kommunikation mit Cache-Server (vermeidet Mixed Content) |
 
-### Shared (`shared/*.js`)
+### Shared (`shared/`)
 
 | Datei | Verantwortung |
 |-------|---------------|
-| `cache-server.js` | CacheServer-API für Content-Script |
-| `cache-api.js` | Abstrakte Cache-API (lokal + Server) |
-| `utils.js` | Hilfsfunktionen |
-| `toast.js` | Toast-Notifications |
+| `storage.js` | Storage-Abstraktion, Default-Werte |
+| `cache-server.js` | CacheServer API Client (Content Script Seite) |
+| `cache-local.js` | LocalStorage Cache-Backend (SWT.CacheLocal) |
+| `cache-manager.js` | Cache-Orchestrierung nach Modus (local-first, server-first, etc.) |
+| `icons.js` | SVG Icon-Bibliothek (SWT.Icons), FontAwesome Subset |
+| `toast.js` | Toast-Notifications (SWT.Toast) |
+| `utils.js` | Hilfsfunktionen (SWT.Utils) |
+| `api-badge.js` | API-Badge Komponente (SWT.ApiBadge) |
 
----
+### UI-Seiten (`pages/`, `popup/`)
 
-## Cache-Server API
+| Datei | Verantwortung |
+|-------|---------------|
+| `popup/popup.js` | Quick-Translate, Seitenaktionen, Provider-Status |
+| `pages/sidepanel.js` | PageState (Zustandsableitung), ActionRenderer, Pipeline-Ansicht, Cache-Tabs |
+| `pages/options.js` | Provider-Accordion, Auto-Save, Verbindungstest, CONTEXT_PROMPTS |
 
-| Methode | Endpunkt | Beschreibung |
-|---------|----------|--------------|
-| POST | `/cache/bulk` | Mehrere Übersetzungen speichern |
-| POST | `/cache/get` | Mehrere Übersetzungen abrufen |
-| GET | `/cache/url/{hash}/all` | Alle Einträge einer URL |
-| DELETE | `/cache/url/{hash}` | Alle Einträge löschen |
-| GET | `/stats` | Statistiken |
-| GET | `/health` | Health-Check |
+## Datenfluss: Seitenübersetzung
 
----
+1. User klickt "Seite übersetzen"
+2. Content: `findTranslatableTextNodes()` findet N Text-Nodes (respektiert skipCodeBlocks, skipBlockquotes)
+3. Content: Batch-Loop mit `pageBatchSize` (Default 20)
+4. Pro Batch: `Promise.all()` feuert TRANSLATE-Messages parallel ab
+5. Service Worker: `translateText()` pro Text
+   - Cache-Check (Server/Lokal je nach Modus)
+   - Provider-Routing (LibreTranslate direkt, LM Studio via Queue)
+   - Ergebnis mit `source` (api/cache/buffer) und `tokens`
+6. Content: Ergebnisse in Reihenfolge anwenden via `wrapWithHoverOriginal()`
+7. Alle verarbeiteten Nodes werden in `.swt-translated-text` gewrappt (auch bei identischer Übersetzung)
+8. Service Worker: `CacheServer.bulkStore()` speichert neue Übersetzungen async
+
+## LM Studio Queue
+
+```
+translateWithLMStudioQueue(text)
+  1. Buffer-Check (RAM-Cache, Map<bufferKey, translation>)
+  2. Cache-Server-Check (wenn aktiviert und !bypassCache)
+  3. Zur Queue hinzufügen mit Promise
+
+scheduleQueueProcessing()
+  Nach 50ms ODER wenn maxBatchSize erreicht: processTranslationQueue()
+
+processTranslationQueue()
+  1. Snapshot: max 20 Texte aus Queue
+  2. batchTranslateWithLMStudio(texts[])  -- ein LLM-Call
+  3. Promises resolven
+  4. Buffer aktualisieren
+  5. CacheServer.bulkStore() (async)
+  6. Falls noch Items: erneut schedulen
+```
+
+Buffer wird bei Provider-Wechsel geleert (`CLEAR_TRANSLATION_BUFFER`).
+
+## PageState (Side Panel)
+
+Zustandsableitung aus `GET_PAGE_INFO` Response:
+
+| Bedingung | Zustand | Continue-Button |
+|-----------|---------|-----------------|
+| `isTranslating` | translating | deaktiviert |
+| `isTranslated` | translated | aktiviert |
+| `translatedCount > 0` oder `remaining > 0` | partial | aktiviert |
+| sonst | idle | deaktiviert |
 
 ## Hash-Berechnung
 
-### url_hash (12 Zeichen)
-```javascript
-SHA256(hostname.toLowerCase())[:12]
-
-// Beispiel:
-// "https://svelte.dev/docs" → SHA256("svelte.dev")[:12] → "a1b2c3d4e5f6"
+**url_hash** (12 Zeichen, Ordnername auf Server):
+```
+SHA256(hostname ohne www, lowercase)[:12]
+Nicht-Standard-Ports bleiben: "localhost:3000"
 ```
 
-### trans_hash (64 Zeichen)
-```javascript
-SHA256(normalizedUrl + text + langPair)
-
-// Für E-Books: epubcfi auf Kapitel normalisieren
-// epubcfi(/6/14!/4/2/...) → epubcfi(/6/14)
-
-// Beispiel:
-// "https://site.com/page" + "Hello" + "en:de" → "f1e2d3c4b5a6..."
+**trans_hash** (64 Zeichen, Dateiname auf Server):
+```
+SHA256(origin + pathname + text + ":" + langPair)
+Fallback bei HTTP: djb2-Hash (kein crypto.subtle)
 ```
 
----
-
-## Konfiguration
-
-### Settings (chrome.storage.sync)
+## Settings (chrome.storage.sync)
 
 | Key | Default | Beschreibung |
 |-----|---------|--------------|
-| `cacheServerEnabled` | `true` | Cache-Server aktiv |
-| `cacheServerUrl` | `http://192.168.178.49:8083` | Server-URL |
-| `cacheServerMode` | `server-only` | `local-only`, `server-only`, `both` |
-| `apiType` | `libretranslate` | `libretranslate` oder `lmstudio` |
-| `useCacheFirst` | `true` | Cache vor Übersetzung prüfen |
-
-### Queue-Konstanten (in code)
-
-| Konstante | Wert | Beschreibung |
-|-----------|------|--------------|
-| `batchDelay` | 50ms | Warten vor Batch-Verarbeitung |
-| `maxBatchSize` | 20 | Max Texte pro LLM-Call |
-| `parallelSize` | 5 | Parallele Requests im Content |
-
----
-
-## Version History
-
-| Version | Änderung |
-|---------|----------|
-| v3.13.35 | Queue-basiertes Batching eingeführt |
-| v3.13.37 | Cache-Server Integration in Queue |
-| v3.13.38 | 162 Zeilen toter Code entfernt |
-| v3.13.39 | Debug-Logging für Cache-Probleme |
+| `apiType` | `libretranslate` | Aktives Backend |
+| `serviceUrl` | `https://translate.max` | LibreTranslate URL |
+| `lmStudioUrl` | `` | LM Studio URL |
+| `cacheServerEnabled` | `true` | Cache aktiv |
+| `cacheServerMode` | `server-only` | Cache-Modus |
+| `pageBatchSize` | `20` | Texte pro Batch |
+| `useCacheFirst` | `true` | Cache vor API prüfen |
+| `skipCodeBlocks` | `true` | Code-Elemente ausschließen |
+| `skipBlockquotes` | `true` | Zitate ausschließen |

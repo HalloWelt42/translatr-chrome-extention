@@ -10,7 +10,7 @@ const LibreTranslateProvider = {
    */
   async translate(text, source, target, settings) {
     try {
-      const serviceUrl = settings.serviceUrl;
+      const serviceUrl = settings.serviceUrl.replace(/\/translate\/?$/, '') + '/translate';
 
       const response = await fetch(serviceUrl, {
         method: 'POST',

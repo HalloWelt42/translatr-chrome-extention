@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_appName__",
-  "version": "1.40.3",
+  "version": "1.43.3",
   "description": "__MSG_appDescription__",
   "default_locale": "en",
 
@@ -56,30 +56,6 @@
 
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' https: data:;"
-  },
-
-  "commands": {
-    "translate-selection": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+T",
-        "mac": "Command+Shift+T"
-      },
-      "description": "Translate selection"
-    },
-    "translate-page": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+P",
-        "mac": "Command+Shift+P"
-      },
-      "description": "Translate page"
-    },
-    "toggle-sidepanel": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+S",
-        "mac": "Command+Shift+S"
-      },
-      "description": "Open side panel"
-    }
   },
 
   "icons": {

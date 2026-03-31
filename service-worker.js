@@ -50,7 +50,6 @@ class TranslatorBackground {
       this.handleMessage(request, sender, sendResponse);
       return true;
     });
-    chrome.commands.onCommand.addListener((command) => this.handleCommand(command));
     this.setupContextMenu();
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
   }
@@ -61,64 +60,47 @@ class TranslatorBackground {
       // Bei Erstinstallation: Einstellungen öffnen
       chrome.tabs.create({ url: chrome.runtime.getURL('pages/options.html') });
     } else if (details.reason === 'update') {
-      await this.migrateToUnifiedStorage();
+      await this.recoverFromBrokenMigration();
       await this.migrateSettings();
-      // Alle Tabs mit alten Content-Scripts neu laden
     }
     await this.setupContextMenu();
   }
 
-  async migrateToUnifiedStorage() {
+  /**
+   * Recovery: Wenn die alte Migration Settings in 'swt-settings' gebündelt
+   * und die einzelnen Keys gelöscht hat, werden sie wiederhergestellt.
+   * Der gesamte Code liest einzelne Keys - 'swt-settings' wird nicht genutzt.
+   */
+  async recoverFromBrokenMigration() {
     try {
-      const check = await chrome.storage.sync.get('swt-settings');
-      if (check['swt-settings']) return; // Bereits migriert
+      const all = await chrome.storage.sync.get(null);
+      const bundle = all['swt-settings'];
+      if (!bundle) return; // Keine Migration passiert, alles OK
 
-      const oldSync = await chrome.storage.sync.get(null);
-      if (!oldSync || Object.keys(oldSync).length === 0) return;
-
-      // Settings-Keys sammeln
-      const settingsKeys = [
-        'apiType', 'serviceUrl', 'apiKey', 'sourceLang', 'targetLang',
-        'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature', 'lmStudioMaxTokens',
-        'lmStudioContext', 'lmStudioCustomPrompt',
-        'showSelectionIcon', 'selectionIconDelay', 'showOriginalInTooltip',
-        'showAlternatives', 'tooltipPosition', 'highlightTranslated',
-        'enableTTS', 'ttsLanguage', 'excludedDomains',
-        'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
-        'simplifyPdfExport', 'useTabsForAlternatives', 'tabWordThreshold',
-        'lmBatchSize', 'lmMaxBatchTokens', 'pageBatchSize',
-        'enableTrueBatch', 'enableSmartChunking', 'useCacheFirst',
-        'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode', 'cacheServerTimeout',
-        'filterEmbeddingModels', 'enableAbortTranslation', 'enableLLMFallback'
-      ];
-
-      const settings = {};
-      for (const key of settingsKeys) {
-        if (key in oldSync) settings[key] = oldSync[key];
+      // Prüfen ob einzelne Keys fehlen (z.B. apiType oder serviceUrl)
+      if (all.apiType && all.serviceUrl !== undefined) {
+        // Keys existieren, aber Bundle aufräumen
+        await chrome.storage.sync.remove('swt-settings');
+        return;
       }
 
-      // Data-Keys aus local
-      const oldLocal = await chrome.storage.local.get(null);
-      const data = {};
-      for (const key of ['translationHistory', 'tokenStats']) {
-        if (key in oldLocal) data[key] = oldLocal[key];
+      // Einzelne Keys aus dem Bundle wiederherstellen
+      const restored = {};
+      for (const [key, value] of Object.entries(bundle)) {
+        if (!(key in all) || key === 'swt-settings') {
+          restored[key] = value;
+        }
       }
 
-      if (Object.keys(settings).length > 0) {
-        await chrome.storage.sync.set({ 'swt-settings': settings });
-      }
-      if (Object.keys(data).length > 0) {
-        await chrome.storage.local.set({ 'swt-data': data });
+      if (Object.keys(restored).length > 0) {
+        await chrome.storage.sync.set(restored);
+        console.info('[SWT] Settings aus Bundle wiederhergestellt:', Object.keys(restored).join(', '));
       }
 
-      // Alte Keys entfernen
-      const oldSyncKeys = Object.keys(oldSync).filter(k => k !== 'swt-settings');
-      if (oldSyncKeys.length > 0) await chrome.storage.sync.remove(oldSyncKeys);
-      const oldLocalKeys = Object.keys(oldLocal).filter(k => k !== 'swt-data');
-      if (oldLocalKeys.length > 0) await chrome.storage.local.remove(oldLocalKeys);
-
+      // Bundle aufräumen (wird nicht mehr gebraucht)
+      await chrome.storage.sync.remove('swt-settings');
     } catch (e) {
-      console.warn('[SWT] Storage-Migration fehlgeschlagen:', e.message);
+      console.warn('[SWT] Recovery fehlgeschlagen:', e.message);
     }
   }
 
@@ -170,20 +152,6 @@ class TranslatorBackground {
       chrome.contextMenus.create({
         id: 'EXPORT_MENU',
         title: 'Exportieren',
-        contexts: ['page']
-      });
-
-      chrome.contextMenus.create({
-        id: 'EXPORT_PDF_CMD',
-        parentId: 'EXPORT_MENU',
-        title: 'Als PDF (Standard)',
-        contexts: ['page']
-      });
-
-      chrome.contextMenus.create({
-        id: 'EXPORT_PDF_SIMPLE',
-        parentId: 'EXPORT_MENU',
-        title: 'Als PDF (Vereinfacht)',
         contexts: ['page']
       });
 
@@ -243,12 +211,6 @@ class TranslatorBackground {
         case 'TRANSLATE_PAGE_CMD':
           await this.sendToContentScript(tab.id, { action: 'TRANSLATE_PAGE', mode: 'replace' });
           break;
-        case 'EXPORT_PDF_CMD':
-          await this.sendToContentScript(tab.id, { action: 'EXPORT_PDF', simplified: false });
-          break;
-        case 'EXPORT_PDF_SIMPLE':
-          await this.sendToContentScript(tab.id, { action: 'EXPORT_PDF', simplified: true });
-          break;
         case 'EXPORT_MARKDOWN_CMD':
           await this.sendToContentScript(tab.id, { action: 'EXPORT_MARKDOWN' });
           break;
@@ -272,45 +234,22 @@ class TranslatorBackground {
     }
   }
 
-  async handleCommand(command) {
-    try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab) return;
-
-      switch (command) {
-        case 'TRANSLATE_SELECTION':
-          const response = await this.sendToContentScript(tab.id, { action: 'GET_SELECTION' });
-          if (response?.text) {
-            await this.translateAndShowResult(response.text, tab);
-          }
-          break;
-        case 'TRANSLATE_PAGE_CMD':
-          await this.sendToContentScript(tab.id, { action: 'TRANSLATE_PAGE', mode: 'replace' });
-          break;
-        case 'TOGGLE_SIDEPANEL':
-          await chrome.sidePanel.open({ tabId: tab.id });
-          break;
-      }
-    } catch (e) {
-      console.warn('Command error:', e);
-    }
-  }
-
   async handleMessage(request, sender, sendResponse) {
     try {
       switch (request.action) {
         case 'TRANSLATE':
-          const result = await this.translateText(request.text, request.source, request.target, request.pageUrl);
+          const result = await this.translateText(request.text, request.source, request.target, request.pageUrl, request.bypassCache || false);
           sendResponse(result);
           break;
 
         case 'TRANSLATE_BATCH':
           const batchResult = await this.translateBatch(
-            request.texts, 
-            request.source, 
-            request.target, 
+            request.texts,
+            request.source,
+            request.target,
             request.pageUrl,
-            request.cacheOnly || false
+            request.cacheOnly || false,
+            request.bypassCache || false
           );
           sendResponse(batchResult);
           break;
@@ -372,6 +311,26 @@ class TranslatorBackground {
           sendResponse({ success: true });
           break;
 
+        case 'BADGE_PROGRESS':
+          this.setBadgeProgress(request.percent, sender.tab?.id);
+          sendResponse({ success: true });
+          break;
+
+        case 'BADGE_COMPLETE':
+          this.setBadgeComplete(sender.tab?.id);
+          sendResponse({ success: true });
+          break;
+
+        case 'BADGE_ERROR':
+          this.setBadgeError(sender.tab?.id);
+          sendResponse({ success: true });
+          break;
+
+        case 'BADGE_RESET':
+          this.setBadgeDefault(sender.tab?.id);
+          sendResponse({ success: true });
+          break;
+
         // === Cache Server Proxy (für Mixed Content) ===
         case 'CACHE_SERVER_BULK_GET':
           const bulkGetResult = await CacheServer.bulkGet(request.hashes, request.pageUrl);
@@ -428,6 +387,11 @@ class TranslatorBackground {
           sendResponse({ success: true, stats: cacheStats });
           break;
 
+        case 'CLEAR_TRANSLATION_BUFFER':
+          this.translationQueue.buffer.clear();
+          sendResponse({ success: true });
+          break;
+
         default:
           sendResponse({ success: false, error: 'Unknown action' });
       }
@@ -472,7 +436,7 @@ class TranslatorBackground {
     }
   }
 
-  async translateText(text, source = 'auto', target = 'de', pageUrl = null) {
+  async translateText(text, source = 'auto', target = 'de', pageUrl = null, bypassCache = false) {
     // Leere/ungültige Texte sofort abweisen
     if (!text || text.trim().length < 2) {
       return { success: false, error: 'Text zu kurz oder leer' };
@@ -480,19 +444,20 @@ class TranslatorBackground {
 
     // Sprachrichtung für Cache-Hash
     const langPair = `${source || 'auto'}:${target || 'de'}`;
-    
-    
+
     // 1. Cache-Server prüfen (wenn aktiviert und URL vorhanden)
-    if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
+    if (!bypassCache && CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
       try {
         const hash = await CacheServer.computeHash(pageUrl, text, langPair);
         const cached = await CacheServer.get(hash, pageUrl);
         if (cached) {
+          const cachedApiType = (await chrome.storage.sync.get('apiType')).apiType || 'libretranslate';
           return {
             success: true,
             translatedText: cached.translated,
             alternatives: [],
-            apiType: 'cache',
+            apiType: cachedApiType,
+            source: 'cache',
             tokens: 0,
             fromCache: true
           };
@@ -524,8 +489,8 @@ class TranslatorBackground {
 
     if (apiType === 'lmstudio') {
       // Nutze Queue für Batch-Prefetch (effizienter als Einzel-Requests)
-      result = await this.translateWithLMStudioQueue(text, source, target, pageUrl, settings);
-      
+      result = await this.translateWithLMStudioQueue(text, source, target, pageUrl, settings, bypassCache);
+
       // Fallback auf LibreTranslate wenn aktiviert und Fehler
       if (!result.success && settings.enableLLMFallback) {
         result = await this.translateWithLibreTranslate(text, source, target, settings);
@@ -533,6 +498,10 @@ class TranslatorBackground {
       }
     } else {
       result = await this.translateWithLibreTranslate(text, source, target, settings);
+    }
+
+    if (result.success && !result.source) {
+      result.source = 'api';
     }
 
     return result;
@@ -555,11 +524,11 @@ class TranslatorBackground {
    * Sendet sie als Batch und gibt Ergebnisse in EXAKT gleicher Reihenfolge zurück
    * Index-basierte Zuordnung statt Text-Matching für 100% Reihenfolge-Garantie
    */
-  async translateWithLMStudioQueue(text, source, target, pageUrl, settings) {
+  async translateWithLMStudioQueue(text, source, target, pageUrl, settings, bypassCache = false) {
     const queue = this.translationQueue;
     const normalizedText = text.trim();
     const langPair = `${source || 'auto'}:${target || 'de'}`;
-    
+
     // URL normalisieren für Buffer-Key (ohne Hash/Query für normale Seiten)
     let normalizedUrl = '';
     if (pageUrl) {
@@ -570,32 +539,34 @@ class TranslatorBackground {
         normalizedUrl = pageUrl;
       }
     }
-    
-    // 1. Schon im lokalen Buffer? → Sofort zurückgeben
+
+    // 1. Schon im lokalen Buffer? (nur wenn nicht bypass)
     const bufferKey = `${normalizedUrl}:${normalizedText}:${source}:${target}`;
-    if (queue.buffer.has(bufferKey)) {
+    if (!bypassCache && queue.buffer.has(bufferKey)) {
       const cached = queue.buffer.get(bufferKey);
       return {
         success: true,
         translatedText: cached,
         apiType: 'lmstudio',
+        source: 'buffer',
         fromBuffer: true,
         tokens: 0
       };
     }
-    
-    // 2. Cache-Server prüfen (wenn aktiviert)
-    if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
+
+    // 2. Cache-Server prüfen (nur wenn nicht bypass)
+    if (!bypassCache && CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
       try {
         const hash = await CacheServer.computeHash(pageUrl, normalizedText, langPair);
         const cached = await CacheServer.get(hash, pageUrl);
-        
+
         if (cached && cached.translated) {
           queue.buffer.set(bufferKey, cached.translated);
           return {
             success: true,
             translatedText: cached.translated,
             apiType: 'lmstudio',
+            source: 'cache',
             fromCache: true,
             tokens: 0
           };
@@ -815,16 +786,16 @@ class TranslatorBackground {
     }
   }
 
-  async translateBatch(texts, source, target, pageUrl = null, cacheOnly = false) {
+  async translateBatch(texts, source, target, pageUrl = null, cacheOnly = false, bypassCache = false) {
     // 1. Cache-Bulk-Check wenn aktiviert und URL vorhanden
     const textHashMap = new Map(); // text → hash
     const hashTextMap = new Map(); // hash → text
     let cachedResults = [];
     let textsToTranslate = [...texts];
-    
+
     const langPair = `${source || 'auto'}:${target || 'de'}`;
 
-    if (CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
+    if (!bypassCache && CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
       try {
         for (const text of texts) {
           const hash = await CacheServer.computeHash(pageUrl, text, langPair);
@@ -1293,12 +1264,99 @@ class TranslatorBackground {
       skipBlockquotes: true,
       highlightTranslated: true,
       useTabsForAlternatives: true,
-      simplifyPdfExport: false,
       fixInlineSpacing: true,
       tabWordThreshold: 20,
       excludedDomains: ''
     };
     await chrome.storage.sync.set(defaults);
+  }
+
+  // ========================================================================
+  // Extension-Icon Badge und Hintergrund
+  // ========================================================================
+
+  _drawIcon(bgColor, size = 32) {
+    const canvas = new OffscreenCanvas(size, size);
+    const ctx = canvas.getContext('2d');
+    const r = size * 0.2; // Abrundung
+
+    // Abgerundetes Quadrat
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.lineTo(size - r, 0);
+    ctx.quadraticCurveTo(size, 0, size, r);
+    ctx.lineTo(size, size - r);
+    ctx.quadraticCurveTo(size, size, size - r, size);
+    ctx.lineTo(r, size);
+    ctx.quadraticCurveTo(0, size, 0, size - r);
+    ctx.lineTo(0, r);
+    ctx.quadraticCurveTo(0, 0, r, 0);
+    ctx.closePath();
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+
+    // "T" als Translate-Symbol (zentriert)
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${size * 0.55}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('T', size / 2, size / 2 + size * 0.03);
+
+    return ctx.getImageData(0, 0, size, size);
+  }
+
+  setBadgeProgress(percent, tabId) {
+    const text = percent >= 100 ? '100' : percent + '%';
+    const opts = tabId ? { tabId } : {};
+    chrome.action.setBadgeText({ text, ...opts });
+    chrome.action.setBadgeBackgroundColor({ color: '#eab308', ...opts });
+    chrome.action.setIcon({
+      imageData: {
+        16: this._drawIcon('#eab308', 16),
+        32: this._drawIcon('#eab308', 32)
+      },
+      ...opts
+    });
+  }
+
+  setBadgeComplete(tabId) {
+    const opts = tabId ? { tabId } : {};
+    chrome.action.setBadgeText({ text: '100', ...opts });
+    chrome.action.setBadgeBackgroundColor({ color: '#22c55e', ...opts });
+    chrome.action.setIcon({
+      imageData: {
+        16: this._drawIcon('#22c55e', 16),
+        32: this._drawIcon('#22c55e', 32)
+      },
+      ...opts
+    });
+    // Nach 2 Sekunden zurücksetzen
+    setTimeout(() => this.setBadgeDefault(tabId), 2000);
+  }
+
+  setBadgeError(tabId) {
+    const opts = tabId ? { tabId } : {};
+    chrome.action.setBadgeText({ text: '!', ...opts });
+    chrome.action.setBadgeBackgroundColor({ color: '#ef4444', ...opts });
+    chrome.action.setIcon({
+      imageData: {
+        16: this._drawIcon('#ef4444', 16),
+        32: this._drawIcon('#ef4444', 32)
+      },
+      ...opts
+    });
+    // Nach 3 Sekunden zurücksetzen
+    setTimeout(() => this.setBadgeDefault(tabId), 3000);
+  }
+
+  setBadgeDefault(tabId) {
+    const opts = tabId ? { tabId } : {};
+    chrome.action.setBadgeText({ text: '', ...opts });
+    // Icon auf Standard zurücksetzen (aus manifest.json)
+    chrome.action.setIcon({
+      path: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' },
+      ...opts
+    });
   }
 }
 

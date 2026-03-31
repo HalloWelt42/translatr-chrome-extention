@@ -42,8 +42,8 @@
     wrapper.dataset.original = original;
     wrapper.dataset.translated = translated;
 
-    // Markierung nur wenn in Settings aktiviert
-    if (this.settings.highlightTranslated === false) {
+    // Kein Highlight wenn deaktiviert oder Text unverändert
+    if (this.settings.highlightTranslated === false || original === translated) {
       wrapper.style.background = 'none';
     }
 
@@ -119,8 +119,14 @@
     this.translatedTexts.clear();
     this.isTranslated = false;
     this.translationMode = null;
+
     this.notifyStatusChange();
     this.showNotification('Originaltexte wiederhergestellt', 'info');
+
+    // Cache-Status asynchron neu prüfen (nach Status-Update)
+    if (typeof this.checkForCachedTranslation === 'function') {
+      this.checkForCachedTranslation().catch(() => {});
+    }
   };
 
   /**

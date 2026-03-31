@@ -33,8 +33,11 @@
           <div class="swt-progress-content">
             <div class="swt-progress-header">
               <div class="swt-progress-title-wrap">
-                <div class="swt-status-dot" id="swtStatusDot"></div>
-                <span class="swt-progress-title">Übersetze...</span>
+                <span class="swt-progress-title"><span class="swt-status-dot" id="swtStatusDot"></span>Übersetze...</span>
+                <span class="swt-progress-meta">
+                  <span class="swt-progress-provider"></span>
+                  <span class="swt-progress-direction"></span>
+                </span>
                 <span class="swt-progress-eta">
                   ${SWT.Icons.svg('clock', 'swt-eta-icon')}
                   <span class="swt-eta-text">berechne...</span>
@@ -117,6 +120,7 @@
       }
       requestAnimationFrame(() => this.progressOverlay?.classList.add('swt-visible'));
     } else {
+      this._lastBadgePercent = 0;
       if (this.progressOverlay) {
         this.progressOverlay.classList.remove('swt-visible');
         const overlay = this.progressOverlay;
@@ -144,7 +148,13 @@
     this._lastTotal = total;
     
     const percent = Math.round((current / total) * 100);
-    
+
+    // Extension-Badge aktualisieren (throttled: alle 5%)
+    if (!this._lastBadgePercent || percent >= this._lastBadgePercent + 5 || percent >= 100) {
+      this._lastBadgePercent = percent;
+      chrome.runtime.sendMessage({ action: 'BADGE_PROGRESS', percent }).catch(() => {});
+    }
+
     // Balken
     const fill = this.progressOverlay.querySelector('.swt-progress-fill');
     if (fill) fill.style.width = `${percent}%`;
@@ -306,6 +316,38 @@
    */
   const STATUS_TYPES = ['loading', 'cache', 'ai'];
   const STATUS_LABELS = { loading: 'Lade...', cache: 'Aus Server-Cache', ai: 'KI-Übersetzung' };
+
+  /**
+   * Provider-Info und Übersetzungsrichtung im Overlay setzen
+   */
+  SmartTranslator.prototype.updateProgressMeta = function(apiType, sourceLang, targetLang, extra) {
+    if (!this.progressOverlay) return;
+
+    const providerEl = this.progressOverlay.querySelector('.swt-progress-provider');
+    const directionEl = this.progressOverlay.querySelector('.swt-progress-direction');
+
+    if (providerEl) {
+      let label = apiType === 'lmstudio' ? 'LM Studio' : 'LibreTranslate';
+      if (apiType === 'lmstudio' && extra?.model) {
+        label += ' -- ' + extra.model.split('/').pop();
+      }
+      if (apiType === 'lmstudio' && extra?.context && extra.context !== 'general') {
+        const names = { automotive: 'Kfz', technical: 'IT', medical: 'Medizin', legal: 'Recht' };
+        label += ' (' + (names[extra.context] || extra.context) + ')';
+      }
+      providerEl.textContent = label;
+    }
+
+    if (directionEl) {
+      const langName = (code) => {
+        const map = { auto: 'Auto', en: 'EN', de: 'DE', fr: 'FR', es: 'ES', it: 'IT',
+          pt: 'PT', nl: 'NL', pl: 'PL', ru: 'RU', zh: 'ZH', ja: 'JA', ko: 'KO',
+          ar: 'AR', tr: 'TR', uk: 'UK', cs: 'CS', sv: 'SV', da: 'DA', fi: 'FI', hi: 'HI' };
+        return map[code] || code.toUpperCase();
+      };
+      directionEl.textContent = langName(sourceLang) + ' \u2192 ' + langName(targetLang);
+    }
+  };
 
   SmartTranslator.prototype.updateSourceStatus = function(type, active = true) {
     if (!this.progressOverlay) return;

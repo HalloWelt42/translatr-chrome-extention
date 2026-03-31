@@ -34,7 +34,20 @@ textarea {
 }
 
 .actions-grid {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+}
+
+
+.github-link svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--text-secondary);
+  vertical-align: middle;
+  transition: fill var(--transition-normal);
+}
+
+.github-link:hover svg {
+  fill: var(--text);
 }
 
 /* Header Badges auf gleicher Höhe */

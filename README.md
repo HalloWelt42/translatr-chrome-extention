@@ -1,33 +1,19 @@
-# Smart Web Translator v3.13.0
+# Smart Web Translator
 
-Chrome Extension für intelligente Übersetzungen mit LibreTranslate, LM Studio und SWT Cache Server.
+Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTranslate und LM Studio.
 
 ## Features
 
-### Übersetzungs-Backends
-- **LibreTranslate** - Open-Source, selbst-gehostet
-- **LM Studio** - Lokales LLM mit Fachkontexten (Kfz, IT, Medizin, Recht)
-
-### Cache Server Integration (v3.8)
-- Zentraler Übersetzungs-Cache (SWT Cache Server)
-- SHA-256 Hash-basierte Deduplizierung
-- Bulk-Operationen für Seitenübersetzung
-- Fallback-Modi: server-first, local-first, server-only, local-only
-
-### E-Book Reader Support (NEU in v3.13)
-- Spezielle Behandlung für E-Book-Reader wie `books.mac`
-- **epubcfi-Fragment als Cache-Key** - Jede Buchseite wird individuell gecacht
-- **iframe-Content-Extraktion** - Texte aus `srcdoc` iframes werden erkannt
-- Konfigurierbare E-Book-Reader-Domains in den Einstellungen
-- Intelligente Hash-Änderungs-Erkennung (nur strukturelle Änderungen triggern Reload)
-
-### Funktionen
-- Auswahl-Übersetzung mit Icon
-- Seiten-Übersetzung (Batch)
-- Side Panel für erweiterte Funktionen
-- Verlauf & Statistiken
-- PDF Export
-- Text-to-Speech
+- **LibreTranslate** -- Open-Source Übersetzungsserver, selbst gehostet oder öffentliche Instanz
+- **LM Studio** -- Lokales LLM mit Fachkontexten (Kfz/Automotive, Technik/IT, Medizin, Recht)
+- **Auswahl-Übersetzung** -- Text markieren, Icon klicken, sofort übersetzen
+- **Seiten-Übersetzung** -- Ganze Seite batch-weise übersetzen mit Fortschrittsanzeige
+- **Side Panel** -- Erweiterte Funktionen, Statistiken, Cache-Verwaltung, Pipeline-Ansicht
+- **Übersetzungs-Cache** -- Lokal (LocalStorage), Server (SWT Cache Server) oder beides
+- **Fachkontexte** -- Spezialisierte System-Prompts für Kfz, IT, Medizin, Recht (nur LM Studio)
+- **Text-to-Speech** -- Vorlesefunktion über Browser-Sprachsynthese
+- **Hover-Original** -- Originaltext beim Überfahren übersetzter Elemente anzeigen
+- **Domain-Strategien** -- Angepasste Filter für Wikipedia, GitHub, StackOverflow u.a.
 
 ## Installation
 
@@ -38,106 +24,85 @@ Chrome Extension für intelligente Übersetzungen mit LibreTranslate, LM Studio 
 
 ## Einstellungen
 
-### E-Book Reader (NEU)
-1. Einstellungen → E-Book Reader
-2. Domains hinzufügen (z.B. `books.mac`, `reader.local`)
-3. "iframe-Content extrahieren" aktiviert lassen für EPUB.js-Reader
+### Übersetzungs-Backend
 
-Der URL-Hash (`#epubcfi(...)`) wird automatisch für die Cache-Identifikation verwendet.
+LibreTranslate und LM Studio werden als Accordion-Panels konfiguriert. Das aktive Backend ist aufgeklappt, das inaktive eingeklappt. Klick auf den Header wechselt.
 
-### Cache Server
-1. Server aktivieren (Toggle)
-2. Server URL eingeben: `http://192.168.178.49:8083`
-3. Cache-Modus wählen:
-   - **Server → Lokal**: Erst Server prüfen, dann LocalStorage
-   - **Lokal → Server**: Erst LocalStorage, dann Server
-   - **Nur Server**: Kein lokaler Cache
-   - **Nur Lokal**: Komplett offline
+- **LibreTranslate**: Server-URL eingeben (z.B. `https://translate.max`), optional API-Key
+- **LM Studio**: Server-URL (z.B. `http://192.168.178.45:1234`), Modell auswählen, Temperatur und Max Tokens einstellen. Empfohlen: Qwen 3 Instruct-Modelle ab 12B+
+
+### Übersetzungs-Cache
+
+Vier Modi verfügbar:
+
+| Modus | Beschreibung |
+|-------|-------------|
+| `local-only` | Nur im Browser (LocalStorage) |
+| `server-only` | Nur auf dem Cache-Server |
+| `local-first` | Erst lokal, Server als Fallback |
+| `server-first` | Erst Server, lokal als Fallback |
 
 ### Tastenkürzel
-- `Ctrl+Shift+T` - Auswahl übersetzen
-- `Ctrl+Shift+P` - Seite übersetzen
-- `Ctrl+Shift+S` - Side Panel öffnen
 
-## Architektur
+- `Ctrl+Shift+T` -- Auswahl übersetzen
+- `Ctrl+Shift+P` -- Seite übersetzen
+- `Ctrl+Shift+S` -- Side Panel öffnen
+
+## Projektstruktur
 
 ```
-├── manifest.json
-├── background.js          # Service Worker + Cache-Integration
-├── content.js             # Content Script
-├── domain-strategies.js   # Domain-spezifische Strategien (Wikipedia, E-Book, etc.)
-├── content/
-│   ├── content-ui.js      # UI-Komponenten
-│   ├── content-cache.js   # LocalStorage Cache
-│   ├── content-dom.js     # DOM-Manipulation + iframe-Extraktion
-│   └── content-export.js  # PDF Export
-├── shared/
-│   ├── cache-server.js    # Cache Server API Client
-│   ├── cache-api.js       # Abstrakte Cache-API
-│   ├── toast.js           # Benachrichtigungen
-│   ├── api-badge.js       # API-Badge
-│   └── utils.js           # Hilfsfunktionen
-├── media/
-│   └── icons.js           # SVG Icons (SMT.Icons)
-├── sidepanel.html/js
-├── popup.html/js
-└── options.html/js
+manifest.json
+service-worker.js                 # Service Worker (Background)
+content/
+  translator.js                   # Haupt-Content-Script (SmartTranslator)
+  translator-ui.js                # UI-Elemente (Tooltip, Icon, Progress)
+  translator-cache.js             # Cache-Check, Cache-Laden
+  translator-dom.js               # DOM-Manipulation, Text-Node-Suche
+  translator-export.js            # PDF/HTML Export
+  domain-strategies.js            # Domain-spezifische Filter
+  translator.css                  # Content-Styles
+shared/
+  storage.js                      # Storage-Abstraction (sync + local)
+  cache-server.js                 # Cache Server API Client
+  cache-local.js                  # LocalStorage Cache-Backend
+  cache-manager.js                # Cache-Orchestrierung (lokal + Server)
+  icons.js                        # SVG Icon-Bibliothek (SWT.Icons)
+  toast.js                        # Toast-Benachrichtigungen
+  utils.js                        # Hilfsfunktionen
+  api-badge.js                    # API-Badge Komponente
+background/
+  providers/
+    libre-translate.js            # LibreTranslate Provider
+    lm-studio.js                  # LM Studio Provider
+popup/
+  popup.html/js/css               # Browser-Action Popup
+pages/
+  sidepanel.html/js/css           # Side Panel
+  options.html/js/css             # Einstellungen
+  guide.html                      # Anleitung
+  donate.html                     # Spendenseite
+  page-common.css                 # Gemeinsame Styles
 ```
+
+## Cache Server API
+
+Der SWT Cache Server nutzt ein Zwei-Hash-System:
+
+- **url_hash** (12 Zeichen): `SHA256(hostname ohne www)[:12]`
+- **trans_hash** (64 Zeichen): `SHA256(origin + pathname + text + ":" + langPair)`
+
+Dateien werden als Base64-kodierte Textdateien gespeichert (2 Zeilen: Original + Übersetzung).
+
+Vollständige API-Dokumentation: `docs/CACHE_STORE_API.md`
 
 ## Domain-Strategien
-
-Die Extension unterstützt domainspezifische Anpassungen:
 
 | Strategie | Domains | Besonderheiten |
 |-----------|---------|----------------|
 | Wikipedia | *.wikipedia.org | Infoboxen, Referenzen ausschließen |
 | GitHub | *.github.com | Markdown-Content |
 | StackOverflow | *.stackoverflow.com | Code-Blöcke ausschließen |
-| E-Book | books.mac (konfigurierbar) | epubcfi-Hashes, iframe-Content |
 | News | cnn.com, bbc.com, ... | Artikel-Content |
-
-## Cache Server API
-
-```javascript
-// Einzelne Übersetzung
-const hash = await SMT.CacheServer.computeHash(text, 'en', 'de');
-const cached = await SMT.CacheServer.get(hash);
-await SMT.CacheServer.store(original, translated, 'en', 'de');
-
-// Bulk-Operationen
-const result = await SMT.CacheServer.bulkGet(hashes);
-await SMT.CacheServer.bulkStore(translations);
-```
-
-## Changelog
-
-### v3.13.0
-- **E-Book Reader Support**
-  - Neue Domain-Strategie für E-Book-Reader
-  - epubcfi-Fragment als Cache-Key für Buchseiten
-  - iframe srcdoc Content-Extraktion
-  - Konfigurierbare E-Book-Reader-Domains
-  - Intelligente Hash-Änderungs-Erkennung
-
-### v3.12.0
-- Abstrakte Cache-API (SMT.Cache)
-- Konsistente Cache-Keys basierend auf Original-Text
-
-### v3.8.0
-- Cache Server Integration
-- Bulk-Cache-Operationen für Seitenübersetzung
-- SHA-256 Hash-Berechnung (identisch zum Server)
-- Fallback-Modi konfigurierbar
-
-### v3.7.0
-- SVG Icon System (SMT.Icons)
-- Modulares CSS-System
-- Code-Cleanup
-
-### v3.6.0
-- Batch-Übersetzung mit Smart Chunking
-- Token-Statistiken
-- Kostenberechnung (experimentell)
 
 ## Lizenz
 

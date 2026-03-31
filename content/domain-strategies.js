@@ -78,7 +78,7 @@ DomainStrategies.register('default', {
     return translated;
   },
 
-  // Content-Container für PDF-Export
+  // Content-Container für Export
   getMainContentSelector() {
     return 'body';
   }
@@ -136,7 +136,7 @@ DomainStrategies.register('wikipedia', {
     return '#mw-content-text .mw-parser-output';
   },
 
-  // Spezielle Methode: Artikel-Struktur extrahieren für PDF
+  // Spezielle Methode: Artikel-Struktur extrahieren
   extractArticleStructure(doc) {
     const content = doc.querySelector(this.getMainContentSelector());
     if (!content) return null;

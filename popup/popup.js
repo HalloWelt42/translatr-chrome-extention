@@ -20,7 +20,7 @@ const PopupState = {
     const enabled = settings.cacheServerEnabled !== false;
     const map = {
       disabled:    { led: 'led-off',    text: 'Cache aus' },
-      'local-only':  { led: 'led-green',  text: 'Lokal' },
+      'local-only':  { led: 'led-green',  text: 'Browsercache' },
       'server-only': { led: 'led-green',  text: 'Server' },
       fallback:    { led: 'led-yellow', text: 'Hybrid' }
     };
@@ -87,7 +87,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSettings();
   await checkPageCache();
   setupEventListeners();
-  setupShortcuts();
   updateActionStates();
 
   setInterval(updateActionStates, 5000);
@@ -95,6 +94,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   chrome.runtime.onMessage.addListener((request) => {
     if (request.action === 'PAGE_STATUS_CHANGED') {
       updateActionStates();
+    }
+  });
+
+  // Storage-Listener: Einstellungen live aktualisieren
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'sync') return;
+    if (changes.apiType || changes.languagesLibre || changes.languagesLM) {
+      loadSettings();
+    }
+    if (changes.sourceLang) {
+      const el = document.getElementById('sourceLang');
+      if (el) el.value = changes.sourceLang.newValue;
+    }
+    if (changes.targetLang) {
+      const el = document.getElementById('targetLang');
+      if (el) el.value = changes.targetLang.newValue;
     }
   });
 });
@@ -118,21 +133,30 @@ async function loadSettings() {
   const settings = await chrome.storage.sync.get([
     'sourceLang', 'targetLang', 'apiType',
     'serviceUrl', 'lmStudioUrl',
-    'cacheServerEnabled', 'cacheServerMode'
+    'cacheServerEnabled', 'cacheServerMode',
+    'languagesLibre', 'languagesLM'
   ]);
-  document.getElementById('sourceLang').value = settings.sourceLang || 'auto';
-  document.getElementById('targetLang').value = settings.targetLang || 'de';
 
+  // Sprachenlisten dynamisch befüllen
   const apiType = settings.apiType || 'libretranslate';
+  const defaults = SWT.Storage.defaultSettings;
+  const languages = apiType === 'lmstudio'
+    ? (settings.languagesLM || defaults.languagesLM)
+    : (settings.languagesLibre || defaults.languagesLibre);
+  populateLanguageSelects(languages, settings.sourceLang || 'auto', settings.targetLang || 'de');
+
   const apiConfigured = (apiType === 'libretranslate' && settings.serviceUrl)
     || (apiType === 'lmstudio' && settings.lmStudioUrl);
 
-  if (!apiConfigured) {
-    document.querySelectorAll('#translateBtn, #translatePage').forEach(el => {
+  document.querySelectorAll('#translateBtn, #translatePage').forEach(el => {
+    if (!apiConfigured) {
       el.classList.add('disabled');
       el.style.opacity = '0.4';
-    });
-  }
+    } else {
+      el.classList.remove('disabled');
+      el.style.opacity = '';
+    }
+  });
 
   SWT.ApiBadge.update(apiType);
 
@@ -263,8 +287,7 @@ function setupEventListeners() {
   // Page Actions -- datengetrieben
   const pageActions = {
     translatePage: { action: 'TRANSLATE_PAGE', data: { mode: 'replace' } },
-    restorePage:   { action: 'RESTORE_PAGE' },
-    exportPdf:     { action: 'EXPORT_PDF' }
+    restorePage:   { action: 'RESTORE_PAGE' }
   };
 
   for (const [id, cfg] of Object.entries(pageActions)) {
@@ -284,6 +307,18 @@ function setupEventListeners() {
     window.close();
   });
 
+  // Danke / Spende
+  document.getElementById('openDonateCard').addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('pages/donate.html') });
+    window.close();
+  });
+
+  // GitHub
+  document.getElementById('openGithub').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'https://github.com/HalloWelt42/translatr-chrome-extention' });
+  });
+
   // Footer Links
   document.getElementById('openOptions').addEventListener('click', (e) => {
     e.preventDefault();
@@ -298,33 +333,34 @@ function setupEventListeners() {
     window.close();
   });
 
-  document.getElementById('openDonate').addEventListener('click', (e) => {
+  document.getElementById('openGuide').addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('pages/donate.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('pages/guide.html') });
   });
-}
-
-function setupShortcuts() {
-  const isMac = navigator.platform.includes('Mac');
-  const shortcuts = [
-    { label: 'Auswahl übersetzen', key: isMac ? '\u2318+Shift+T' : 'Ctrl+Shift+T' },
-    { label: 'Seite übersetzen',   key: isMac ? '\u2318+Shift+P' : 'Ctrl+Shift+P' },
-    { label: 'Side Panel',         key: isMac ? '\u2318+Shift+S' : 'Ctrl+Shift+S' }
-  ];
-
-  const container = document.getElementById('shortcutsSection');
-  if (!container) return;
-
-  for (const s of shortcuts) {
-    const row = document.createElement('div');
-    row.className = 'shortcut-row';
-    row.innerHTML = `<span>${s.label}</span><kbd>${s.key}</kbd>`;
-    container.appendChild(row);
-  }
 }
 
 async function saveLanguages() {
   const sourceLang = document.getElementById('sourceLang').value;
   const targetLang = document.getElementById('targetLang').value;
   await chrome.storage.sync.set({ sourceLang, targetLang });
+}
+
+function populateLanguageSelects(languages, selectedSource, selectedTarget) {
+  const sourceEl = document.getElementById('sourceLang');
+  const targetEl = document.getElementById('targetLang');
+  sourceEl.innerHTML = '';
+  targetEl.innerHTML = '';
+
+  for (const lang of languages) {
+    sourceEl.appendChild(new Option(lang.name, lang.code));
+    if (lang.code !== 'auto') {
+      targetEl.appendChild(new Option(lang.name, lang.code));
+    }
+  }
+
+  sourceEl.value = selectedSource;
+  targetEl.value = selectedTarget;
+  // Fallback falls gespeicherte Sprache nicht mehr in der Liste ist
+  if (!sourceEl.value) sourceEl.value = 'auto';
+  if (!targetEl.value) targetEl.value = 'de';
 }

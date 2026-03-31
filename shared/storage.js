@@ -17,7 +17,7 @@ SWT.Storage = {
   defaultSettings: {
     // API
     apiType: 'libretranslate',
-    serviceUrl: '',
+    serviceUrl: 'https://translate.max',
     apiKey: '',
 
     // LM Studio
@@ -31,6 +31,48 @@ SWT.Storage = {
     // Sprachen
     sourceLang: 'en',
     targetLang: 'de',
+
+    // Sprachenlisten pro Provider (bearbeitbar)
+    languagesLibre: [
+      { code: 'auto', name: 'Automatisch' },
+      { code: 'en', name: 'Englisch' },
+      { code: 'de', name: 'Deutsch' },
+      { code: 'fr', name: 'Französisch' },
+      { code: 'es', name: 'Spanisch' },
+      { code: 'it', name: 'Italienisch' },
+      { code: 'pt', name: 'Portugiesisch' },
+      { code: 'nl', name: 'Niederländisch' },
+      { code: 'pl', name: 'Polnisch' },
+      { code: 'ru', name: 'Russisch' },
+      { code: 'zh', name: 'Chinesisch' },
+      { code: 'ja', name: 'Japanisch' },
+      { code: 'ko', name: 'Koreanisch' },
+      { code: 'ar', name: 'Arabisch' },
+      { code: 'tr', name: 'Türkisch' }
+    ],
+    languagesLM: [
+      { code: 'auto', name: 'Automatisch' },
+      { code: 'en', name: 'Englisch' },
+      { code: 'de', name: 'Deutsch' },
+      { code: 'fr', name: 'Französisch' },
+      { code: 'es', name: 'Spanisch' },
+      { code: 'it', name: 'Italienisch' },
+      { code: 'pt', name: 'Portugiesisch' },
+      { code: 'nl', name: 'Niederländisch' },
+      { code: 'pl', name: 'Polnisch' },
+      { code: 'ru', name: 'Russisch' },
+      { code: 'zh', name: 'Chinesisch' },
+      { code: 'ja', name: 'Japanisch' },
+      { code: 'ko', name: 'Koreanisch' },
+      { code: 'ar', name: 'Arabisch' },
+      { code: 'tr', name: 'Türkisch' },
+      { code: 'uk', name: 'Ukrainisch' },
+      { code: 'cs', name: 'Tschechisch' },
+      { code: 'sv', name: 'Schwedisch' },
+      { code: 'da', name: 'Dänisch' },
+      { code: 'fi', name: 'Finnisch' },
+      { code: 'hi', name: 'Hindi' }
+    ],
 
     // UI
     showSelectionIcon: true,
@@ -46,7 +88,6 @@ SWT.Storage = {
     skipCodeBlocks: true,
     skipBlockquotes: true,
     fixInlineSpacing: true,
-    simplifyPdfExport: false,
     useTabsForAlternatives: false,
     tabWordThreshold: 5,
     excludedDomains: '',
@@ -143,65 +184,9 @@ SWT.Storage = {
     return this.saveData(merged);
   },
 
-  // === Migration von alten Keys ===
-
-  async migrateFromOldFormat() {
-    try {
-      // Prüfen ob bereits migriert
-      const check = await chrome.storage.sync.get(this.SETTINGS_KEY);
-      if (check[this.SETTINGS_KEY]) {
-        return false; // Bereits migriert
-      }
-
-      // Alle alten Sync-Keys lesen
-      const oldSync = await chrome.storage.sync.get(null);
-      if (!oldSync || Object.keys(oldSync).length === 0) {
-        return false; // Nichts zu migrieren
-      }
-
-      // Settings zusammenbauen aus alten Keys
-      const settings = {};
-      const settingsKeys = Object.keys(this.defaultSettings);
-      for (const key of settingsKeys) {
-        if (key in oldSync) {
-          settings[key] = oldSync[key];
-        }
-      }
-
-      // Alle alten Local-Keys lesen
-      const oldLocal = await chrome.storage.local.get(null);
-      const data = {};
-      const dataKeys = Object.keys(this.defaultData);
-      for (const key of dataKeys) {
-        if (key in oldLocal) {
-          data[key] = oldLocal[key];
-        }
-      }
-
-      // Neue Struktur speichern
-      if (Object.keys(settings).length > 0) {
-        await chrome.storage.sync.set({ [this.SETTINGS_KEY]: settings });
-      }
-      if (Object.keys(data).length > 0) {
-        await chrome.storage.local.set({ [this.DATA_KEY]: data });
-      }
-
-      // Alte Keys entfernen (sync)
-      const oldSyncKeys = Object.keys(oldSync).filter(k => k !== this.SETTINGS_KEY);
-      if (oldSyncKeys.length > 0) {
-        await chrome.storage.sync.remove(oldSyncKeys);
-      }
-
-      // Alte Keys entfernen (local)
-      const oldLocalKeys = Object.keys(oldLocal).filter(k => k !== this.DATA_KEY);
-      if (oldLocalKeys.length > 0) {
-        await chrome.storage.local.remove(oldLocalKeys);
-      }
-
-      return true;
-    } catch (e) {
-      console.warn('[SWT Storage] Migration fehlgeschlagen:', e.message);
-      return false;
-    }
-  }
+  // === Migration entfernt ===
+  // Die alte migrateFromOldFormat() bündelte Settings in 'swt-settings'
+  // und löschte einzelne Keys. Da der gesamte Code einzelne Keys liest,
+  // führte das zum Verlust aller Einstellungen.
+  // Recovery passiert im Service Worker (recoverFromBrokenMigration).
 };

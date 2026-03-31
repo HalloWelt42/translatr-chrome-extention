@@ -224,16 +224,16 @@ SWT.CacheServer = {
    * Neue API: POST /cache/{hash} mit 2 Zeilen Body (base64)
    * @returns {Object|null} Response mit hash und created
    */
-  async store(pageUrl, original, translated) {
+  async store(pageUrl, original, translated, langPair = null) {
     if (!this.config.enabled) return null;
-    
+
     // Nicht speichern wenn original === translated
     if (original.trim() === translated.trim()) {
       return null;
     }
-    
+
     try {
-      const hash = await this.computeHash(pageUrl, original);
+      const hash = await this.computeHash(pageUrl, original, langPair);
       // Texte escapen für 2-Zeilen-Format
       const base64Original = this._encodeText(original);
       const base64Translated = this._encodeText(translated);
@@ -313,18 +313,19 @@ SWT.CacheServer = {
    * @param {Array} translations - [{ pageUrl, original, translated }]
    * @returns {Object} { created }
    */
-  async bulkStore(translations) {
+  async bulkStore(translations, defaultLangPair = null) {
     if (!this.config.enabled || !translations.length) {
       return { created: 0 };
     }
-    
+
     try {
       // Format: { "hash": ["original (base64)", "translated (base64)"], ... }
       const data = {};
-      
+
       for (const t of translations) {
         if (t.original.trim() === t.translated.trim()) continue;
-        const hash = await this.computeHash(t.pageUrl, t.original);
+        const langPair = t.langPair || defaultLangPair || 'auto:de';
+        const hash = await this.computeHash(t.pageUrl, t.original, langPair);
         data[hash] = [this._encodeText(t.original), this._encodeText(t.translated)];
       }
       

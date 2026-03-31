@@ -17,12 +17,15 @@
       <h1>Smart Translator</h1>
       <div class="api-badge" id="apiBadge">
         <span id="apiBadgeText">Libre</span>
+        <span class="api-badge-source hidden" id="apiBadgeSource"></span>
       </div>
+      <a href="#" class="header-info-btn" id="openGuide">
+        <span data-swt-icon="info"></span>
+      </a>
     </div>
 
     <div class="tabs">
       <div class="tab active" data-tab="translate">Übersetzen</div>
-      <div class="tab" data-tab="history">Verlauf</div>
       <div class="tab" data-tab="cache">Cache</div>
       <div class="tab" data-tab="stats">Statistik</div>
     </div>
@@ -31,32 +34,11 @@
     <div class="tab-content active" id="translate">
       <div class="translate-section">
         <div class="lang-row">
-          <select id="sourceLang">
-            <option value="auto">Automatisch</option>
-            <option value="en">Englisch</option>
-            <option value="de">Deutsch</option>
-            <option value="fr">Französisch</option>
-            <option value="es">Spanisch</option>
-            <option value="it">Italienisch</option>
-            <option value="pt">Portugiesisch</option>
-            <option value="ru">Russisch</option>
-            <option value="zh">Chinesisch</option>
-            <option value="ja">Japanisch</option>
-          </select>
+          <select id="sourceLang"></select>
           <button class="swap-btn" id="swapLangs">
             <span data-swt-icon="swap"></span>
           </button>
-          <select id="targetLang">
-            <option value="de">Deutsch</option>
-            <option value="en">Englisch</option>
-            <option value="fr">Französisch</option>
-            <option value="es">Spanisch</option>
-            <option value="it">Italienisch</option>
-            <option value="pt">Portugiesisch</option>
-            <option value="ru">Russisch</option>
-            <option value="zh">Chinesisch</option>
-            <option value="ja">Japanisch</option>
-          </select>
+          <select id="targetLang"></select>
         </div>
 
         <!-- Fachkontext-Schnellwahl -->
@@ -130,6 +112,11 @@
           </div>
         </div>
 
+        <div class="pipeline-view hidden" id="pipelineView">
+          <div class="pipeline-label">Quelle</div>
+          <div class="pipeline-steps" id="pipelineSteps"></div>
+        </div>
+
         <div class="toggle-box mt-sm">
           <div class="toggle-row">
             <span>Original bei Hover</span>
@@ -147,25 +134,22 @@
       </div>
     </div>
 
-    <!-- History Tab -->
-    <div class="tab-content" id="history">
-      <div class="history-section">
-        <div class="history-header">
-          <h2>Übersetzungsverlauf</h2>
-          <button class="clear-btn" id="clearHistory">Löschen</button>
-        </div>
-        <div class="history-list" id="historyList">
-          <div class="history-empty">
-            <span data-swt-icon="history"></span>
-            <p>Noch keine Übersetzungen</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Cache Tab -->
     <div class="tab-content" id="cache">
       <div class="cache-section">
+        <div class="cache-source-tabs">
+          <div class="cache-source-tab active" data-source="server" id="cacheTabServer">
+            <span data-swt-icon="sync"></span>
+            Server
+            <span class="cache-source-status" id="cacheServerStatus"></span>
+          </div>
+          <div class="cache-source-tab" data-source="local" id="cacheTabLocal">
+            <span data-swt-icon="download"></span>
+            Browsercache
+            <span class="cache-source-status" id="cacheLocalStatus"></span>
+          </div>
+        </div>
+
         <div class="cache-stats">
           <div class="cache-stat">
             <div class="value" id="cacheTotalSize">0 KB</div>
@@ -173,7 +157,7 @@
           </div>
           <div class="cache-stat">
             <div class="value" id="cachePageCount">0</div>
-            <div class="label">Seiten</div>
+            <div class="label">Einträge</div>
           </div>
         </div>
 
@@ -236,11 +220,24 @@
         <div class="stats-footer">
           <span id="statsLastUpdate">Noch keine Daten</span>
         </div>
+
+        <div class="history-section">
+          <div class="history-header">
+            <h2>Übersetzungsverlauf für Textfeld</h2>
+            <button class="clear-btn" id="clearHistory">Löschen</button>
+          </div>
+          <div class="history-list" id="historyList">
+            <div class="history-empty">
+              <span data-swt-icon="history"></span>
+              <p>Noch keine Übersetzungen</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="app-footer">
-      <a href="#" id="openOptions">Einstellungen öffnen</a>
+      <a href="#" id="openOptions"><span data-swt-icon="gear"></span> Einstellungen</a>
     </div>
   </div>
 

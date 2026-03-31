@@ -47,8 +47,11 @@ w5xiZXJzZXR6dW5n               # Zeile 2: Übersetzung (Base64)
 **Request:**
 ```json
 {
-  "hash1": ["originalBase64", "translatedBase64"],
-  "hash2": ["originalBase64", "translatedBase64"]
+  "url_hash": "a1b2c3d4e5f6",
+  "items": {
+    "trans_hash_1": ["originalBase64", "translatedBase64"],
+    "trans_hash_2": ["originalBase64", "translatedBase64"]
+  }
 }
 ```
 

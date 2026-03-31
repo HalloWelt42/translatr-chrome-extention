@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Translator - Anleitung</title>
+  <link rel="stylesheet" href="page-common.css">
+  <link rel="stylesheet" href="guide.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>
+        <span data-swt-icon="translate"></span>
+        Smart Translator
+      </h1>
+      <p>Anleitung</p>
+    </header>
+
+    <nav class="toc">
+      <h3>Inhalt</h3>
+      <ol>
+        <li><a href="#overview">Was ist Smart Translator?</a></li>
+        <li><a href="#backends">Übersetzungs-Backends</a></li>
+        <li><a href="#libretranslate">LibreTranslate einrichten</a></li>
+        <li><a href="#lmstudio">LM Studio einrichten</a></li>
+        <li><a href="#usage">Benutzung</a></li>
+        <li><a href="#cache">Cache-Server</a></li>
+        <li><a href="#cache-setup">Cache-Server einrichten</a></li>
+        <li><a href="#faq">Häufige Fragen</a></li>
+      </ol>
+    </nav>
+
+    <!-- ================================================================ -->
+    <section id="overview">
+      <h2>1. Was ist Smart Translator?</h2>
+      <p>Smart Translator ist eine Browser-Erweiterung, die Webseiten und markierte Texte direkt im Browser übersetzt. Alle Daten bleiben lokal -- es werden keine externen Cloud-Dienste verwendet.</p>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <span data-swt-icon="document"></span>
+          <strong>Ganze Seiten</strong>
+          <span>Komplette Webseiten mit einem Klick übersetzen</span>
+        </div>
+        <div class="feature-item">
+          <span data-swt-icon="translate"></span>
+          <strong>Textauswahl</strong>
+          <span>Markierten Text sofort übersetzen</span>
+        </div>
+        <div class="feature-item">
+          <span data-swt-icon="panel"></span>
+          <strong>Side Panel</strong>
+          <span>Übersetzungs-Panel neben der Webseite</span>
+        </div>
+        <div class="feature-item">
+          <span data-swt-icon="sync"></span>
+          <strong>Cache</strong>
+          <span>Übersetzungen zentral speichern und wiederverwenden</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="backends">
+      <h2>2. Übersetzungs-Backends</h2>
+      <p>Smart Translator unterstützt zwei verschiedene Übersetzungs-Backends. Du kannst in den Einstellungen zwischen beiden wechseln.</p>
+
+      <div class="compare-table">
+        <div class="compare-col">
+          <div class="compare-header libre">
+            <span data-swt-icon="globe"></span>
+            <h3>LibreTranslate</h3>
+          </div>
+          <ul>
+            <li>Open-Source Übersetzungs-Engine</li>
+            <li>Schnell, keine GPU nötig</li>
+            <li>30+ Sprachen</li>
+            <li>Automatische Spracherkennung</li>
+            <li>Ideal für allgemeine Texte</li>
+            <li>Selbst gehostet (Docker) oder öffentlich</li>
+          </ul>
+        </div>
+        <div class="compare-col">
+          <div class="compare-header lm">
+            <span data-swt-icon="robot"></span>
+            <h3>LM Studio</h3>
+          </div>
+          <ul>
+            <li>Lokales KI-Modell (LLM)</li>
+            <li>GPU empfohlen (NVIDIA/Apple Silicon)</li>
+            <li>Fachkontexte: Kfz, Medizin, Recht, IT</li>
+            <li>Alternative Übersetzungsvorschläge</li>
+            <li>Ideal für Fachübersetzungen</li>
+            <li>Volle Datenkontrolle, keine Cloud</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="libretranslate">
+      <h2>3. LibreTranslate einrichten</h2>
+
+      <h3>Option A: Docker (empfohlen)</h3>
+      <p>LibreTranslate lässt sich am einfachsten per Docker starten:</p>
+      <pre><code>docker run -d -p 5000:5000 libretranslate/libretranslate</code></pre>
+      <p>Nach dem Start ist der Server unter <code>http://localhost:5000</code> erreichbar.</p>
+
+      <h3>Option B: Öffentliche Instanz</h3>
+      <p>Du kannst auch eine öffentliche Instanz verwenden. Beachte dabei mögliche Rate-Limits und Datenschutzhinweise. Eine Liste findest du auf der <a href="https://github.com/LibreTranslate/LibreTranslate" target="_blank">LibreTranslate GitHub-Seite</a>.</p>
+
+      <h3>Einstellungen</h3>
+      <p>Trage in den <a href="#" class="open-options">Einstellungen</a> die Server-URL ein:</p>
+      <div class="settings-example">
+        <div class="setting-row">
+          <span class="setting-label">Server-URL</span>
+          <code>http://localhost:5000/translate</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">API-Key</span>
+          <code>(leer lassen wenn nicht nötig)</code>
+        </div>
+      </div>
+
+      <h3>So funktioniert die API</h3>
+      <p>Smart Translator sendet Übersetzungsanfragen als JSON an den Server:</p>
+      <div class="code-split">
+        <div>
+          <div class="code-label">Anfrage an den Server</div>
+          <pre><code>POST /translate
+Content-Type: application/json
+
+{
+  "q": "The quick brown fox",
+  "source": "en",
+  "target": "de",
+  "format": "text"
+}</code></pre>
+        </div>
+        <div>
+          <div class="code-label">Antwort vom Server</div>
+          <pre><code>HTTP 200 OK
+
+{
+  "translatedText": "Der schnelle braune Fuchs",
+  "detectedLanguage": {
+    "confidence": 97.5,
+    "language": "en"
+  }
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="lmstudio">
+      <h2>4. LM Studio einrichten</h2>
+
+      <h3>Schritt 1: LM Studio installieren</h3>
+      <p>Lade <a href="https://lmstudio.ai" target="_blank">LM Studio</a> herunter und installiere es. Lade dann ein Sprachmodell -- empfohlen für Übersetzungen:</p>
+      <ul>
+        <li><strong>Gemma 3 12B</strong> -- gute Balance aus Qualität und Geschwindigkeit</li>
+        <li><strong>Qwen 2.5 14B</strong> -- stark bei mehrsprachigen Texten</li>
+        <li><strong>Llama 3.1 8B</strong> -- schnell, für ältere Hardware</li>
+      </ul>
+
+      <h3>Schritt 2: Server starten</h3>
+      <p>Starte in LM Studio den lokalen Server (Tab "Local Server"). Standardmäßig läuft er auf Port 1234.</p>
+
+      <h3>Schritt 3: Einstellungen</h3>
+      <div class="settings-example">
+        <div class="setting-row">
+          <span class="setting-label">Server-URL</span>
+          <code>http://localhost:1234</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Modell</span>
+          <code>(wird automatisch geladen)</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Temperatur</span>
+          <code>0.1</code>
+          <span class="setting-hint">-- niedrig = präzise</span>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>Netzwerk-Tipp:</strong> Wenn LM Studio auf einem anderen Rechner im Netzwerk läuft, verwende dessen IP-Adresse, z.B. <code>http://192.168.178.45:1234</code>
+      </div>
+
+      <h3>So funktioniert die API</h3>
+      <p>Smart Translator nutzt die OpenAI-kompatible Chat-API von LM Studio:</p>
+      <div class="code-split">
+        <div>
+          <div class="code-label">Anfrage an LM Studio</div>
+          <pre><code>POST /v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "gemma-3-12b-it",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Übersetze EN nach DE.
+        Antworte als JSON."
+    },
+    {
+      "role": "user",
+      "content": "The quick brown fox"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 2000
+}</code></pre>
+        </div>
+        <div>
+          <div class="code-label">Antwort von LM Studio</div>
+          <pre><code>HTTP 200 OK
+
+{
+  "choices": [{
+    "message": {
+      "content": "{
+        \"translation\":
+          \"Der schnelle braune Fuchs\",
+        \"alternatives\": [
+          \"Der flinke braune Fuchs\"
+        ]
+      }"
+    }
+  }]
+}
+
+
+
+
+// Das LLM antwortet mit
+// strukturiertem JSON inkl.
+// alternativer Übersetzungen</code></pre>
+        </div>
+      </div>
+
+      <h3>Fachkontexte</h3>
+      <p>Im Side Panel kannst du zwischen verschiedenen Fachkontexten wählen. Jeder Kontext verwendet einen spezialisierten System-Prompt:</p>
+      <div class="context-grid">
+        <div class="context-item">
+          <strong>Allgemein</strong>
+          <span>Standard für alle Texte</span>
+        </div>
+        <div class="context-item">
+          <strong>Kfz / Automotive</strong>
+          <span>Querlenker, Domlager, Spurstangenkopf...</span>
+        </div>
+        <div class="context-item">
+          <strong>Technisch / IT</strong>
+          <span>API, Framework, Cache bleiben englisch</span>
+        </div>
+        <div class="context-item">
+          <strong>Medizin</strong>
+          <span>Exakte medizinische Terminologie</span>
+        </div>
+        <div class="context-item">
+          <strong>Recht / Juristisch</strong>
+          <span>Deutsche Rechtsbegriffe</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="usage">
+      <h2>5. Benutzung</h2>
+
+      <h3>Text markieren und übersetzen</h3>
+      <p>Markiere beliebigen Text auf einer Webseite. Es erscheint ein kleines Übersetzungs-Icon. Klicke darauf, um die Auswahl sofort zu übersetzen. Das Ergebnis wird in einem Tooltip angezeigt.</p>
+
+      <h3>Ganze Seite übersetzen</h3>
+      <p>Klicke auf das Extension-Icon in der Toolbar und dann auf "Seite übersetzen". Alle sichtbaren Texte werden batch-weise übersetzt. Fortschritt und Geschwindigkeit hängen von deinem Backend ab.</p>
+
+      <h3>Side Panel</h3>
+      <p>Das Side Panel öffnet sich neben der Webseite und bietet:</p>
+      <ul>
+        <li>Texteingabe mit Sofort-Übersetzung</li>
+        <li>Seitenübersetzung mit Fortschrittsanzeige</li>
+        <li>Übersetzungsverlauf</li>
+        <li>Cache-Verwaltung mit Statistiken</li>
+        <li>Fachkontext-Auswahl (bei LM Studio)</li>
+      </ul>
+
+      <h3>Popup</h3>
+      <p>Das Popup (Klick auf das Extension-Icon) bietet Schnellzugriff auf:</p>
+      <ul>
+        <li>Text eingeben und direkt übersetzen</li>
+        <li>Seite übersetzen / Original wiederherstellen</li>
+        <li>Side Panel öffnen</li>
+      </ul>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="cache">
+      <h2>6. Cache-Server</h2>
+
+      <h3>Warum ein Cache?</h3>
+      <p>Ohne Cache wird jeder Text bei jedem Seitenaufruf neu übersetzt. Der Cache-Server speichert Übersetzungen zentral und stellt sie sofort wieder bereit -- das spart Zeit und Rechenleistung.</p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">
+          <div class="flow-icon">
+            <span data-swt-icon="document"></span>
+          </div>
+          <strong>Text erkannt</strong>
+          <span>"The quick brown fox"</span>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step highlight">
+          <div class="flow-icon">
+            <span data-swt-icon="sync"></span>
+          </div>
+          <strong>Cache prüfen</strong>
+          <span>SHA-256 Hash berechnen</span>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">
+          <div class="flow-icon cached">
+            <span data-swt-icon="download"></span>
+          </div>
+          <strong>Treffer?</strong>
+          <span>Sofort aus Cache laden</span>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">
+          <div class="flow-icon api">
+            <span data-swt-icon="globe"></span>
+          </div>
+          <strong>Kein Treffer</strong>
+          <span>API übersetzen + cachen</span>
+        </div>
+      </div>
+
+      <h3>Architektur</h3>
+      <p>Der Cache verwendet ein Zwei-Hash-System:</p>
+      <div class="code-split">
+        <div>
+          <div class="code-label">Domain-Hash (Ordner)</div>
+          <pre><code>// Alle Seiten einer Domain
+// teilen einen Ordner
+
+url_hash = SHA256("svelte.dev")
+         = "a1b2c3d4e5f6"
+
+// Ergebnis:
+// /data/a1b2c3d4e5f6/</code></pre>
+        </div>
+        <div>
+          <div class="code-label">Translation-Hash (Datei)</div>
+          <pre><code>// Jede Übersetzung ist eine Datei
+
+trans_hash = SHA256(
+  url + text + "auto:de"
+)
+
+// Ergebnis:
+// /data/a1b2c3d4e5f6/f9e8d7.txt</code></pre>
+        </div>
+      </div>
+
+      <h3>Dateiformat</h3>
+      <p>Jede Cache-Datei enthält 3 Zeilen (Base64-kodiert):</p>
+      <pre><code>VGhlIHF1aWNrIGJyb3duIGZveA==     # Original
+RGVyIHNjaG5lbGxlIGJyYXVuZS4uLg== # Übersetzung
+YXV0bzpkZQ==                       # Sprachpaar (auto:de)</code></pre>
+
+      <h3>Cache-Modi</h3>
+      <div class="mode-list">
+        <div class="mode-item">
+          <strong>Server zuerst</strong>
+          <span>Server &rarr; Lokal &rarr; API übersetzen. Standard, beste Performance</span>
+        </div>
+        <div class="mode-item">
+          <strong>Lokal zuerst</strong>
+          <span>Lokal &rarr; Server &rarr; API übersetzen. Wenn Server langsam ist</span>
+        </div>
+        <div class="mode-item">
+          <strong>Nur Server</strong>
+          <span>Kein LocalStorage, alles auf dem Server. Spart Browser-Speicher</span>
+        </div>
+        <div class="mode-item">
+          <strong>Nur Lokal</strong>
+          <span>Komplett offline, kein Server nötig. Daten nur im Browser</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="cache-setup">
+      <h2>7. Cache-Server einrichten</h2>
+
+      <h3>Docker starten</h3>
+      <pre><code>docker run -d \
+  --name swt-cache \
+  -p 8083:8083 \
+  -v swt-cache-data:/data \
+  ghcr.io/hallowelt42/swt-cache-server:latest</code></pre>
+
+      <h3>Einstellungen</h3>
+      <div class="settings-example">
+        <div class="setting-row">
+          <span class="setting-label">Cache Server URL</span>
+          <code>http://localhost:8083</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Cache-Modus</span>
+          <code>Nur Server</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Timeout</span>
+          <code>5000 ms</code>
+        </div>
+      </div>
+
+      <h3>API-Endpunkte</h3>
+      <div class="endpoint-table">
+        <div class="endpoint-row header">
+          <span>Methode</span>
+          <span>Endpunkt</span>
+          <span>Beschreibung</span>
+        </div>
+        <div class="endpoint-row">
+          <span class="method-badge post">POST</span>
+          <code>/cache/bulk</code>
+          <span>Übersetzungen speichern</span>
+        </div>
+        <div class="endpoint-row">
+          <span class="method-badge post">POST</span>
+          <code>/cache/get</code>
+          <span>Übersetzungen abrufen</span>
+        </div>
+        <div class="endpoint-row">
+          <span class="method-badge get">GET</span>
+          <code>/cache/url/{hash}</code>
+          <span>Stats pro Domain</span>
+        </div>
+        <div class="endpoint-row">
+          <span class="method-badge get">GET</span>
+          <code>/cache/url/{hash}/all</code>
+          <span>Alle Einträge einer Domain</span>
+        </div>
+        <div class="endpoint-row">
+          <span class="method-badge del">DEL</span>
+          <code>/cache/url/{hash}</code>
+          <span>Domain-Cache löschen</span>
+        </div>
+        <div class="endpoint-row">
+          <span class="method-badge get">GET</span>
+          <code>/cache/urls</code>
+          <span>Alle gecachten Domains</span>
+        </div>
+        <div class="endpoint-row">
+          <span class="method-badge get">GET</span>
+          <code>/stats</code>
+          <span>Gesamtstatistik</span>
+        </div>
+        <div class="endpoint-row">
+          <span class="method-badge get">GET</span>
+          <code>/health</code>
+          <span>Health-Check</span>
+        </div>
+      </div>
+
+      <h3>Beispiel: Übersetzungen speichern</h3>
+      <div class="code-split">
+        <div>
+          <div class="code-label">Request</div>
+          <pre><code>POST /cache/bulk
+Content-Type: application/json
+
+{
+  "url_hash": "a1b2c3d4e5f6",
+  "items": {
+    "f9e8d7c6b5a4...": [
+      "SGVsbG8gV29ybGQ=",
+      "SGFsbG8gV2VsdA==",
+      "YXV0bzpkZQ=="
+    ]
+  }
+}</code></pre>
+        </div>
+        <div>
+          <div class="code-label">Response</div>
+          <pre><code>HTTP 200 OK
+
+{
+  "url_hash": "a1b2c3d4e5f6",
+  "created": 1,
+  "total": 438
+}
+
+
+// created = neue Einträge
+// total   = Gesamtzahl
+//           für diese Domain</code></pre>
+        </div>
+      </div>
+
+      <h3>Verzeichnisstruktur auf dem Server</h3>
+      <pre><code>/data/
+  a1b2c3d4e5f6/           # svelte.dev
+    f9e8d7c6b5a4...txt    # Übersetzung 1
+    1a2b3c4d5e6f...txt    # Übersetzung 2
+    ...
+  9f8e7d6c5b4a/           # github.com
+    abcdef123456...txt
+    ...</code></pre>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="faq">
+      <h2>8. Häufige Fragen</h2>
+
+      <details class="faq-item">
+        <summary>Welches Backend soll ich verwenden?</summary>
+        <p>Für alltägliche Webseiten reicht <strong>LibreTranslate</strong> -- es ist schnell und braucht wenig Ressourcen. Für Fachtexte (Kfz-Dokumentation, medizinische Texte, juristische Dokumente) ist <strong>LM Studio</strong> besser, weil es Fachkontext-Prompts und alternative Übersetzungen bietet.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Brauche ich den Cache-Server?</summary>
+        <p><strong>Nein</strong>, der Cache ist optional. Ohne Cache funktioniert alles, aber jeder Text wird jedes Mal neu übersetzt. Mit Cache werden bereits übersetzte Texte sofort geladen -- das ist deutlich schneller und spart API-Aufrufe.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Werden meine Daten an externe Server gesendet?</summary>
+        <p><strong>Nein</strong>. Beide Backends (LibreTranslate und LM Studio) laufen lokal auf deinem Rechner oder in deinem Netzwerk. Auch der Cache-Server ist self-hosted. Es werden keine Daten an Cloud-Dienste übertragen.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Warum steht bei "Diese Domain" eine Zahl für alle Seiten?</summary>
+        <p>Der Cache gruppiert Übersetzungen nach <strong>Domain</strong> (z.B. alle Seiten von svelte.dev). Das liegt am Hash-System: der Ordnername wird aus dem Hostnamen berechnet. Einzelne Seiten werden nicht getrennt gezählt.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Kann ich LM Studio auf einem anderen Rechner betreiben?</summary>
+        <p><strong>Ja</strong>. LM Studio startet einen lokalen Server mit OpenAI-kompatibler API. Du brauchst nur die IP-Adresse des Rechners und den Port (Standard: 1234). Beispiel: <code>http://192.168.178.45:1234</code></p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Was passiert wenn der Server nicht erreichbar ist?</summary>
+        <p>Smart Translator zeigt eine Fehlermeldung. Der Cache-Server hat ein Timeout (Standard: 5 Sekunden) -- wenn keine Antwort kommt, wird der Text ohne Cache direkt übersetzt.</p>
+      </details>
+    </section>
+
+    <footer>
+      <p>Smart Translator v<span id="appVersion"></span> -- &copy; HalloWelt42</p>
+    </footer>
+  </div>
+
+  <script src="../shared/icons.js"></script>
+  <script>
+    // Version anzeigen
+    const v = document.getElementById('appVersion');
+    if (v) v.textContent = chrome.runtime.getManifest().version;
+
+    // Einstellungen-Links
+    document.querySelectorAll('.open-options').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        chrome.runtime.openOptionsPage();
+      });
+    });
+  </script>
+</body>
+</html>

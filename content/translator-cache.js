@@ -139,25 +139,41 @@
   };
 
   /**
-   * Übersetzungen im lokalen Cache speichern
-   * Nur wenn mode nicht 'server-only' ist
+   * Übersetzungen speichern (lokal UND Server je nach Modus)
+   * Nutzt die abstrakte Cache-API für korrekte Modus-Behandlung
    */
   SmartTranslator.prototype.saveToCache = function(translations) {
-    // Bei server-only: kein localStorage
-    if (SWT.CacheServer?.config?.mode === 'server-only') {
-      return;
+    if (!translations || Object.keys(translations).length === 0) return;
+
+    // 1. Lokaler Cache (nur wenn nicht server-only)
+    const mode = SWT.CacheServer?.config?.mode || SWT.Cache?.config?.mode || 'server-only';
+    if (mode !== 'server-only') {
+      try {
+        const data = {
+          url: this.pageUrl,
+          timestamp: Date.now(),
+          targetLang: this.settings.targetLang,
+          translations: translations
+        };
+        localStorage.setItem(this.cacheKey, JSON.stringify(data));
+      } catch (e) {
+        console.warn('Cache save error:', e);
+      }
     }
-    
-    try {
-      const data = {
-        url: this.pageUrl,
-        timestamp: Date.now(),
-        targetLang: this.settings.targetLang,
-        translations: translations
-      };
-      localStorage.setItem(this.cacheKey, JSON.stringify(data));
-    } catch (e) {
-      console.warn('Cache save error:', e);
+
+    // 2. Server-Cache (async, nicht blockierend)
+    if (mode !== 'local-only' && chrome.runtime?.id) {
+      const items = Object.entries(translations).map(([original, translated]) => ({
+        pageUrl: this.pageUrl,
+        original,
+        translated
+      }));
+      const langPair = `${this.settings.sourceLang || 'auto'}:${this.settings.targetLang || 'de'}`;
+      chrome.runtime.sendMessage({
+        action: 'CACHE_SERVER_BULK_STORE',
+        translations: items,
+        langPair
+      }).catch(() => {});
     }
   };
 

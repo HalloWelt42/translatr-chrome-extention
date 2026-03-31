@@ -419,7 +419,7 @@
 
 .swt-progress-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 12px;
 }
@@ -428,6 +428,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 /* Status-Dot für Cache/KI Anzeige */
@@ -471,8 +472,28 @@
   font-weight: 600;
   color: var(--text);
   font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swt-progress-meta {
   display: flex;
   align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.swt-progress-provider {
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.swt-progress-direction {
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.5px;
 }
 
 .swt-progress-eta {
@@ -818,88 +839,6 @@
 
 /* Dark Mode wird automatisch ueber die CSS-Variablen in :root gesteuert */
 
-/* === Print / PDF === */
-@media print {
-  .swt-ui {
-    display: none !important;
-  }
-
-  .swt-translated-text {
-    background: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* Code-Formatierung für PDF */
-  code, pre, kbd, samp {
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
-    font-size: 0.9em !important;
-    background: var(--bg-base) !important;
-    border: 1px solid #ddd !important;
-    border-radius: 3px !important;
-  }
-
-  pre {
-    padding: 12px !important;
-    overflow-x: auto !important;
-    white-space: pre-wrap !important;
-    word-wrap: break-word !important;
-    page-break-inside: avoid !important;
-  }
-
-  code {
-    padding: 2px 4px !important;
-  }
-
-  pre code {
-    padding: 0 !important;
-    border: none !important;
-    background: transparent !important;
-  }
-
-  /* Zitate */
-  blockquote {
-    border-left: 3px solid var(--text-muted) !important;
-    padding-left: 16px !important;
-    margin-left: 0 !important;
-    color: #555 !important;
-    font-style: italic !important;
-    page-break-inside: avoid !important;
-  }
-
-  /* Allgemeine Print-Optimierungen */
-  body {
-    font-size: 12pt !important;
-    line-height: 1.5 !important;
-    color: #000 !important;
-    background: #fff !important;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    page-break-after: avoid !important;
-  }
-
-  img, table, figure {
-    page-break-inside: avoid !important;
-  }
-
-  a {
-    color: #000 !important;
-    text-decoration: underline !important;
-  }
-
-  a[href]::after {
-    content: " (" attr(href) ")";
-    font-size: 0.8em;
-    color: #666;
-  }
-
-  a[href^="#"]::after,
-  a[href^="javascript:"]::after {
-    content: "";
-  }
-}
 
 /* === Responsive === */
 @media (max-width: 480px) {

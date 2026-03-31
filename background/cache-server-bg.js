@@ -626,41 +626,34 @@ const CacheServer = {
   },
 
   // Domain-weiten Cache löschen
+  // url_hash = SHA256(hostname), also reicht ein DELETE auf den Domain-Hash
   async deleteByDomain(domain) {
     if (!this.shouldTryServer() || !domain) {
       return { deleted: 0, error: 'Nicht verfügbar' };
     }
-    
+
     try {
-      // Alle gecachten URLs abrufen
-      const urlsResult = await this.listCachedUrls();
-      if (!urlsResult.urls || urlsResult.urls.length === 0) {
-        return { deleted: 0 };
+      // Domain-Hash direkt berechnen (gleiche Logik wie computeUrlHash)
+      let host = domain.toLowerCase();
+      if (host.startsWith('www.')) host = host.slice(4);
+      const encoder = new TextEncoder();
+      const data = encoder.encode(host);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const fullHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const urlHash = fullHash.substring(0, 12);
+
+      const response = await this.fetchWithRetry(
+        `${this.config.serverUrl}/cache/url/${urlHash}`,
+        { method: 'DELETE' },
+        1
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return { deleted: result.deleted || 0 };
       }
-      
-      // URLs dieser Domain filtern
-      const domainUrls = urlsResult.urls.filter(entry => {
-        try {
-          const url = new URL(entry.url);
-          return url.hostname === domain || url.hostname.endsWith('.' + domain);
-        } catch {
-          return false;
-        }
-      });
-      
-      if (domainUrls.length === 0) {
-        return { deleted: 0 };
-      }
-      
-      // Alle URLs dieser Domain löschen
-      let totalDeleted = 0;
-      for (const entry of domainUrls) {
-        const result = await this.deleteByUrl(entry.url);
-        totalDeleted += result.deleted || 0;
-      }
-      
-      return { deleted: totalDeleted, urls: domainUrls.length };
-      
+      return { deleted: 0 };
     } catch (e) {
       console.warn('[CacheServer] DeleteByDomain-Fehler:', e.message);
       return { deleted: 0, error: e.message };

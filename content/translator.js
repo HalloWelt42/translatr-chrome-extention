@@ -148,8 +148,8 @@ class SmartTranslator {
     if (!window.__swtStorageListenerAdded) {
       window.__swtStorageListenerAdded = true;
       chrome.storage.onChanged.addListener((changes, areaName) => {
-        if (areaName !== 'sync') return;
-        
+        if (areaName !== 'sync' || !chrome.runtime?.id) return;
+
         if (window.swtInstance) {
           for (const [key, { newValue }] of Object.entries(changes)) {
             // Logging für Debug
@@ -164,6 +164,11 @@ class SmartTranslator {
               window.swtInstance.settings[key] = newValue === true;
             } else {
               window.swtInstance.settings[key] = newValue;
+            }
+
+            // Bei Backend-Wechsel: LM Studio Buffer leeren
+            if (key === 'apiType') {
+              chrome.runtime.sendMessage({ action: 'CLEAR_TRANSLATION_BUFFER' }).catch(() => {});
             }
 
             // Markierung live anwenden
@@ -336,7 +341,7 @@ class SmartTranslator {
       'enableTTS', 'highlightTranslated',
       'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
       'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioContext',
-      'cacheServerEnabled', 'cacheServerMode',
+      'cacheServerEnabled', 'cacheServerMode', 'autoLoadCache',
     ]);
 
     // String-Defaults
@@ -350,7 +355,6 @@ class SmartTranslator {
     this.settings.tooltipPosition = 'below';
     this.settings.useTabsForAlternatives = true;
     this.settings.tabWordThreshold = 20;
-    this.settings.simplifyPdfExport = false;
     this.settings.enableAbortTranslation = true;
     this.settings.enableLLMFallback = false;
     this.settings.ttsLanguage = 'auto';
@@ -408,17 +412,16 @@ class SmartTranslator {
       const selection = window.getSelection();
       const text = selection.toString().trim();
 
-      // Debug: Einstellung prüfen
+      if (!chrome.runtime?.id) return;
 
-      // Expliziter Boolean-Check (nicht nur truthy/falsy)
       chrome.storage.sync.get(["showSelectionIcon"], (s) => {
         const showIcon = s.showSelectionIcon !== false;
-      
-      if (text.length > 0 && showIcon) {
-        this.showSelectionIcon(selection, e);
-      } else {
-        this.hideSelectionIcon();
-      }
+
+        if (text.length > 0 && showIcon) {
+          this.showSelectionIcon(selection, e);
+        } else {
+          this.hideSelectionIcon();
+        }
       });
     }, this.settings.selectionIconDelay);
   }
@@ -778,6 +781,10 @@ class SmartTranslator {
 
   // === Seitenübersetzung ===
   async translatePage(mode = 'replace') {
+    // Pipeline-Tracking zurücksetzen
+    this._lastSource = null;
+    this._lastTokens = 0;
+
     // WICHTIG: Prüfen ob URL sich geändert hat aber State nicht zurückgesetzt wurde
     if (this.pageUrl !== window.location.href) {
       this.resetTranslationState();
@@ -785,10 +792,10 @@ class SmartTranslator {
       this.cacheKey = this.generateCacheKey();
     }
     
-    // Bei Continue-Mode: Nicht zurücksetzen wenn schon übersetzt
+    // Bereits übersetzt und kein Continue: Original wiederherstellen, dann frisch übersetzen
     if (this.isTranslated && mode !== 'continue') {
-      this.toggleTranslation();
-      return;
+      this.restorePage();
+      this._bypassCache = true;
     }
     
     // Continue-Mode: Übersetzung fortsetzen ohne Reset
@@ -796,7 +803,8 @@ class SmartTranslator {
     }
 
     const apiSettings = await chrome.storage.sync.get([
-      'apiType', 'lmStudioContext', 'useCacheFirst'
+      'apiType', 'lmStudioContext', 'lmStudioModel', 'useCacheFirst',
+      'sourceLang', 'targetLang'
     ]);
     this.settings.apiType = apiSettings.apiType || 'libretranslate';
     this.settings.lmStudioContext = apiSettings.lmStudioContext || 'general';
@@ -804,6 +812,16 @@ class SmartTranslator {
 
     this.showProgress(true);
     this.translationMode = mode;
+
+    // Provider-Info und Richtung im Overlay anzeigen
+    if (typeof this.updateProgressMeta === 'function') {
+      this.updateProgressMeta(
+        this.settings.apiType,
+        apiSettings.sourceLang || this.settings.sourceLang || 'auto',
+        apiSettings.targetLang || this.settings.targetLang || 'de',
+        { model: apiSettings.lmStudioModel, context: apiSettings.lmStudioContext }
+      );
+    }
 
     try {
       const cacheTranslations = {};
@@ -859,7 +877,8 @@ class SmartTranslator {
             text: originalText,
             source: this.settings.sourceLang,
             target: this.settings.targetLang,
-            pageUrl: window.location.href
+            pageUrl: window.location.href,
+            bypassCache: this._bypassCache || false
           }).then(result => ({ node, originalText, result, skipped: false, index: idx }))
             .catch(e => ({ node, originalText, result: null, error: e, skipped: false, index: idx }));
         });
@@ -874,7 +893,12 @@ class SmartTranslator {
         
         for (const { node, originalText, result, skipped, error } of batchResults) {
           if (this.translationAborted) break;
-          
+
+          if (!skipped && result && result.success) {
+            if (result.source) this._lastSource = result.source;
+            if (result.tokens) this._lastTokens = (this._lastTokens || 0) + result.tokens;
+          }
+
           if (!skipped && result && result.success && result.translatedText !== originalText) {
             cacheTranslations[originalText] = result.translatedText;
 
@@ -897,16 +921,21 @@ class SmartTranslator {
         // Cache speichern
         this.saveToCache(cacheTranslations);
 
+        // WICHTIG: isTranslated ZUERST setzen, dann Cache-Status
+        // setCacheAvailable ruft notifyStatusChange() auf - State muss vorher stimmen
         this.isTranslated = true;
         this.showProgress(false);
-        this.notifyStatusChange();
-        
+        this.setCacheAvailable(true); // ruft notifyStatusChange() intern auf
+
+        // Extension-Badge: Fertig (grün, 2s)
+        chrome.runtime.sendMessage({ action: 'BADGE_COMPLETE' }).catch(() => {});
+
         // Notification mit Token-Info
-        const tokenInfo = this.totalTokens > 0 
-          ? ` (${this.formatTokens(this.totalTokens)} Tokens)` 
+        const tokenInfo = this.totalTokens > 0
+          ? ` (${this.formatTokens(this.totalTokens)} Tokens)`
           : '';
         this.showNotification(`${translated} Textblöcke übersetzt${tokenInfo}`, 'success');
-        
+
         // Seiten-Token-Stats für späteren Abruf speichern
         this.pageTokens = this.totalTokens;
       }
@@ -916,7 +945,12 @@ class SmartTranslator {
       if (!this.translationAborted) {
         console.warn('translatePage error:', error);
         this.showNotification('Fehler bei Seitenübersetzung', 'error');
+        chrome.runtime.sendMessage({ action: 'BADGE_ERROR' }).catch(() => {});
+      } else {
+        chrome.runtime.sendMessage({ action: 'BADGE_RESET' }).catch(() => {});
       }
+    } finally {
+      this._bypassCache = false;
     }
   }
 
@@ -1081,12 +1115,10 @@ class SmartTranslator {
         sendResponse({ success: true });
         break;
 
-      case 'EXPORT_PDF':
-        if (!this._exportLock) {
-          this._exportLock = true;
-          this.exportAsPdf(request.simplified);
-          setTimeout(() => this._exportLock = false, 500);
-        }
+      case 'RETRANSLATE_PAGE':
+        if (this.isTranslated) this.restorePage();
+        this._bypassCache = true;
+        this.translatePage('replace');
         sendResponse({ success: true });
         break;
 
@@ -1153,7 +1185,10 @@ class SmartTranslator {
           cacheAvailable: this._cacheAvailable || false,
           cacheSource: this._cacheSource || null,
           serverCacheCount: this._serverCacheCount || 0,
-          pageUrl: this.pageUrl
+          pageUrl: this.pageUrl,
+          apiType: this.settings.apiType || 'libretranslate',
+          lastSource: this._lastSource || null,
+          lastTokens: this._lastTokens || 0
         });
         break;
 

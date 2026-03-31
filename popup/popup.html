@@ -15,11 +15,15 @@
       <div class="api-badge" id="apiBadge">
         <span class="led led-off" id="apiLed"></span>
         <span id="apiBadgeText">Libre</span>
+        <span class="api-badge-source hidden" id="apiBadgeSource"></span>
       </div>
       <div class="api-badge" id="cacheBadge">
         <span class="led led-off" id="cacheLed"></span>
         <span id="cacheBadgeText">Cache</span>
       </div>
+      <a href="#" class="header-info-btn" id="openGuide">
+        <span data-swt-icon="info"></span>
+      </a>
     </div>
   </div>
 
@@ -36,32 +40,11 @@
     </div>
 
     <div class="lang-row">
-      <select id="sourceLang">
-        <option value="auto">Automatisch</option>
-        <option value="en">Englisch</option>
-        <option value="de">Deutsch</option>
-        <option value="fr">Französisch</option>
-        <option value="es">Spanisch</option>
-        <option value="it">Italienisch</option>
-        <option value="pt">Portugiesisch</option>
-        <option value="ru">Russisch</option>
-        <option value="zh">Chinesisch</option>
-        <option value="ja">Japanisch</option>
-      </select>
+      <select id="sourceLang"></select>
       <button class="swap-btn" id="swapLangs">
         <span data-swt-icon="swap"></span>
       </button>
-      <select id="targetLang">
-        <option value="de">Deutsch</option>
-        <option value="en">Englisch</option>
-        <option value="fr">Französisch</option>
-        <option value="es">Spanisch</option>
-        <option value="it">Italienisch</option>
-        <option value="pt">Portugiesisch</option>
-        <option value="ru">Russisch</option>
-        <option value="zh">Chinesisch</option>
-        <option value="ja">Japanisch</option>
-      </select>
+      <select id="targetLang"></select>
     </div>
 
     <textarea id="inputText" placeholder="Text zum Übersetzen eingeben..."></textarea>
@@ -94,27 +77,24 @@
         <span data-swt-icon="refresh"></span>
         <span>Original</span>
       </div>
-      <div class="action-card" id="exportPdf">
-        <span data-swt-icon="pdf"></span>
-        <span>Export</span>
-      </div>
       <div class="action-card" id="openSidepanel">
         <span data-swt-icon="panel"></span>
         <span>Panel</span>
       </div>
+      <div class="action-card donate-card" id="openDonateCard">
+        <span data-swt-icon="heart"></span>
+        <span>Danke</span>
+      </div>
     </div>
 
-    <div class="shortcuts" id="shortcutsSection">
-      <h3>Tastenkürzel</h3>
-    </div>
   </div>
 
   <div class="app-footer">
-    <a href="#" id="openOptions">Einstellungen</a>
+    <a href="#" id="openOptions"><span data-swt-icon="gear"></span> Einstellungen</a>
     &nbsp;·&nbsp;
     <a href="#" id="manageCache">Cache verwalten</a>
     &nbsp;·&nbsp;
-    <a href="#" id="openDonate">Danke sagen</a>
+    <a href="#" id="openGithub" class="github-link"><span data-swt-icon="github"></span></a>
   </div>
 
   <script src="../shared/storage.js"></script>

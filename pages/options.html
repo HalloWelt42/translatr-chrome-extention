@@ -13,279 +13,547 @@
       <h1>
         <span data-swt-icon="translate"></span>
         Smart Translator
+        <a href="#" class="header-info-btn" id="openGuide">
+          <span data-swt-icon="info"></span>
+        </a>
       </h1>
       <p>Einstellungen</p>
     </header>
 
-    <!-- Status-Anzeige für Feedback -->
-    <div id="status" class="status"></div>
-
-    <!-- API Type Selection -->
-    <div class="card">
-      <h2>
+    <!-- ================================================================ -->
+    <!-- SECTION: LibreTranslate -->
+    <!-- ================================================================ -->
+    <section class="settings-section provider-section active" data-provider="libretranslate">
+      <div class="section-header">
         <span data-swt-icon="globe"></span>
-        Übersetzungs-Backend
-      </h2>
-
-      <div class="api-type-selector">
-        <div class="api-type-option active" data-type="libretranslate">
-          <h3><span data-swt-icon="globe"></span> LibreTranslate</h3>
-          <p>Open-Source, selbst-gehostet</p>
-        </div>
-        <div class="api-type-option" data-type="lmstudio">
-          <h3><span data-swt-icon="robot"></span> LM Studio</h3>
-          <p>Lokales LLM, Fachübersetzungen</p>
-        </div>
+        <h2>LibreTranslate</h2>
+        <span class="api-status" id="libreStatus"></span>
+        <span class="active-badge" id="libreBadge">Aktiv</span>
       </div>
-
-      <!-- LibreTranslate Settings -->
-      <div class="settings-panel active" id="libretranslate-settings">
-        <div class="form-group">
-          <label for="serviceUrl">Server-URL</label>
-          <div class="description">LibreTranslate API-Endpunkt</div>
-          <input type="url" id="serviceUrl" placeholder="http://localhost:5000/translate">
-        </div>
-
-        <div class="form-group">
-          <label for="apiKey">API-Key (optional)</label>
-          <div class="description">Falls dein Server einen API-Key erfordert</div>
-          <input type="text" id="apiKey" placeholder="Leer lassen wenn nicht benötigt">
-        </div>
-
-        <div class="test-connection">
-          <button class="btn btn-secondary" id="testLibre">Verbindung testen</button>
-          <span class="test-result hidden" id="libreTestResult"></span>
-        </div>
-      </div>
-
-      <!-- LM Studio Settings -->
-      <div class="settings-panel" id="lmstudio-settings">
-        <div class="form-group">
-          <label for="lmStudioUrl">LM Studio Server</label>
-          <div class="description">URL zu deinem LM Studio Server</div>
-          <input type="url" id="lmStudioUrl" placeholder="http://192.168.178.45:1234">
-        </div>
-
-        <div class="form-group">
-          <label for="lmStudioModel">Modell</label>
-          <div class="description">Wähle ein geladenes Modell</div>
-          <div class="model-select-row">
-            <select id="lmStudioModel">
-              <option value="">Modelle laden...</option>
-            </select>
-            <button type="button" class="btn btn-secondary" id="refreshModelsBtn">
-              <span data-swt-icon="sync"></span>
-            </button>
-          </div>
-        </div>
-
-        <div class="row">
+      <div class="section-body">
+        <div class="section-settings">
           <div class="form-group">
-            <label for="lmStudioTemperature">Temperatur</label>
-            <input type="number" id="lmStudioTemperature" min="0" max="2" step="0.1" value="0.1">
+            <label for="serviceUrl">Server-URL</label>
+            <input type="url" id="serviceUrl" placeholder="https://translate.max">
+            <small class="form-hint">Basis-URL ohne /translate -- z.B. https://translate.max oder http://localhost:5000</small>
           </div>
           <div class="form-group">
-            <label for="lmStudioMaxTokens">Max Tokens</label>
-            <input type="number" id="lmStudioMaxTokens" min="100" max="32000" step="100" value="2000">
+            <label for="apiKey">API-Key (optional)</label>
+            <input type="text" id="apiKey" placeholder="abc123...">
+            <small class="form-hint">Nur bei geschützten Servern nötig, sonst leer lassen</small>
+          </div>
+          <div class="test-connection">
+            <button class="btn btn-secondary" id="testLibre">Verbindung testen</button>
+            <span class="test-result hidden" id="libreTestResult"></span>
+          </div>
+          <div class="form-group">
+            <label>Sprachen</label>
+            <div class="language-list" id="languagesLibreList"></div>
+            <div class="language-add-row">
+              <input type="text" id="languagesLibreCode" placeholder="Code (z.B. sv)" maxlength="5" class="lang-code-input">
+              <input type="text" id="languagesLibreName" placeholder="Name (z.B. Schwedisch)" class="lang-name-input">
+              <button type="button" class="btn btn-secondary btn-sm" id="languagesLibreAdd">+</button>
+            </div>
+            <small class="form-hint">Sprachen die in den Auswahllisten erscheinen. "auto" = automatische Erkennung</small>
           </div>
         </div>
-
-
-        <div class="test-connection">
-          <button class="btn btn-secondary" id="testLmStudio">Verbindung testen</button>
-          <span class="test-result hidden" id="lmTestResult"></span>
+        <div class="section-docs">
+          <h4>LibreTranslate API</h4>
+          <p>Open-Source Übersetzungsserver mit REST API. Kann selbst gehostet oder als öffentliche Instanz genutzt werden.</p>
+          <dl>
+            <dt>Server-URL</dt>
+            <dd>Basis-URL ohne Pfad, z.B. <code>https://translate.max</code> oder <code>http://localhost:5000</code>. Der Endpunkt <code>/translate</code> wird automatisch angehängt.</dd>
+            <dt>Sprachen</dt>
+            <dd>30+ Sprachen, automatische Erkennung</dd>
+            <dt>API-Key</dt>
+            <dd>Nur nötig wenn der Server Authentifizierung erfordert</dd>
+            <dt>Vorteil</dt>
+            <dd>Schnell, keine GPU nötig, ideal für Standardübersetzungen</dd>
+          </dl>
+          <details class="api-details">
+            <summary>API-Referenz</summary>
+            <div class="api-ref">
+              <h5>POST /translate</h5>
+              <div class="api-label">Request</div>
+              <pre><code>{
+  "q": "Hello world",
+  "source": "auto",
+  "target": "de",
+  "format": "text",
+  "api_key": ""
+}</code></pre>
+              <div class="api-label">Response</div>
+              <pre><code>{
+  "translatedText": "Hallo Welt",
+  "detectedLanguage": {
+    "confidence": 98,
+    "language": "en"
+  }
+}</code></pre>
+              <div class="api-label">Fehler</div>
+              <pre><code>HTTP 403: Ungültiger API-Key
+HTTP 429: Rate-Limit erreicht
+HTTP 500: Server-Fehler</code></pre>
+            </div>
+          </details>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Batch Settings -->
-    <div class="card">
-      <h2>
+    <!-- ================================================================ -->
+    <!-- SECTION: LM Studio -->
+    <!-- ================================================================ -->
+    <section class="settings-section provider-section" data-provider="lmstudio">
+      <div class="section-header">
+        <span data-swt-icon="robot"></span>
+        <h2>LM Studio</h2>
+        <span class="api-status" id="lmStatus"></span>
+        <span class="active-badge hidden" id="lmBadge">Aktiv</span>
+      </div>
+      <div class="section-body">
+        <div class="section-settings">
+          <div class="form-group">
+            <label for="lmStudioUrl">Server-URL</label>
+            <input type="url" id="lmStudioUrl" placeholder="http://192.168.178.45:1234">
+            <small class="form-hint">IP und Port des LM Studio Servers -- z.B. http://192.168.178.45:1234 oder http://localhost:1234</small>
+          </div>
+          <div class="form-group">
+            <label for="lmStudioModel">Modell</label>
+            <div class="model-select-row">
+              <select id="lmStudioModel">
+                <option value="">Modelle laden...</option>
+              </select>
+              <button type="button" class="btn btn-secondary" id="refreshModelsBtn">
+                <span data-swt-icon="sync"></span>
+              </button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label for="lmStudioTemperature">Temperatur</label>
+              <input type="number" id="lmStudioTemperature" min="0" max="2" step="0.1" value="0.1">
+              <small class="form-hint">0.1 = präzise, 0.3 = natürlich, 0.5+ = kreativ</small>
+            </div>
+            <div class="form-group">
+              <label for="lmStudioMaxTokens">Max Tokens</label>
+              <input type="number" id="lmStudioMaxTokens" min="100" max="32000" step="100" value="2000">
+              <small class="form-hint">2000 für normale Texte, 4000 für lange Absätze</small>
+            </div>
+          </div>
+          <div class="test-connection">
+            <button class="btn btn-secondary" id="testLmStudio">Verbindung testen</button>
+            <span class="test-result hidden" id="lmTestResult"></span>
+          </div>
+          <div class="form-group">
+            <label>Sprachen</label>
+            <div class="language-list" id="languagesLMList"></div>
+            <div class="language-add-row">
+              <input type="text" id="languagesLMCode" placeholder="Code (z.B. hi)" maxlength="5" class="lang-code-input">
+              <input type="text" id="languagesLMName" placeholder="Name (z.B. Hindi)" class="lang-name-input">
+              <button type="button" class="btn btn-secondary btn-sm" id="languagesLMAdd">+</button>
+            </div>
+            <small class="form-hint">LLMs können prinzipiell jede Sprache -- hier die Auswahlliste konfigurieren</small>
+          </div>
+        </div>
+        <div class="section-docs">
+          <h4>LM Studio API</h4>
+          <p>Lokales LLM mit OpenAI-kompatibler API. Ideal für kontextbezogene Fachübersetzungen mit voller Datenkontrolle.</p>
+          <dl>
+            <dt>Server-URL</dt>
+            <dd>Basis-URL des LM Studio Servers, z.B. <code>http://192.168.178.45:1234</code> oder <code>http://localhost:1234</code>. Der Pfad <code>/v1/chat/completions</code> wird automatisch angehängt.</dd>
+            <dt>Modell</dt>
+            <dd>Muss in LM Studio geladen sein. Klicke auf den Aktualisieren-Button um verfügbare Modelle abzurufen.</dd>
+            <dt>Empfohlene Modelle</dt>
+            <dd>Qwen 3 liefert exzellente Übersetzungsqualität mit zuverlässigem JSON-Output. Empfohlen: <code>qwen3-next-80b-a3b-instruct-mlx</code> (Apple Silicon) oder andere Qwen 3 Instruct-Varianten ab 12B+. Alternativ: Gemma 3 12B.</dd>
+            <dt>Temperatur</dt>
+            <dd><code>0.1</code> = wörtlich und konsistent (Standard). <code>0.3</code> = natürlicher Stil. <code>0.5+</code> = kreativ, aber weniger vorhersagbar. Für Fachübersetzungen unter 0.3 bleiben.</dd>
+            <dt>Max Tokens</dt>
+            <dd><code>2000</code> reicht für die meisten Texte. Bei langen Absätzen auf <code>4000</code> erhöhen. Das Modell muss mindestens so viel Kontext unterstützen.</dd>
+            <dt>CORS</dt>
+            <dd>In LM Studio unter Einstellungen "Enable CORS" aktivieren, sonst blockiert der Browser die Anfragen.</dd>
+            <dt>Fachkontexte</dt>
+            <dd>Kfz, Technik/IT, Medizin, Recht -- wählbar im Side Panel. Beeinflusst die Terminologie der Übersetzung.</dd>
+          </dl>
+          <details class="api-details">
+            <summary>System-Prompts je Fachkontext</summary>
+            <div class="api-ref">
+              <p><small>{source} und {target} werden durch die gewählten Sprachen ersetzt.</small></p>
+              <h5>Allgemein</h5>
+              <pre><code>Du bist ein präziser Übersetzer.
+Übersetze den Text von {source} nach {target}.
+Natürliche, flüssige Übersetzung. Formatierung beibehalten.
+Antwort als JSON: {"translation": "...", "alternatives": [...]}</code></pre>
+              <h5>Kfz / Automotive</h5>
+              <pre><code>Kfz-Fachübersetzer {source} nach {target}.
+- NIEMALS übersetzen: Teilenummern, OE-Nummern, Codes, Markennamen
+- Korrekte Fachbegriffe: Control arm = Querlenker,
+  Tie rod end = Spurstangenkopf, Ball joint = Traggelenk,
+  Wheel bearing = Radlager, Brake caliper = Bremssattel
+Antwort als JSON mit optionalem context_notes Feld</code></pre>
+              <h5>Technisch / IT</h5>
+              <pre><code>Technischer Fachübersetzer {source} nach {target}.
+- Absolute technische Präzision
+- Englische Fachbegriffe belassen (API, Cache, Backend, etc.)
+- Code und Variablennamen NIEMALS übersetzen
+Antwort als JSON: {"translation": "...", "alternatives": [...]}</code></pre>
+              <h5>Medizin</h5>
+              <pre><code>Medizinischer Fachübersetzer {source} nach {target}.
+- Exakte medizinische Terminologie
+- Lateinische/griechische Fachbegriffe beibehalten
+- Höchste Präzision bei Dosierungen und Maßeinheiten
+Antwort als JSON mit optionalem context_notes Feld</code></pre>
+              <h5>Recht / Juristisch</h5>
+              <pre><code>Juristischer Fachübersetzer {source} nach {target}.
+- Exakte juristische Terminologie des Zielrechtssystems
+- Länderspezifische Rechtsbegriffe (deutsches Recht)
+- Im Zweifel: wörtliche Übersetzung mit Anmerkung
+Antwort als JSON mit optionalem context_notes Feld</code></pre>
+            </div>
+          </details>
+          <details class="api-details">
+            <summary>API-Referenz</summary>
+            <div class="api-ref">
+              <h5>POST /v1/chat/completions</h5>
+              <div class="api-label">Request</div>
+              <pre><code>{
+  "model": "gemma-3-12b",
+  "messages": [
+    {"role": "system", "content": "..."},
+    {"role": "user", "content": "Hello"}
+  ],
+  "temperature": 0.1,
+  "max_tokens": 2000,
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": { ... }
+  }
+}</code></pre>
+              <div class="api-label">Response</div>
+              <pre><code>{
+  "translation": "Hallo",
+  "alternatives": ["Guten Tag"],
+  "context_notes": "Informell"
+}</code></pre>
+              <h5>GET /v1/models</h5>
+              <div class="api-label">Geladene Modelle abfragen</div>
+              <pre><code>{
+  "data": [
+    {"id": "gemma-3-12b-it"},
+    {"id": "qwen2.5-14b-instruct"}
+  ]
+}</code></pre>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- SECTION: Batch-Verarbeitung -->
+    <!-- ================================================================ -->
+    <section class="settings-section">
+      <div class="section-header">
         <span data-swt-icon="copyAll"></span>
-        Batch-Verarbeitung
-      </h2>
-
-      <div class="form-group">
-        <label for="pageBatchSize">Batch-Größe</label>
-        <div class="description">Texte pro Batch (1 = einzeln, höher = schneller)</div>
-        <input type="range" id="pageBatchSize" min="1" max="50" value="20">
-        <div class="range-value"><span id="pageBatchSizeValue">20</span> Texte</div>
+        <h2>Batch-Verarbeitung</h2>
       </div>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Cache zuerst prüfen</div>
-          <div class="desc">Gecachte Texte laden statt neu zu übersetzen</div>
+      <div class="section-body">
+        <div class="section-settings">
+          <div class="form-group">
+            <label for="pageBatchSize">Batch-Größe</label>
+            <input type="range" id="pageBatchSize" min="1" max="50" value="20">
+            <div class="range-value"><span id="pageBatchSizeValue">20</span> Texte</div>
+            <small class="form-hint">Texte pro API-Aufruf -- höher = schneller, aber mehr Speicher</small>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <div class="label">Cache zuerst prüfen</div>
+              <small class="form-hint">Bereits übersetzte Texte aus dem Cache laden statt erneut zu übersetzen</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="useCacheFirst" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
         </div>
-        <label class="toggle">
-          <input type="checkbox" id="useCacheFirst" checked>
-          <span class="toggle-slider"></span>
-        </label>
+        <div class="section-docs">
+          <h4>Seitenübersetzung</h4>
+          <p>Steuert wie Texte bei der Ganzseitenübersetzung verarbeitet werden.</p>
+          <dl>
+            <dt>Batch-Größe</dt>
+            <dd>Anzahl Texte pro API-Aufruf. Höher = schneller, aber mehr Speicherverbrauch. Standard: 20</dd>
+            <dt>Cache zuerst</dt>
+            <dd>Bereits übersetzte Texte aus dem Cache laden statt erneut zu übersetzen. Spart API-Aufrufe und beschleunigt wiederholte Übersetzungen</dd>
+          </dl>
+        </div>
       </div>
-    </div>
+    </section>
 
-
-    <!-- Display Settings -->
-    <div class="card">
-      <h2>
+    <!-- ================================================================ -->
+    <!-- SECTION: Anzeige & Verhalten -->
+    <!-- ================================================================ -->
+    <section class="settings-section">
+      <div class="section-header">
         <span data-swt-icon="compass"></span>
-        Anzeige & Verhalten
-      </h2>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Selection-Icon anzeigen</div>
-          <div class="desc">Zeigt ein Übersetzungs-Icon bei Textauswahl</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="showSelectionIcon" checked>
-          <span class="toggle-slider"></span>
-        </label>
+        <h2>Anzeige & Verhalten</h2>
       </div>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Text-to-Speech</div>
-          <div class="desc">Vorlesefunktion aktivieren</div>
+      <div class="section-body">
+        <div class="section-settings">
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <div class="label">Selection-Icon anzeigen</div>
+              <small class="form-hint">Übersetzungs-Symbol beim Markieren von Text auf Webseiten</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="showSelectionIcon" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <div class="label">Text-to-Speech</div>
+              <small class="form-hint">Vorlesefunktion für Übersetzungen über Browser-Sprachsynthese</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="enableTTS" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <div class="label">Alternativen anzeigen</div>
+              <small class="form-hint">Alternative Übersetzungsvorschläge -- bei LibreTranslate und LM Studio</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="showAlternatives" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
         </div>
-        <label class="toggle">
-          <input type="checkbox" id="enableTTS" checked>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Alternativen anzeigen</div>
-          <div class="desc">Zeigt alternative Übersetzungen (LM Studio)</div>
+        <div class="section-docs">
+          <h4>Interaktion</h4>
+          <dl>
+            <dt>Selection-Icon</dt>
+            <dd>Zeigt ein Übersetzungs-Symbol wenn Text auf einer Webseite markiert wird. Klick darauf übersetzt die Auswahl sofort</dd>
+            <dt>Text-to-Speech</dt>
+            <dd>Vorlesefunktion für Übersetzungen. Nutzt die Sprachsynthese des Browsers</dd>
+            <dt>Alternativen</dt>
+            <dd>Zeigt alternative Übersetzungsvorschläge an. Nur bei LM Studio verfügbar -- LibreTranslate liefert keine Alternativen</dd>
+          </dl>
         </div>
-        <label class="toggle">
-          <input type="checkbox" id="showAlternatives" checked>
-          <span class="toggle-slider"></span>
-        </label>
       </div>
+    </section>
 
-    </div>
-
-    <!-- Content Filter -->
-    <div class="card">
-      <h2>
+    <!-- ================================================================ -->
+    <!-- SECTION: Inhaltsfilter -->
+    <!-- ================================================================ -->
+    <section class="settings-section">
+      <div class="section-header">
         <span data-swt-icon="qrcode"></span>
-        Inhaltsfilter
-      </h2>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Code-Blöcke überspringen</div>
-          <div class="desc">Code, Pre, Kbd nicht übersetzen</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="skipCodeBlocks" checked>
-          <span class="toggle-slider"></span>
-        </label>
+        <h2>Inhaltsfilter</h2>
       </div>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Zitate überspringen</div>
-          <div class="desc">Blockquotes nicht übersetzen</div>
+      <div class="section-body">
+        <div class="section-settings">
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <div class="label">Code-Blöcke überspringen</div>
+              <small class="form-hint">&lt;code&gt;, &lt;pre&gt;, &lt;kbd&gt; Elemente nicht übersetzen</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="skipCodeBlocks" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <div class="label">Zitate überspringen</div>
+              <small class="form-hint">&lt;blockquote&gt; Elemente im Original belassen</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="skipBlockquotes" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <div class="label">Inline-Abstände korrigieren</div>
+              <small class="form-hint">Leerzeichen zwischen angrenzenden Inline-Tags (bold, links) einfügen</small>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="fixInlineSpacing" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
         </div>
-        <label class="toggle">
-          <input type="checkbox" id="skipBlockquotes" checked>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Inline-Abstände korrigieren</div>
-          <div class="desc">Fügt Leerzeichen bei Tag-Wechseln ein</div>
+        <div class="section-docs">
+          <h4>Übersetzungsfilter</h4>
+          <p>Bestimmte Inhalte von der Übersetzung ausschließen.</p>
+          <dl>
+            <dt>Code-Blöcke</dt>
+            <dd>Elemente wie &lt;code&gt;, &lt;pre&gt;, &lt;kbd&gt; und &lt;samp&gt; nicht übersetzen. Verhindert Fehler in Code-Beispielen</dd>
+            <dt>Zitate</dt>
+            <dd>&lt;blockquote&gt;-Elemente beibehalten. Sinnvoll wenn Originalzitate erhalten bleiben sollen</dd>
+            <dt>Inline-Abstände</dt>
+            <dd>Fügt automatisch Leerzeichen ein wenn Inline-Tags (bold, italic, links) direkt aneinandergrenzen</dd>
+          </dl>
         </div>
-        <label class="toggle">
-          <input type="checkbox" id="fixInlineSpacing" checked>
-          <span class="toggle-slider"></span>
-        </label>
       </div>
-    </div>
+    </section>
 
-    <!-- Cache Server -->
-    <div class="card">
-      <h2>
+    <!-- ================================================================ -->
+    <!-- SECTION: Cache-Server -->
+    <!-- ================================================================ -->
+    <section class="settings-section">
+      <div class="section-header">
         <span data-swt-icon="sync"></span>
-        Übersetzungs-Cache
-      </h2>
-
-      <div class="toggle-group">
-        <div class="toggle-info">
-          <div class="label">Server-Cache aktivieren</div>
-          <div class="desc">Nutzt SWT Cache Server für zentrale Speicherung</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="cacheServerEnabled">
-          <span class="toggle-slider"></span>
-        </label>
+        <h2>Übersetzungs-Cache</h2>
       </div>
-
-      <!-- Server Settings (nur wenn aktiviert) -->
-      <div class="settings-panel" id="cacheserver-settings">
-        <div class="form-group">
-          <label for="cacheServerUrl">Cache Server URL</label>
-          <div class="description">URL zum SWT Cache Server</div>
-          <input type="url" id="cacheServerUrl" placeholder="http://192.168.178.49:8083">
-        </div>
-
-        <div class="form-group">
-          <label for="cacheServerMode">Cache-Modus</label>
-          <div class="description">Fallback-Reihenfolge bei Übersetzungsabfragen</div>
-          <select id="cacheServerMode">
-            <option value="server-first">Server → Lokal → Übersetzen</option>
-            <option value="local-first">Lokal → Server → Übersetzen</option>
-            <option value="server-only">Nur Server (kein LocalStorage)</option>
-            <option value="local-only">Nur Lokal (komplett offline)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="cacheServerTimeout">Timeout (ms)</label>
-          <div class="description">Max. Wartezeit für Server-Antwort</div>
-          <input type="number" id="cacheServerTimeout" min="1000" max="30000" step="500" value="5000">
-        </div>
-
-        <div class="toggle-group">
-          <div class="toggle-info">
-            <div class="label">Cache automatisch laden</div>
-            <div class="desc">Gecachte Übersetzungen automatisch beim Seitenaufruf anwenden</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="autoLoadCache">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="test-connection">
-          <button class="btn btn-secondary" id="testCacheServer">
-            <span data-swt-icon="sync"></span>
-            Verbindung testen
-          </button>
-          <span class="test-result hidden" id="cacheServerTestResult"></span>
-        </div>
-
-        <div class="cache-server-stats hidden" id="cacheServerStats">
-          <h4>Server-Statistiken</h4>
-          <div class="stats-mini">
-            <div class="stat-item">
-              <span class="stat-value" id="cacheServerTotal">0</span>
-              <span class="stat-label">Übersetzungen</span>
+      <div class="section-body">
+        <div class="section-settings">
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <div class="label">Übersetzungs-Cache</div>
+              <small class="form-hint">Übersetzungen zwischenspeichern -- lokal, auf einem Server, oder beides</small>
             </div>
-            <div class="stat-item">
-              <span class="stat-value" id="cacheServerSize">0</span>
-              <span class="stat-label">MB</span>
+            <label class="toggle">
+              <input type="checkbox" id="cacheServerEnabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div id="cacheserver-settings">
+            <div class="form-group">
+              <label for="cacheServerMode">Cache-Modus</label>
+              <select id="cacheServerMode">
+                <option value="local-only">Nur Lokal (kein Server nötig)</option>
+                <option value="server-only">Nur Server (kein LocalStorage)</option>
+                <option value="local-first">Lokal bevorzugt, Server als Fallback</option>
+                <option value="server-first">Server bevorzugt, Lokal als Fallback</option>
+              </select>
+              <small class="form-hint">Lokal = im Browser gespeichert. Server = zentral, geräteübergreifend verfügbar</small>
+            </div>
+            <div id="cacheServerFields">
+              <div class="form-group">
+                <label for="cacheServerUrl">Cache Server URL</label>
+                <input type="url" id="cacheServerUrl" placeholder="http://192.168.178.49:8083">
+                <small class="form-hint">Adresse des SWT Cache Servers -- z.B. http://192.168.178.49:8083 oder http://localhost:8083</small>
+              </div>
+              <div class="form-group">
+                <label for="cacheServerTimeout">Timeout (ms)</label>
+                <input type="number" id="cacheServerTimeout" min="1000" max="30000" step="500" value="5000">
+                <small class="form-hint">Standard: 5000ms -- bei langsamer Verbindung auf 10000+ erhöhen</small>
+              </div>
+              <div class="test-connection">
+                <button class="btn btn-secondary" id="testCacheServer">
+                  <span data-swt-icon="sync"></span>
+                  Verbindung testen
+                </button>
+                <span class="test-result hidden" id="cacheServerTestResult"></span>
+              </div>
+            </div>
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <div class="label">Cache automatisch laden</div>
+                <small class="form-hint">Vorhandene Übersetzungen beim Seitenaufruf automatisch anwenden</small>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="autoLoadCache">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="cache-server-stats hidden" id="cacheServerStats">
+              <div class="stats-mini">
+                <div class="stat-item">
+                  <span class="stat-value" id="cacheServerTotal">0</span>
+                  <span class="stat-label">Übersetzungen</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value" id="cacheServerSize">0</span>
+                  <span class="stat-label">MB</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        <div class="section-docs">
+          <h4>SWT Cache Server</h4>
+          <p>Zentraler Übersetzungs-Cache auf Basis von Python/FastAPI. Speichert alle Übersetzungen serverseitig und macht sie geräteübergreifend verfügbar.</p>
+          <dl>
+            <dt>Funktionsweise</dt>
+            <dd>Übersetzungen werden per SHA-256-Hash der Domain zugeordnet und als Dateien gespeichert. Kein separater Index nötig</dd>
+            <dt>Cache-Modus</dt>
+            <dd>Bestimmt die Reihenfolge der Abfrage: Server/Lokal/Beides. Bei "Nur Server" wird kein LocalStorage verwendet</dd>
+            <dt>Auto-Laden</dt>
+            <dd>Wendet beim Seitenaufruf automatisch vorhandene Cache-Übersetzungen an, ohne manuellen Klick</dd>
+            <dt>Timeout</dt>
+            <dd>Maximale Wartezeit für Server-Antworten. Bei Überschreitung wird der Fallback-Modus genutzt</dd>
+          </dl>
+          <details class="api-details">
+            <summary>API-Referenz</summary>
+            <div class="api-ref">
+              <h5>POST /cache/bulk -- Speichern</h5>
+              <pre><code>{
+  "url_hash": "a1b2c3d4e5f6",
+  "items": {
+    "hash1": ["original_b64", "translated_b64"],
+    "hash2": ["...", "..."]
+  }
+}</code></pre>
+              <h5>POST /cache/get -- Abrufen</h5>
+              <pre><code>{
+  "url_hash": "a1b2c3d4e5f6",
+  "hashes": ["hash1", "hash2"]
+}</code></pre>
+              <h5>Weitere Endpunkte</h5>
+              <div class="api-endpoint-list">
+                <div class="api-endpoint">
+                  <span class="method get">GET</span>
+                  <code>/cache/url/{hash}</code>
+                  <span>Stats pro Domain</span>
+                </div>
+                <div class="api-endpoint">
+                  <span class="method get">GET</span>
+                  <code>/cache/url/{hash}/all</code>
+                  <span>Alle Einträge</span>
+                </div>
+                <div class="api-endpoint">
+                  <span class="method delete">DEL</span>
+                  <code>/cache/url/{hash}</code>
+                  <span>Domain löschen</span>
+                </div>
+                <div class="api-endpoint">
+                  <span class="method get">GET</span>
+                  <code>/cache/urls</code>
+                  <span>Alle Domains</span>
+                </div>
+                <div class="api-endpoint">
+                  <span class="method get">GET</span>
+                  <code>/stats</code>
+                  <span>Gesamtstatistik</span>
+                </div>
+                <div class="api-endpoint">
+                  <span class="method get">GET</span>
+                  <code>/health</code>
+                  <span>Health-Check</span>
+                </div>
+              </div>
+              <h5>Hash-Berechnung</h5>
+              <pre><code>url_hash (12 Zeichen, Ordnername):
+  SHA256(hostname ohne www)[:12]
+  z.B. "svelte.dev" → "a1b2c3d4e5f6"
+  "www.github.com" → sha256("github.com")[:12]
+  Nicht-Standard-Port bleibt: "localhost:3000"
+
+trans_hash (64 Zeichen, Dateiname):
+  SHA256(origin + pathname + text + ":langPair")
+  z.B. SHA256("https://svelte.dev/docs"
+    + "Hello world" + ":en:de")
+
+Fallback bei HTTP: djb2-Hash (kein crypto.subtle)</code></pre>
+            </div>
+          </details>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- Actions -->
     <div class="actions">
@@ -293,14 +561,11 @@
         <span data-swt-icon="refresh"></span>
         Zurücksetzen
       </button>
-      <button class="btn btn-primary" id="saveBtn">
-        <span data-swt-icon="save"></span>
-        Speichern
-      </button>
     </div>
 
     <footer>
-      <p>Smart Translator v<span id="appVersion"></span> · <a href="https://github.com/LibreTranslate/LibreTranslate" target="_blank">LibreTranslate</a> · <a href="https://lmstudio.ai" target="_blank">LM Studio</a></p>
+      <p>Smart Translator v<span id="appVersion"></span> -- &copy; HalloWelt42</p>
+      <p><a href="https://github.com/LibreTranslate/LibreTranslate" target="_blank">LibreTranslate</a> · <a href="https://lmstudio.ai" target="_blank">LM Studio</a></p>
     </footer>
   </div>
 
