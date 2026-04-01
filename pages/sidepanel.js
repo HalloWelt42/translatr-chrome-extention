@@ -16,10 +16,11 @@ const PageState = {
   },
 
   // Zustand aller Aktions-Buttons ableiten
-  deriveActions(response) {
+  deriveActions(response, options = {}) {
     const state = this.derive(response);
     const hasCache = response?.cacheAvailable || response?.serverCacheCount > 0;
     const busy = state === 'translating';
+    const autoLoad = !!options.autoLoadCache;
 
     return {
       translate: {
@@ -36,7 +37,7 @@ const PageState = {
             : { text: '', type: '' }
       },
       restore: {
-        enabled: !busy && (state === 'translated' || state === 'partial')
+        enabled: !busy && !autoLoad && (state === 'translated' || state === 'partial')
       },
       loadCache: {
         enabled: !busy && state === 'idle' && hasCache
@@ -400,7 +401,8 @@ class SidePanelController {
 
         // Source-Indikator im Badge und Pipeline
         SWT.ApiBadge.showSource(result.source || null);
-        this.showPipeline(result);
+        const plSettings = await chrome.storage.sync.get(['cacheServerMode', 'cacheServerEnabled']);
+        this.showPipeline(result, plSettings);
 
         if (result.contextNotes && contextNotes && contextNotesText) {
           contextNotesText.textContent = result.contextNotes;
@@ -515,7 +517,8 @@ class SidePanelController {
       const response = await chrome.tabs.sendMessage(tab.id, { action: 'GET_PAGE_INFO' }).catch(() => null);
       if (!response) return;
 
-      ActionRenderer.apply(PageState.deriveActions(response));
+      const { autoLoadCache } = await chrome.storage.sync.get({ autoLoadCache: false });
+      ActionRenderer.apply(PageState.deriveActions(response, { autoLoadCache }));
 
       // Quelle-Anzeige: immer aktuelle Konfiguration zeigen
       const state = PageState.derive(response);

@@ -39,7 +39,7 @@
     const wrapper = document.createElement('span');
     wrapper.className = 'swt-translated-text';
     wrapper.textContent = finalTranslation;
-    wrapper.dataset.original = original;
+    wrapper.dataset.original = leadingSpaces + original + trailingSpaces;
     wrapper.dataset.translated = translated;
 
     // Kein Highlight wenn deaktiviert oder Text unverändert
@@ -122,11 +122,6 @@
 
     this.notifyStatusChange();
     this.showNotification('Originaltexte wiederhergestellt', 'info');
-
-    // Cache-Status asynchron neu prüfen (nach Status-Update)
-    if (typeof this.checkForCachedTranslation === 'function') {
-      this.checkForCachedTranslation().catch(() => {});
-    }
   };
 
   /**

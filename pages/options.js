@@ -241,10 +241,13 @@ function setupEventListeners() {
     });
   }
 
-  // Cache-Modus: Server-Felder ein/ausblenden
+  // Cache-Modus: Server-Felder ein/ausblenden + sofort speichern
   const cacheModeEl = document.getElementById('cacheServerMode');
   if (cacheModeEl) {
-    cacheModeEl.addEventListener('change', updateCacheServerFields);
+    cacheModeEl.addEventListener('change', () => {
+      updateCacheServerFields();
+      chrome.storage.sync.set({ cacheServerMode: cacheModeEl.value });
+    });
   }
   
   // Cache-Server Test Button
