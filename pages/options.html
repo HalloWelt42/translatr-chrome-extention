@@ -424,12 +424,12 @@ Antwort als JSON mit optionalem context_notes Feld</code></pre>
             <div class="form-group">
               <label for="cacheServerMode">Cache-Modus</label>
               <select id="cacheServerMode">
-                <option value="local-only">Nur Lokal (kein Server nötig)</option>
-                <option value="server-only">Nur Server (kein LocalStorage)</option>
-                <option value="local-first">Lokal bevorzugt, Server als Fallback</option>
-                <option value="server-first">Server bevorzugt, Lokal als Fallback</option>
+                <option value="local-only">Nur Browsercache (kein Server nötig)</option>
+                <option value="server-only">Nur Server (kein Browsercache)</option>
+                <option value="local-first">Browsercache bevorzugt, Server als Fallback</option>
+                <option value="server-first">Server bevorzugt, Browsercache als Fallback</option>
               </select>
-              <small class="form-hint">Lokal = im Browser gespeichert. Server = zentral, geräteübergreifend verfügbar</small>
+              <small class="form-hint">Browsercache = im Browser gespeichert. Server = zentral, geräteübergreifend verfügbar</small>
             </div>
             <div id="cacheServerFields">
               <div class="form-group">

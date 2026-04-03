@@ -7,9 +7,9 @@
 - **Übersetzungsverlauf** (letzte 100 Einträge) -- lokal via `chrome.storage.local`
 - **Token-Statistiken** (Anzahl Anfragen, Token-Verbrauch) -- lokal via `chrome.storage.local`
 - **Übersetzungs-Cache** -- je nach Modus:
-  - `local-only`: nur im Browser (LocalStorage)
-  - `server-only`: nur auf dem selbst gehosteten Cache-Server
-  - `local-first` / `server-first`: in beiden Speichern
+  - Nur Browsercache: nur im Browser (LocalStorage)
+  - Nur Server: nur auf dem selbst gehosteten Cache-Server
+  - Browsercache + Server: in beiden Speichern
 
 ### Welche externen Requests werden gemacht?
 - **LibreTranslate-Server**: Texte werden zur Übersetzung an den vom Nutzer konfigurierten Server gesendet
@@ -38,9 +38,9 @@ Alle Server-URLs werden vom Nutzer selbst konfiguriert. Es werden KEINE Daten an
 - **Translation history** (last 100 entries) -- locally via `chrome.storage.local`
 - **Token statistics** (request count, token usage) -- locally via `chrome.storage.local`
 - **Translation cache** -- depending on mode:
-  - `local-only`: browser only (LocalStorage)
-  - `server-only`: self-hosted cache server only
-  - `local-first` / `server-first`: both storage backends
+  - Browser cache only: browser only (LocalStorage)
+  - Server only: self-hosted cache server only
+  - Browser cache + Server: both storage backends
 
 ### What external requests are made?
 - **LibreTranslate server**: Texts are sent for translation to the user-configured server

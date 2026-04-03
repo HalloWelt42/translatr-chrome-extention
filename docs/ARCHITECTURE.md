@@ -28,7 +28,7 @@ translatePage()                   translateText()
 | `translator-dom.js` | DOM-Manipulation, findTranslatableTextNodes(), wrapWithHoverOriginal() |
 | `translator-cache.js` | Cache-Check beim Seitenaufruf, Cache-Laden |
 | `translator-ui.js` | UI-Elemente (Selection-Icon, Progress-Overlay, Notifications) |
-| `translator-export.js` | PDF/HTML Export |
+| `translator-export.js` | Markdown-Export |
 | `domain-strategies.js` | Domain-spezifische Filter (Wikipedia, GitHub, StackOverflow) |
 
 ### Service Worker (`service-worker.js`)
@@ -60,7 +60,7 @@ translatePage()                   translateText()
 |-------|---------------|
 | `popup/popup.js` | Quick-Translate, Seitenaktionen, Provider-Status |
 | `pages/sidepanel.js` | PageState (Zustandsableitung), ActionRenderer, Pipeline-Ansicht, Cache-Tabs |
-| `pages/options.js` | Provider-Accordion, Auto-Save, Verbindungstest, CONTEXT_PROMPTS |
+| `pages/options.js` | Provider-Accordion, Verbindungstest, Cache-Einstellungen |
 
 ## Datenfluss: Seitenübersetzung
 
@@ -73,7 +73,7 @@ translatePage()                   translateText()
    - Provider-Routing (LibreTranslate direkt, LM Studio via Queue)
    - Ergebnis mit `source` (api/cache/buffer) und `tokens`
 6. Content: Ergebnisse in Reihenfolge anwenden via `wrapWithHoverOriginal()`
-7. Alle verarbeiteten Nodes werden in `.swt-translated-text` gewrappt (auch bei identischer Übersetzung)
+7. Nur tatsächlich geänderte Nodes werden in `.swt-translated-text` gewrappt
 8. Service Worker: `CacheServer.bulkStore()` speichert neue Übersetzungen async
 
 ## LM Studio Queue
@@ -128,7 +128,7 @@ Fallback bei HTTP: djb2-Hash (kein crypto.subtle)
 | Key | Default | Beschreibung |
 |-----|---------|--------------|
 | `apiType` | `libretranslate` | Aktives Backend |
-| `serviceUrl` | `https://translate.max` | LibreTranslate URL |
+| `serviceUrl` | `` | LibreTranslate URL |
 | `lmStudioUrl` | `` | LM Studio URL |
 | `cacheServerEnabled` | `true` | Cache aktiv |
 | `cacheServerMode` | `server-only` | Cache-Modus |

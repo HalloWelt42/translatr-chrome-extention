@@ -363,10 +363,10 @@ trans_hash = SHA256(
       </div>
 
       <h3>Dateiformat</h3>
-      <p>Jede Cache-Datei enthält 3 Zeilen (Base64-kodiert):</p>
+      <p>Jede Cache-Datei enthält 2 Zeilen (Base64-kodiert):</p>
       <pre><code>VGhlIHF1aWNrIGJyb3duIGZveA==     # Original
-RGVyIHNjaG5lbGxlIGJyYXVuZS4uLg== # Übersetzung
-YXV0bzpkZQ==                       # Sprachpaar (auto:de)</code></pre>
+RGVyIHNjaG5lbGxlIGJyYXVuZS4uLg== # Übersetzung</code></pre>
+      <p>Das Sprachpaar ist im Hash kodiert und wird nicht separat gespeichert.</p>
 
       <h3>Cache-Modi</h3>
       <div class="mode-list">
@@ -375,15 +375,15 @@ YXV0bzpkZQ==                       # Sprachpaar (auto:de)</code></pre>
           <span>Server &rarr; Lokal &rarr; API übersetzen. Standard, beste Performance</span>
         </div>
         <div class="mode-item">
-          <strong>Lokal zuerst</strong>
-          <span>Lokal &rarr; Server &rarr; API übersetzen. Wenn Server langsam ist</span>
+          <strong>Browsercache zuerst</strong>
+          <span>Browsercache &rarr; Server &rarr; API übersetzen. Wenn Server langsam ist</span>
         </div>
         <div class="mode-item">
           <strong>Nur Server</strong>
-          <span>Kein LocalStorage, alles auf dem Server. Spart Browser-Speicher</span>
+          <span>Kein Browsercache, alles auf dem Server. Spart Browser-Speicher</span>
         </div>
         <div class="mode-item">
-          <strong>Nur Lokal</strong>
+          <strong>Nur Browsercache</strong>
           <span>Komplett offline, kein Server nötig. Daten nur im Browser</span>
         </div>
       </div>
@@ -477,8 +477,7 @@ Content-Type: application/json
   "items": {
     "f9e8d7c6b5a4...": [
       "SGVsbG8gV29ybGQ=",
-      "SGFsbG8gV2VsdA==",
-      "YXV0bzpkZQ=="
+      "SGFsbG8gV2VsdA=="
     ]
   }
 }</code></pre>

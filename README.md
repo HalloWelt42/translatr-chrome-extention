@@ -8,11 +8,12 @@ Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTransla
 - **LM Studio** -- Lokales LLM mit Fachkontexten (Kfz/Automotive, Technik/IT, Medizin, Recht)
 - **Auswahl-Übersetzung** -- Text markieren, Icon klicken, sofort übersetzen
 - **Seiten-Übersetzung** -- Ganze Seite batch-weise übersetzen mit Fortschrittsanzeige
-- **Side Panel** -- Erweiterte Funktionen, Statistiken, Cache-Verwaltung, Pipeline-Ansicht
-- **Übersetzungs-Cache** -- Lokal (LocalStorage), Server (SWT Cache Server) oder beides
+- **Side Panel** -- Erweiterte Funktionen, Cache-Verwaltung, Pipeline-Anzeige
+- **Übersetzungs-Cache** -- Browsercache (LocalStorage), Server (SWT Cache Server) oder beides
 - **Fachkontexte** -- Spezialisierte System-Prompts für Kfz, IT, Medizin, Recht (nur LM Studio)
 - **Text-to-Speech** -- Vorlesefunktion über Browser-Sprachsynthese
 - **Hover-Original** -- Originaltext beim Überfahren übersetzter Elemente anzeigen
+- **Markdown-Export** -- Übersetzte Seiten als Markdown exportieren
 - **Domain-Strategien** -- Angepasste Filter für Wikipedia, GitHub, StackOverflow u.a.
 
 ## Installation
@@ -28,25 +29,16 @@ Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTransla
 
 LibreTranslate und LM Studio werden als Accordion-Panels konfiguriert. Das aktive Backend ist aufgeklappt, das inaktive eingeklappt. Klick auf den Header wechselt.
 
-- **LibreTranslate**: Server-URL eingeben (z.B. `https://translate.max`), optional API-Key
-- **LM Studio**: Server-URL (z.B. `http://192.168.178.45:1234`), Modell auswählen, Temperatur und Max Tokens einstellen. Empfohlen: Qwen 3 Instruct-Modelle ab 12B+
+- **LibreTranslate**: Server-URL eingeben, optional API-Key
+- **LM Studio**: Server-URL eingeben, Modell auswählen, Temperatur und Max Tokens einstellen
 
 ### Übersetzungs-Cache
 
-Vier Modi verfügbar:
-
 | Modus | Beschreibung |
 |-------|-------------|
-| `local-only` | Nur im Browser (LocalStorage) |
-| `server-only` | Nur auf dem Cache-Server |
-| `local-first` | Erst lokal, Server als Fallback |
-| `server-first` | Erst Server, lokal als Fallback |
-
-### Tastenkürzel
-
-- `Ctrl+Shift+T` -- Auswahl übersetzen
-- `Ctrl+Shift+P` -- Seite übersetzen
-- `Ctrl+Shift+S` -- Side Panel öffnen
+| Nur Browsercache | Nur im Browser (LocalStorage) |
+| Nur Server | Nur auf dem Cache-Server |
+| Server + Browser | Beides, Server wird zuerst abgefragt |
 
 ## Projektstruktur
 
@@ -58,7 +50,7 @@ content/
   translator-ui.js                # UI-Elemente (Tooltip, Icon, Progress)
   translator-cache.js             # Cache-Check, Cache-Laden
   translator-dom.js               # DOM-Manipulation, Text-Node-Suche
-  translator-export.js            # PDF/HTML Export
+  translator-export.js            # Markdown-Export
   domain-strategies.js            # Domain-spezifische Filter
   translator.css                  # Content-Styles
 shared/
@@ -70,6 +62,7 @@ shared/
   toast.js                        # Toast-Benachrichtigungen
   utils.js                        # Hilfsfunktionen
   api-badge.js                    # API-Badge Komponente
+  constants.js                    # Konstanten
 background/
   providers/
     libre-translate.js            # LibreTranslate Provider
@@ -79,7 +72,7 @@ popup/
 pages/
   sidepanel.html/js/css           # Side Panel
   options.html/js/css             # Einstellungen
-  guide.html                      # Anleitung
+  guide.html/css                  # Anleitung
   donate.html                     # Spendenseite
   page-common.css                 # Gemeinsame Styles
 ```
