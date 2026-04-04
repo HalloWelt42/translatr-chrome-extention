@@ -254,10 +254,6 @@ class TranslatorBackground {
           sendResponse(batchResult);
           break;
 
-        case 'GET_SETTINGS':
-          const settings = await chrome.storage.sync.get();
-          sendResponse({ success: true, settings });
-          break;
 
         case 'GET_HISTORY':
           const history = await this.getHistory();
@@ -285,20 +281,12 @@ class TranslatorBackground {
           sendResponse({ success: true });
           break;
 
-        case 'GET_API_TYPE':
-          const apiSettings = await chrome.storage.sync.get(['apiType']);
-          sendResponse({ success: true, apiType: apiSettings.apiType || 'libretranslate' });
-          break;
 
         case 'GET_TOKEN_STATS':
           const tokenStats = await this.getTokenStats();
           sendResponse({ success: true, stats: tokenStats });
           break;
 
-        case 'UPDATE_TOKEN_STATS':
-          const updatedStats = await this.updateTokenStats(request.usage);
-          sendResponse({ success: true, stats: updatedStats });
-          break;
 
         case 'RESET_TOKEN_STATS':
           await this.resetTokenStats();
@@ -342,10 +330,6 @@ class TranslatorBackground {
           sendResponse({ success: true, result: storeResult });
           break;
 
-        case 'CACHE_SERVER_BULK_DELETE':
-          const deleteResult = await CacheServer.bulkDelete(request.hashes);
-          sendResponse({ success: true, result: deleteResult });
-          break;
 
         case 'CACHE_SERVER_DELETE_BY_URL':
           const urlDeleteResult = await CacheServer.deleteByUrl(request.pageUrl);
@@ -372,10 +356,6 @@ class TranslatorBackground {
           sendResponse({ success: true, ...domainDeleteResult });
           break;
 
-        case 'CACHE_SERVER_LIST_URLS':
-          const urlsResult = await CacheServer.listCachedUrls();
-          sendResponse({ success: true, result: urlsResult });
-          break;
 
         case 'CACHE_SERVER_CLEAR_ALL':
           const clearResult = await CacheServer.clearAll();
