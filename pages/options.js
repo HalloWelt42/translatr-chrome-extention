@@ -884,8 +884,18 @@ function renderLanguageList(provider, languages) {
     const tag = document.createElement('span');
     const isProtected = PROTECTED_LANG_CODES.includes(lang.code);
     tag.className = 'language-tag' + (isProtected ? ' protected' : '');
-    tag.innerHTML = `<span class="lang-code">${lang.code}</span>${lang.name}`
-      + (isProtected ? '' : `<button class="lang-remove" data-index="${index}">\u00d7</button>`);
+    const codeSpan = document.createElement('span');
+    codeSpan.className = 'lang-code';
+    codeSpan.textContent = lang.code;
+    tag.appendChild(codeSpan);
+    tag.appendChild(document.createTextNode(lang.name));
+    if (!isProtected) {
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'lang-remove';
+      removeBtn.dataset.index = index;
+      removeBtn.textContent = '\u00d7';
+      tag.appendChild(removeBtn);
+    }
     container.appendChild(tag);
   });
 

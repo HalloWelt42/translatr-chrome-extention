@@ -4,6 +4,8 @@
   "version": "1.43.3",
   "description": "__MSG_appDescription__",
   "default_locale": "en",
+  "author": "HalloWelt42",
+  "homepage_url": "https://github.com/HalloWelt42/smart-translator",
 
   "permissions": [
     "activeTab",
