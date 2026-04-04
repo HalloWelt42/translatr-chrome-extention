@@ -19,12 +19,17 @@
 
     <nav class="toc">
       <h3>Inhalt</h3>
+      <p class="toc-part">Teil 1 -- Schnellstart mit LibreTranslate</p>
       <ol>
         <li><a href="#overview">Was ist Smart Translator?</a></li>
         <li><a href="#backends">Übersetzungs-Backends</a></li>
         <li><a href="#libretranslate">LibreTranslate einrichten</a></li>
-        <li><a href="#lmstudio">LM Studio einrichten</a></li>
         <li><a href="#usage">Benutzung</a></li>
+      </ol>
+      <p class="toc-part">Teil 2 -- Beste Ergebnisse mit LM Studio</p>
+      <ol start="5">
+        <li><a href="#lmstudio">LM Studio einrichten</a></li>
+        <li><a href="#bestpractice">Best Practice: Mac M4 + Qwen</a></li>
         <li><a href="#cache">Cache-Server</a></li>
         <li><a href="#cache-setup">Cache-Server einrichten</a></li>
         <li><a href="#faq">Häufige Fragen</a></li>
@@ -152,12 +157,47 @@ Content-Type: application/json
     </section>
 
     <!-- ================================================================ -->
+    <section id="usage">
+      <h2>4. Benutzung</h2>
+
+      <h3>Text markieren und übersetzen</h3>
+      <p>Markiere beliebigen Text auf einer Webseite. Es erscheint ein kleines Übersetzungs-Icon. Klicke darauf, um die Auswahl sofort zu übersetzen. Das Ergebnis wird in einem Tooltip angezeigt.</p>
+
+      <h3>Ganze Seite übersetzen</h3>
+      <p>Klicke auf das Extension-Icon in der Toolbar und dann auf "Seite übersetzen". Alle sichtbaren Texte werden batch-weise übersetzt. Fortschritt und Geschwindigkeit hängen von deinem Backend ab.</p>
+
+      <h3>Side Panel</h3>
+      <p>Das Side Panel öffnet sich neben der Webseite und bietet:</p>
+      <ul>
+        <li>Texteingabe mit Sofort-Übersetzung</li>
+        <li>Seitenübersetzung mit Fortschrittsanzeige</li>
+        <li>Übersetzungsverlauf</li>
+        <li>Cache-Verwaltung mit Statistiken</li>
+        <li>Fachkontext-Auswahl (bei LM Studio)</li>
+      </ul>
+
+      <h3>Popup</h3>
+      <p>Das Popup (Klick auf das Extension-Icon) bietet Schnellzugriff auf:</p>
+      <ul>
+        <li>Text eingeben und direkt übersetzen</li>
+        <li>Seite übersetzen / Original wiederherstellen</li>
+        <li>Side Panel öffnen</li>
+      </ul>
+    </section>
+
+    <!-- ================================================================ -->
+    <div class="part-divider">
+      <span>Teil 2 -- Beste Ergebnisse mit LM Studio</span>
+    </div>
+
+    <!-- ================================================================ -->
     <section id="lmstudio">
-      <h2>4. LM Studio einrichten</h2>
+      <h2>5. LM Studio einrichten</h2>
 
       <h3>Schritt 1: LM Studio installieren</h3>
       <p>Lade <a href="https://lmstudio.ai" target="_blank">LM Studio</a> herunter und installiere es. Lade dann ein Sprachmodell -- empfohlen für Übersetzungen:</p>
       <ul>
+        <li><strong>Qwen3-Next 80B-A3B (MLX)</strong> -- beste Qualität auf Apple Silicon, MoE-Modell (nur 3B aktive Parameter)</li>
         <li><strong>Gemma 3 12B</strong> -- gute Balance aus Qualität und Geschwindigkeit</li>
         <li><strong>Qwen 2.5 14B</strong> -- stark bei mehrsprachigen Texten</li>
         <li><strong>Llama 3.1 8B</strong> -- schnell, für ältere Hardware</li>
@@ -266,37 +306,90 @@ Content-Type: application/json
     </section>
 
     <!-- ================================================================ -->
-    <section id="usage">
-      <h2>5. Benutzung</h2>
+    <section id="bestpractice">
+      <h2>6. Best Practice: Mac M4 + Qwen3-Next</h2>
 
-      <h3>Text markieren und übersetzen</h3>
-      <p>Markiere beliebigen Text auf einer Webseite. Es erscheint ein kleines Übersetzungs-Icon. Klicke darauf, um die Auswahl sofort zu übersetzen. Das Ergebnis wird in einem Tooltip angezeigt.</p>
+      <p>Wer einen Mac mit Apple Silicon und ausreichend RAM besitzt, kann mit LM Studio hervorragende Übersetzungsqualität erreichen. Diese Konfiguration zeigt das optimale Setup am Beispiel eines Mac M4 mit 128 GB RAM.</p>
 
-      <h3>Ganze Seite übersetzen</h3>
-      <p>Klicke auf das Extension-Icon in der Toolbar und dann auf "Seite übersetzen". Alle sichtbaren Texte werden batch-weise übersetzt. Fortschritt und Geschwindigkeit hängen von deinem Backend ab.</p>
+      <h3>Warum Qwen3-Next 80B-A3B?</h3>
+      <div class="info-box">
+        <p>Das Modell <strong>qwen3-next-80b-a3b-instruct-mlx</strong> ist ein Mixture-of-Experts-Modell (MoE): 80 Milliarden Parameter insgesamt, aber nur 3 Milliarden aktive Parameter pro Anfrage. Das bedeutet:</p>
+        <ul>
+          <li>Qualität eines 80B-Modells bei der Geschwindigkeit eines 3B-Modells</li>
+          <li>MLX-optimiert -- nutzt Apple Silicon (Neural Engine + GPU) optimal aus</li>
+          <li>Hervorragend bei mehrsprachigen Texten und Fachterminologie</li>
+          <li>Niedrige Latenz trotz hoher Modellqualität</li>
+        </ul>
+      </div>
 
-      <h3>Side Panel</h3>
-      <p>Das Side Panel öffnet sich neben der Webseite und bietet:</p>
+      <h3>Modell laden</h3>
+      <p>In LM Studio unter "Discover" nach <code>qwen3-next-80b-a3b-instruct-mlx</code> suchen und herunterladen. Das Modell benötigt ca. 45-50 GB Speicher -- bei 128 GB RAM bleibt genug Platz für den Browser und andere Anwendungen.</p>
+
+      <h3>Empfohlene Einstellungen</h3>
+      <div class="settings-example">
+        <div class="setting-row">
+          <span class="setting-label">Modell</span>
+          <code>qwen3-next-80b-a3b-instruct-mlx</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Temperatur</span>
+          <code>0.1</code>
+          <span class="setting-hint">-- niedrig für konsistente Übersetzungen</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Max Tokens</span>
+          <code>2000</code>
+          <span class="setting-hint">-- reicht für lange Textblöcke</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">GPU Offload</span>
+          <code>Vollständig (alle Layer)</code>
+          <span class="setting-hint">-- maximale Geschwindigkeit</span>
+        </div>
+      </div>
+
+      <h3>Tipps für optimale Ergebnisse</h3>
       <ul>
-        <li>Texteingabe mit Sofort-Übersetzung</li>
-        <li>Seitenübersetzung mit Fortschrittsanzeige</li>
-        <li>Übersetzungsverlauf</li>
-        <li>Cache-Verwaltung mit Statistiken</li>
-        <li>Fachkontext-Auswahl (bei LM Studio)</li>
+        <li><strong>Fachkontexte nutzen</strong> -- Wähle im Side Panel den passenden Kontext (Kfz, IT, Medizin, Recht). Das LLM liefert damit deutlich genauere Fachtermini.</li>
+        <li><strong>Cache-Server aktivieren</strong> -- Einmal übersetzte Texte werden sofort aus dem Cache geladen. Besonders bei häufig besuchten Seiten spart das enorm Zeit.</li>
+        <li><strong>Batch-Größe anpassen</strong> -- Bei leistungsstarker Hardware kann die Batch-Größe in den Einstellungen auf 30-40 erhöht werden. Das beschleunigt die Seitenübersetzung.</li>
+        <li><strong>Temperatur 0.1</strong> -- Bei Übersetzungen willst du Konsistenz, nicht Kreativität. Niedrige Temperatur = gleicher Text ergibt gleiche Übersetzung.</li>
       </ul>
 
-      <h3>Popup</h3>
-      <p>Das Popup (Klick auf das Extension-Icon) bietet Schnellzugriff auf:</p>
-      <ul>
-        <li>Text eingeben und direkt übersetzen</li>
-        <li>Seite übersetzen / Original wiederherstellen</li>
-        <li>Side Panel öffnen</li>
-      </ul>
+      <h3>Leistungsvergleich</h3>
+      <div class="compare-table">
+        <div class="compare-col">
+          <div class="compare-header libre">
+            <span data-swt-icon="globe"></span>
+            <h3>LibreTranslate</h3>
+          </div>
+          <ul>
+            <li>~50 Texte/Sekunde</li>
+            <li>Keine GPU nötig</li>
+            <li>Allgemeine Qualität</li>
+            <li>Kein Fachkontext</li>
+            <li>Ideal für Schnellübersetzungen</li>
+          </ul>
+        </div>
+        <div class="compare-col">
+          <div class="compare-header lm">
+            <span data-swt-icon="robot"></span>
+            <h3>LM Studio + Qwen3-Next</h3>
+          </div>
+          <ul>
+            <li>~10-15 Texte/Sekunde</li>
+            <li>Apple Silicon GPU</li>
+            <li>Hohe Qualität + Alternativen</li>
+            <li>Fachkontexte verfügbar</li>
+            <li>Ideal für Fachübersetzungen</li>
+          </ul>
+        </div>
+      </div>
     </section>
 
     <!-- ================================================================ -->
     <section id="cache">
-      <h2>6. Cache-Server</h2>
+      <h2>7. Cache-Server</h2>
 
       <h3>Warum ein Cache?</h3>
       <p>Ohne Cache wird jeder Text bei jedem Seitenaufruf neu übersetzt. Der Cache-Server speichert Übersetzungen zentral und stellt sie sofort wieder bereit -- das spart Zeit und Rechenleistung.</p>
@@ -391,7 +484,7 @@ RGVyIHNjaG5lbGxlIGJyYXVuZS4uLg== # Übersetzung</code></pre>
 
     <!-- ================================================================ -->
     <section id="cache-setup">
-      <h2>7. Cache-Server einrichten</h2>
+      <h2>8. Cache-Server einrichten</h2>
 
       <h3>Docker starten</h3>
       <pre><code>docker run -d \
@@ -512,7 +605,7 @@ Content-Type: application/json
 
     <!-- ================================================================ -->
     <section id="faq">
-      <h2>8. Häufige Fragen</h2>
+      <h2>9. Häufige Fragen</h2>
 
       <details class="faq-item">
         <summary>Welches Backend soll ich verwenden?</summary>
@@ -547,6 +640,7 @@ Content-Type: application/json
 
     <footer>
       <p>Smart Translator v<span id="appVersion"></span> -- &copy; HalloWelt42</p>
+      <p class="footer-donate">Gefällt dir Smart Translator? <a href="donate.html">Sag Danke</a> &#x2615;</p>
     </footer>
   </div>
 

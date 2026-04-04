@@ -531,10 +531,79 @@ pre code {
   font-size: 13px;
 }
 
+/* Teil-Divider */
+.part-divider {
+  text-align: center;
+  margin: 32px 0 24px;
+  position: relative;
+}
+
+.part-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.part-divider span {
+  position: relative;
+  background: var(--bg-base);
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* TOC Teil-Label */
+.toc-part {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 12px 0 6px;
+  padding: 0;
+}
+
+.toc-part:first-of-type {
+  margin-top: 0;
+}
+
+/* Info-Box Listen */
+.info-box ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.info-box li {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
 /* Footer */
 footer {
   text-align: center;
   padding: var(--spacing-xl) 0;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+.footer-donate {
+  margin-top: 8px;
+}
+
+.footer-donate a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.footer-donate a:hover {
+  text-decoration: underline;
 }
