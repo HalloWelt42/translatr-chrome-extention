@@ -96,12 +96,30 @@ Vollständige API-Dokumentation: `docs/CACHE_STORE_API.md`
 | StackOverflow | *.stackoverflow.com | Code-Blöcke ausschließen |
 | News | cnn.com, bbc.com, ... | Artikel-Content |
 
-## Unterstützen
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/HalloWelt42)
-
 ## Lizenz
 
-Nicht-kommerzielle Lizenz v1.0 -- [LICENSE](LICENSE) · [Datenschutz](PRIVACY.md) · [Nutzungsbedingungen](TERMS.md)
+**Nicht-kommerzielle Nutzung** -- Siehe [LICENSE](LICENSE) · [Datenschutz](PRIVACY.md) · [Nutzungsbedingungen](TERMS.md)
+
+Erlaubt: Private Nutzung, Installation, persönliche Anpassungen, Teilen mit Quellenangabe
+
+Verboten: Kommerzielle Nutzung, Verkauf, Einbindung in kommerzielle Produkte
+
+---
+
+## Unterstützen
+
+Smart Translator ist ein privates Open-Source-Projekt. Kein Tracking, keine Werbung, keine Kompromisse.
+
+Wenn dir das Projekt gefällt, kannst du über die Danke-Seite in der Extension "Danke sagen" -- oder direkt hier:
+
+[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/HalloWelt42)
+
+**Crypto:**
+
+| Coin | Adresse |
+|------|---------|
+| BTC | `bc1qnd599khdkv3v3npmj9ufxzf6h4fzanny2acwqr` |
+| DOGE | `DL7tuiYCqm3xQjMDXChdxeQxqUGMACn1ZV` |
+| ETH | `0x8A28fc47bFFFA03C8f685fa0836E2dBe1CA14F27` |
 
 Copyright (c) 2025-2026 HalloWelt42
