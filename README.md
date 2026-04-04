@@ -15,10 +15,15 @@ Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTransla
 
 ![Bildschirmfoto 2026-04-04 um 05.11.49.png](media/Bildschirmfoto%202026-04-04%20um%2005.11.49.png)
 
+## Voraussetzungen
+
+Mindestens eines der folgenden Übersetzungs-Backends wird benötigt (nicht enthalten):
+
+- **[LibreTranslate](https://github.com/LibreTranslate/LibreTranslate)** -- Open-Source Übersetzungsserver, selbst gehostet oder öffentliche Instanz
+- **[LM Studio](https://lmstudio.ai/)** -- Lokales LLM mit OpenAI-kompatibler API (für Fachübersetzungen mit Kfz, IT, Medizin, Recht)
+
 ## Features
 
-- **LibreTranslate** -- Open-Source Übersetzungsserver, selbst gehostet oder öffentliche Instanz
-- **LM Studio** -- Lokales LLM mit Fachkontexten (Kfz/Automotive, Technik/IT, Medizin, Recht)
 - **Auswahl-Übersetzung** -- Text markieren, Icon klicken, sofort übersetzen
 - **Seiten-Übersetzung** -- Ganze Seite batch-weise übersetzen mit Fortschrittsanzeige
 - **Side Panel** -- Erweiterte Funktionen, Cache-Verwaltung, Pipeline-Anzeige

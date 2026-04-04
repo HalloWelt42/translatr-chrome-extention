@@ -29,3 +29,7 @@ web-ext-artifacts/
 *.zip
 *.crx
 *.xpi
+
+# Store-Assets (Screenshots, Promo-Bilder, Mock-Tools)
+store/
+popup/popup-screenshot.html

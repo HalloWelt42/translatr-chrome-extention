@@ -62,7 +62,7 @@
           <p data-i18n="optLibreApiDesc">Open-Source Übersetzungsserver mit REST API. Kann selbst gehostet oder als öffentliche Instanz genutzt werden.</p>
           <dl>
             <dt data-i18n="optServerUrl">Server-URL</dt>
-            <dd data-i18n="optLibreUrlDoc">Basis-URL ohne Pfad, z.B. <code>https://translate.max</code> oder <code>http://localhost:5000</code>. Der Endpunkt <code>/translate</code> wird automatisch angehängt.</dd>
+            <dd data-i18n-html="optLibreUrlDoc">Basis-URL ohne Pfad, z.B. <code>https://translate.max</code> oder <code>http://localhost:5000</code>. Der Endpunkt <code>/translate</code> wird automatisch angehängt.</dd>
             <dt data-i18n="optLanguages">Sprachen</dt>
             <dd data-i18n="optLibreLanguagesDoc">30+ Sprachen, automatische Erkennung</dd>
             <dt>API-Key</dt>
@@ -160,15 +160,15 @@ HTTP 500: Server-Fehler</code></pre>
           <p data-i18n="optLmApiDesc">Lokales LLM mit OpenAI-kompatibler API. Ideal für kontextbezogene Fachübersetzungen mit voller Datenkontrolle.</p>
           <dl>
             <dt data-i18n="optServerUrl">Server-URL</dt>
-            <dd data-i18n="optLmUrlDoc">Basis-URL des LM Studio Servers, z.B. <code>http://192.168.178.45:1234</code> oder <code>http://localhost:1234</code>. Der Pfad <code>/v1/chat/completions</code> wird automatisch angehängt.</dd>
+            <dd data-i18n-html="optLmUrlDoc">Basis-URL des LM Studio Servers, z.B. <code>http://192.168.178.45:1234</code> oder <code>http://localhost:1234</code>. Der Pfad <code>/v1/chat/completions</code> wird automatisch angehängt.</dd>
             <dt data-i18n="optModel">Modell</dt>
             <dd data-i18n="optLmModelDoc">Muss in LM Studio geladen sein. Klicke auf den Aktualisieren-Button um verfügbare Modelle abzurufen.</dd>
             <dt data-i18n="optRecommendedModels">Empfohlene Modelle</dt>
-            <dd data-i18n="optLmRecommendedDoc">Qwen 3 liefert exzellente Übersetzungsqualität mit zuverlässigem JSON-Output. Empfohlen: <code>qwen3-next-80b-a3b-instruct-mlx</code> (Apple Silicon) oder andere Qwen 3 Instruct-Varianten ab 12B+. Alternativ: Gemma 3 12B.</dd>
+            <dd data-i18n-html="optLmRecommendedDoc">Qwen 3 liefert exzellente Übersetzungsqualität mit zuverlässigem JSON-Output. Empfohlen: <code>qwen3-next-80b-a3b-instruct-mlx</code> (Apple Silicon) oder andere Qwen 3 Instruct-Varianten ab 12B+. Alternativ: Gemma 3 12B.</dd>
             <dt data-i18n="optTemperature">Temperatur</dt>
-            <dd data-i18n="optLmTemperatureDoc"><code>0.1</code> = wörtlich und konsistent (Standard). <code>0.3</code> = natürlicher Stil. <code>0.5+</code> = kreativ, aber weniger vorhersagbar. Für Fachübersetzungen unter 0.3 bleiben.</dd>
+            <dd data-i18n-html="optLmTemperatureDoc"><code>0.1</code> = wörtlich und konsistent (Standard). <code>0.3</code> = natürlicher Stil. <code>0.5+</code> = kreativ, aber weniger vorhersagbar. Für Fachübersetzungen unter 0.3 bleiben.</dd>
             <dt data-i18n="optMaxTokens">Max Tokens</dt>
-            <dd data-i18n="optLmMaxTokensDoc"><code>2000</code> reicht für die meisten Texte. Bei langen Absätzen auf <code>4000</code> erhöhen. Das Modell muss mindestens so viel Kontext unterstützen.</dd>
+            <dd data-i18n-html="optLmMaxTokensDoc"><code>2000</code> reicht für die meisten Texte. Bei langen Absätzen auf <code>4000</code> erhöhen. Das Modell muss mindestens so viel Kontext unterstützen.</dd>
             <dt>CORS</dt>
             <dd data-i18n="optLmCorsDoc">In LM Studio unter Einstellungen "Enable CORS" aktivieren, sonst blockiert der Browser die Anfragen.</dd>
             <dt data-i18n="optSpecializedContexts">Fachkontexte</dt>
