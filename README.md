@@ -2,6 +2,9 @@
 
 Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTranslate und LM Studio.
 
+![Bildschirmfoto 2026-04-04 um 03.49.26.png](media/Bildschirmfoto%202026-04-04%20um%2003.49.26.png)
+
+
 ## Features
 
 - **LibreTranslate** -- Open-Source Übersetzungsserver, selbst gehostet oder öffentliche Instanz
@@ -103,6 +106,12 @@ Vollständige API-Dokumentation: `docs/CACHE_STORE_API.md`
 Erlaubt: Private Nutzung, Installation, persönliche Anpassungen, Teilen mit Quellenangabe
 
 Verboten: Kommerzielle Nutzung, Verkauf, Einbindung in kommerzielle Produkte
+
+---
+
+![Bildschirmfoto 2026-04-04 um 03.48.40.png](media/Bildschirmfoto%202026-04-04%20um%2003.48.40.png)
+
+![Bildschirmfoto 2026-04-04 um 03.48.55.png](media/Bildschirmfoto%202026-04-04%20um%2003.48.55.png)
 
 ---
 

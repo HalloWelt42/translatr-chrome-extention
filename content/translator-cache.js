@@ -206,7 +206,7 @@
       );
       
       if (result.translations.size === 0) {
-        this.showNotification('Kein Cache gefunden', 'info');
+        this.showNotification(chrome.i18n.getMessage('msgNoCacheFound'), 'info');
         return false;
       }
       

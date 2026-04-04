@@ -362,7 +362,7 @@ async function loadLMStudioModels() {
     console.warn('LM Studio:', error);
     setModelSelectState(modelSelect, 'error');
     if (error.name === 'AbortError') {
-      SWT.Toast.show('Timeout - Server nicht erreichbar');
+      SWT.Toast.show(chrome.i18n.getMessage('errTimeout'));
     }
   }
 
@@ -434,7 +434,7 @@ async function saveSettings() {
     };
 
     await chrome.storage.sync.set(settings);
-    SWT.Toast.show('Einstellungen gespeichert!');
+    SWT.Toast.show(chrome.i18n.getMessage('msgSettingsSaved'));
   } catch (error) {
     SWT.Toast.show('Fehler beim Speichern: ' + error.message, 'error');
   }
@@ -467,7 +467,7 @@ async function resetSettings() {
   try {
     await chrome.storage.sync.set(defaultSettings);
     await loadSettings();
-    SWT.Toast.show('Einstellungen zurückgesetzt!');
+    SWT.Toast.show(chrome.i18n.getMessage('msgSettingsReset'));
   } catch (error) {
     SWT.Toast.show('Fehler beim Zurücksetzen: ' + error.message, 'error');
   }
@@ -489,7 +489,7 @@ async function testConnection(apiType) {
   if (!testBtn || !testResultEl) return;
 
   testBtn.disabled = true;
-  testBtn.textContent = 'Teste...';
+  testBtn.textContent = chrome.i18n.getMessage('btnTesting');
   testResultEl.style.display = 'inline-block';
   testResultEl.textContent = '...';
   testResultEl.className = 'test-result';
@@ -518,7 +518,7 @@ async function testConnection(apiType) {
   }
 
   testBtn.disabled = false;
-  testBtn.textContent = 'Verbindung testen';
+  testBtn.textContent = chrome.i18n.getMessage('btnTestConnection');
 }
 
 async function testLibreTranslate(testInput) {
@@ -551,7 +551,7 @@ async function testLibreTranslate(testInput) {
       alternatives: result.alternatives || []
     };
   } else {
-    throw new Error('Keine Übersetzung in der Antwort');
+    throw new Error(chrome.i18n.getMessage('errNoTranslation'));
   }
 }
 
@@ -562,7 +562,7 @@ async function testLMStudio(testInput) {
   const maxTokens = parseInt(document.getElementById('lmStudioMaxTokens').value);
   
   if (!url) throw new Error('LM Studio URL fehlt');
-  if (!model) throw new Error('Kein Modell ausgewählt');
+  if (!model) throw new Error(chrome.i18n.getMessage('errNoModelSelected'));
   
   const systemPrompt = CONTEXT_PROMPTS.general
     .replace(/{source}/g, 'Englisch')
@@ -725,7 +725,7 @@ function updateStatusBadge(id, state) {
     el.textContent = 'verbunden';
     el.className = 'api-status ok';
   } else if (state.tested === false) {
-    el.textContent = 'Fehler';
+    el.textContent = chrome.i18n.getMessage('errGeneric');
     el.className = 'api-status error';
   } else {
     el.textContent = 'nicht getestet';
@@ -753,7 +753,7 @@ async function testCacheServer() {
   
   if (!url) {
     if (resultEl) {
-      resultEl.textContent = 'Bitte URL eingeben';
+      resultEl.textContent = chrome.i18n.getMessage('errEnterUrl');
       resultEl.className = 'test-result error';
       resultEl.classList.remove('hidden');
     }
@@ -761,7 +761,7 @@ async function testCacheServer() {
   }
   
   if (resultEl) {
-    resultEl.textContent = 'Teste...';
+    resultEl.textContent = chrome.i18n.getMessage('btnTesting');
     resultEl.className = 'test-result';
     resultEl.classList.remove('hidden');
   }
@@ -834,13 +834,13 @@ async function syncLocalToServer() {
     }
     
     if (translations.length === 0) {
-      SWT.Toast.show('Kein lokaler Cache vorhanden', 'warning');
+      SWT.Toast.show(chrome.i18n.getMessage('errNoLocalCache'), 'warning');
       return;
     }
     
     const url = document.getElementById('cacheServerUrl')?.value?.trim()?.replace(/\/$/, '');
     if (!url) {
-      SWT.Toast.show('Bitte Server-URL eingeben', 'error');
+      SWT.Toast.show(chrome.i18n.getMessage('errEnterServerUrl'), 'error');
       return;
     }
     
@@ -857,7 +857,7 @@ async function syncLocalToServer() {
       throw new Error(`HTTP ${response.status}`);
     }
   } catch (error) {
-    SWT.Toast.show('Upload fehlgeschlagen: ' + error.message, 'error');
+    SWT.Toast.show(chrome.i18n.getMessage('errUploadFailed') + ': ' + error.message, 'error');
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -867,7 +867,7 @@ async function syncLocalToServer() {
  * Server-Cache lokal speichern (Placeholder - benötigt Search-API)
  */
 async function syncServerToLocal() {
-  SWT.Toast.show('Download-Funktion wird in zukünftiger Version implementiert', 'warning');
+  SWT.Toast.show(chrome.i18n.getMessage('errDownloadNotImpl'), 'warning');
 }
 
 // ============================================================================

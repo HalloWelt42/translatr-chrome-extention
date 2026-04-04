@@ -19,10 +19,10 @@ const PopupState = {
     const mode = settings.cacheServerMode || 'server-only';
     const enabled = settings.cacheServerEnabled !== false;
     const map = {
-      disabled:    { led: 'led-off',    text: 'Cache aus' },
-      'local-only':  { led: 'led-green',  text: 'Browsercache' },
-      'server-only': { led: 'led-green',  text: 'Server' },
-      fallback:    { led: 'led-yellow', text: 'Hybrid' }
+      disabled:    { led: 'led-off',    text: chrome.i18n.getMessage('cacheOff') },
+      'local-only':  { led: 'led-green',  text: chrome.i18n.getMessage('cacheBrowser') },
+      'server-only': { led: 'led-green',  text: chrome.i18n.getMessage('cacheServer') },
+      fallback:    { led: 'led-yellow', text: chrome.i18n.getMessage('cacheHybrid') }
     };
     const key = !enabled ? 'disabled' : (map[mode] ? mode : 'fallback');
     return map[key];
@@ -61,7 +61,7 @@ const PopupRenderer = {
 
   setSpeakButton(btn, mode) {
     const icons = { idle: 'volumeUp', speaking: 'stop' };
-    const labels = { idle: 'Vorlesen', speaking: 'Stoppen' };
+    const labels = { idle: chrome.i18n.getMessage('btnReadAloud'), speaking: chrome.i18n.getMessage('btnStop') };
     btn.innerHTML = `${SWT.Icons.svg(icons[mode])} ${labels[mode]}`;
   },
 

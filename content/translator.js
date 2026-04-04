@@ -497,15 +497,15 @@ class SmartTranslator {
     // Aktionsleiste OBEN
     let content = `
       <div class="swt-tooltip-actions">
-        <button class="swt-action swt-copy" title="Kopieren">
+        <button class="swt-action swt-copy" title="${chrome.i18n.getMessage('btnCopy')}">
           ${SWT.Icons.svg('copy')}
         </button>
         ${this.settings.enableTTS ? `
-        <button class="swt-action swt-speak" title="Vorlesen">
+        <button class="swt-action swt-speak" title="${chrome.i18n.getMessage('btnReadAloud')}">
           ${SWT.Icons.svg('volumeUp')}
         </button>
         ` : ''}
-        <button class="swt-action swt-close" title="Schließen">
+        <button class="swt-action swt-close" title="${chrome.i18n.getMessage('btnClose')}">
           ${SWT.Icons.svg('close')}
         </button>
       </div>
@@ -588,7 +588,7 @@ class SmartTranslator {
     tooltip.querySelectorAll('.swt-alt').forEach(alt => {
       alt.addEventListener('click', () => {
         navigator.clipboard.writeText(alt.textContent);
-        this.showNotification('Alternative kopiert!', 'success');
+        this.showNotification(chrome.i18n.getMessage('msgAltCopied'), 'success');
       });
     });
 
@@ -598,7 +598,7 @@ class SmartTranslator {
       const activePanel = tooltip.querySelector('.swt-tab-panel.active');
       const textToCopy = activePanel ? activePanel.textContent : translated;
       navigator.clipboard.writeText(textToCopy);
-      this.showNotification('Kopiert!', 'success');
+      this.showNotification(chrome.i18n.getMessage('msgCopied'), 'success');
     });
 
     tooltip.querySelector('.swt-speak')?.addEventListener('click', (e) => {
@@ -608,7 +608,7 @@ class SmartTranslator {
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
         btn.innerHTML = SWT.Icons.svg('volumeUp');
-        btn.title = 'Vorlesen';
+        btn.title = chrome.i18n.getMessage('btnReadAloud');
         return;
       }
       
@@ -617,12 +617,12 @@ class SmartTranslator {
       
       // Button auf Stop ändern
       btn.innerHTML = SWT.Icons.svg('stop');
-      btn.title = 'Stoppen';
+      btn.title = chrome.i18n.getMessage('btnStop');
       
       this.speak(textToSpeak, () => {
         // Zurück auf Play wenn fertig
         btn.innerHTML = SWT.Icons.svg('volumeUp');
-        btn.title = 'Vorlesen';
+        btn.title = chrome.i18n.getMessage('btnReadAloud');
       });
     });
 
@@ -944,7 +944,7 @@ class SmartTranslator {
       this.showProgress(false);
       if (!this.translationAborted) {
         console.warn('translatePage error:', error);
-        this.showNotification('Fehler bei Seitenübersetzung', 'error');
+        this.showNotification(chrome.i18n.getMessage('errPageTranslation'), 'error');
         chrome.runtime.sendMessage({ action: 'BADGE_ERROR' }).catch(() => {});
       } else {
         chrome.runtime.sendMessage({ action: 'BADGE_RESET' }).catch(() => {});

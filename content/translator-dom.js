@@ -103,7 +103,7 @@
       }
     });
 
-    this.showNotification('Ansicht gewechselt', 'info');
+    this.showNotification(chrome.i18n.getMessage('msgViewSwitched'), 'info');
   };
 
   /**
@@ -121,7 +121,7 @@
     this.translationMode = null;
 
     this.notifyStatusChange();
-    this.showNotification('Originaltexte wiederhergestellt', 'info');
+    this.showNotification(chrome.i18n.getMessage('msgOriginalRestored'), 'info');
   };
 
   /**

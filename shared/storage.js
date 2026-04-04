@@ -17,7 +17,7 @@ SWT.Storage = {
   defaultSettings: {
     // API
     apiType: 'libretranslate',
-    serviceUrl: 'https://translate.max',
+    serviceUrl: '',
     apiKey: '',
 
     // LM Studio
@@ -29,7 +29,7 @@ SWT.Storage = {
     lmStudioCustomPrompt: '',
 
     // Sprachen
-    sourceLang: 'en',
+    sourceLang: 'auto',
     targetLang: 'de',
 
     // Sprachenlisten pro Provider (bearbeitbar)

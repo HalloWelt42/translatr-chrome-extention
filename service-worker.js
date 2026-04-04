@@ -126,19 +126,19 @@ class TranslatorBackground {
 
       chrome.contextMenus.create({
         id: 'TRANSLATE_SELECTION',
-        title: '"%s" übersetzen',
+        title: chrome.i18n.getMessage('ctxTranslate', ['%s']),
         contexts: ['selection']
       });
 
       chrome.contextMenus.create({
         id: 'TRANSLATE_WORD',
-        title: 'Wort übersetzen',
+        title: chrome.i18n.getMessage('ctxTranslateWord'),
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
         id: 'TRANSLATE_PAGE_CMD',
-        title: 'Seite übersetzen',
+        title: chrome.i18n.getMessage('ctxTranslatePage'),
         contexts: ['page']
       });
 
@@ -151,21 +151,21 @@ class TranslatorBackground {
       // Export-Untermenü
       chrome.contextMenus.create({
         id: 'EXPORT_MENU',
-        title: 'Exportieren',
+        title: chrome.i18n.getMessage('ctxExport'),
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
         id: 'EXPORT_MARKDOWN_CMD',
         parentId: 'EXPORT_MENU',
-        title: 'Als Markdown',
+        title: chrome.i18n.getMessage('ctxExportMarkdown'),
         contexts: ['page']
       });
 
       chrome.contextMenus.create({
         id: 'EXPORT_TEXT_CMD',
         parentId: 'EXPORT_MENU',
-        title: 'Als Text',
+        title: chrome.i18n.getMessage('ctxExportText'),
         contexts: ['page']
       });
 
@@ -177,13 +177,13 @@ class TranslatorBackground {
 
       chrome.contextMenus.create({
         id: 'OPEN_SIDEPANEL_CMD',
-        title: 'Side Panel öffnen',
+        title: chrome.i18n.getMessage('ctxOpenSidePanel'),
         contexts: ['page', 'selection']
       });
 
       chrome.contextMenus.create({
         id: 'OPEN_OPTIONS',
-        title: 'Einstellungen',
+        title: chrome.i18n.getMessage('ctxSettings'),
         contexts: ['page']
       });
 
@@ -419,7 +419,7 @@ class TranslatorBackground {
   async translateText(text, source = 'auto', target = 'de', pageUrl = null, bypassCache = false) {
     // Leere/ungültige Texte sofort abweisen
     if (!text || text.trim().length < 2) {
-      return { success: false, error: 'Text zu kurz oder leer' };
+      return { success: false, error: chrome.i18n.getMessage('errTextTooShort') };
     }
 
     // Sprachrichtung für Cache-Hash
@@ -459,7 +459,7 @@ class TranslatorBackground {
 
     // Prüfen ob API konfiguriert ist
     if (apiType === 'libretranslate' && !settings.serviceUrl) {
-      return { success: false, error: 'LibreTranslate nicht konfiguriert. Bitte URL in den Einstellungen setzen.' };
+      return { success: false, error: chrome.i18n.getMessage('errLibreNotConfigured') };
     }
     if (apiType === 'lmstudio' && !settings.lmStudioUrl) {
       return { success: false, error: 'LM Studio nicht konfiguriert. Bitte URL in den Einstellungen setzen.' };
@@ -892,7 +892,7 @@ class TranslatorBackground {
       const model = settings.lmStudioModel;
       
       if (!model) {
-        throw new Error('Kein LM Studio Modell ausgewählt');
+        throw new Error(chrome.i18n.getMessage('errNoModel'));
       }
 
       // Batch-Einstellungen laden (v3.5)
@@ -1204,49 +1204,60 @@ class TranslatorBackground {
 
   async setDefaultSettings() {
     const defaults = {
-      // API-Typ (neu)
+      // API
       apiType: 'libretranslate',
-      
-      // LibreTranslate
       serviceUrl: '',
       apiKey: '',
-      
-      // LM Studio (neu)
+
+      // LM Studio
       lmStudioUrl: '',
       lmStudioModel: '',
       lmStudioTemperature: 0.1,
       lmStudioMaxTokens: 2000,
       lmStudioContext: 'general',
       lmStudioCustomPrompt: '',
-      
-      // Batch-Einstellungen (v3.5)
-      lmBatchSize: 20,
-      lmMaxBatchTokens: 128000,
-      enableTrueBatch: true,
-      enableSmartChunking: true,
-      
+
       // Sprachen
       sourceLang: 'auto',
       targetLang: 'de',
-      
+
       // UI
       showSelectionIcon: true,
-      selectionIconDelay: 200,
-      tooltipPosition: 'below',
-      tooltipAutoHide: true,
-      tooltipAutoHideDelay: 5000,
-      enableDoubleClick: false,
+      selectionIconDelay: 300,
       showOriginalInTooltip: true,
       showAlternatives: true,
-      enableTTS: false,
-      ttsLanguage: 'de-DE',
+      tooltipPosition: 'auto',
+      highlightTranslated: false,
+      enableTTS: true,
+      ttsLanguage: 'auto',
+
+      // Inhaltsfilter
       skipCodeBlocks: true,
       skipBlockquotes: true,
-      highlightTranslated: true,
-      useTabsForAlternatives: true,
       fixInlineSpacing: true,
-      tabWordThreshold: 20,
-      excludedDomains: ''
+      useTabsForAlternatives: false,
+      tabWordThreshold: 5,
+      excludedDomains: '',
+
+      // Batch
+      lmBatchSize: 20,
+      lmMaxBatchTokens: 128000,
+      pageBatchSize: 20,
+      enableTrueBatch: true,
+      enableSmartChunking: true,
+      useCacheFirst: true,
+
+      // Cache
+      autoLoadCache: false,
+      cacheServerEnabled: true,
+      cacheServerUrl: '',
+      cacheServerMode: 'server-only',
+      cacheServerTimeout: 5000,
+
+      // Sonstiges
+      filterEmbeddingModels: true,
+      enableAbortTranslation: true,
+      enableLLMFallback: false
     };
     await chrome.storage.sync.set(defaults);
   }

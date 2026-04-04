@@ -29,4 +29,3 @@ web-ext-artifacts/
 *.zip
 *.crx
 *.xpi
-/store/

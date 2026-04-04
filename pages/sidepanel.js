@@ -26,7 +26,7 @@ const PageState = {
       translate: {
         enabled: !busy && state !== 'unavailable',
         active: state === 'translated',
-        label: (state === 'translated' || state === 'partial') ? 'Erneut übersetzen' : 'Seite übersetzen'
+        label: (state === 'translated' || state === 'partial') ? chrome.i18n.getMessage('btnRetranslate') : chrome.i18n.getMessage('btnTranslatePage')
       },
       continue: {
         enabled: !busy && state === 'partial',
@@ -185,11 +185,11 @@ class SidePanelController {
       
       // Toast anzeigen
       const contextNames = {
-        'general': 'Allgemein',
-        'automotive': 'Kfz / Automotive',
-        'technical': 'Technisch / IT',
-        'medical': 'Medizin',
-        'legal': 'Recht / Juristisch'
+        'general': chrome.i18n.getMessage('contextGeneral'),
+        'automotive': chrome.i18n.getMessage('contextAutomotive'),
+        'technical': chrome.i18n.getMessage('contextTechnical'),
+        'medical': chrome.i18n.getMessage('contextMedical'),
+        'legal': chrome.i18n.getMessage('contextLegal')
       };
       SWT.Toast.show(`Kontext: ${contextNames[newContext] || newContext}`);
     });
@@ -290,7 +290,7 @@ class SidePanelController {
       const text = sourceText.value.trim();
       if (text && e.detail === 2) { // Doppelklick
         navigator.clipboard.writeText(text);
-        SWT.Toast.show('Quelltext kopiert!');
+        SWT.Toast.show(chrome.i18n.getMessage('msgSourceCopied'));
       }
     });
 
@@ -317,13 +317,13 @@ class SidePanelController {
 
     document.getElementById('copyResult').addEventListener('click', () => {
       navigator.clipboard.writeText(this.currentTranslation);
-      SWT.Toast.show('Kopiert!');
+      SWT.Toast.show(chrome.i18n.getMessage('msgCopied'));
     });
 
     const speakBtn = document.getElementById('speakResult');
     const setSpeakState = (mode) => {
       const icons = { idle: 'volumeUp', speaking: 'stop' };
-      const labels = { idle: 'Vorlesen', speaking: 'Stoppen' };
+      const labels = { idle: chrome.i18n.getMessage('btnReadAloud'), speaking: chrome.i18n.getMessage('btnStop') };
       speakBtn.innerHTML = `${SWT.Icons.svg(icons[mode])} ${labels[mode]}`;
     };
 
@@ -546,7 +546,7 @@ class SidePanelController {
         // Kein Toast hier -- die Aktion zeigt eigenes Feedback
       }
     } catch (e) {
-      SWT.Toast.show('Fehler: Seite nicht erreichbar');
+      SWT.Toast.show(chrome.i18n.getMessage('errPageNotReachable'));
     }
   }
 
@@ -554,7 +554,7 @@ class SidePanelController {
     document.getElementById('clearHistory').addEventListener('click', async () => {
       await chrome.runtime.sendMessage({ action: 'CLEAR_HISTORY' });
       this.loadHistory();
-      SWT.Toast.show('Verlauf gelöscht');
+      SWT.Toast.show(chrome.i18n.getMessage('msgHistoryCleared'));
     });
 
     // Event-Delegation: Einmal binden, funktioniert auch nach innerHTML-Rebuild
@@ -644,7 +644,7 @@ class SidePanelController {
 
     document.getElementById('refreshCache').addEventListener('click', async () => {
       await this.loadCache();
-      SWT.Toast.show('Cache aktualisiert');
+      SWT.Toast.show(chrome.i18n.getMessage('msgCacheUpdated'));
     });
     
     // Cache dieser Seite löschen
@@ -657,9 +657,9 @@ class SidePanelController {
         await chrome.tabs.sendMessage(tab.id, { action: 'CLEAR_CACHE', key: null });
         this.loadCache();
         this.updateActionStates();
-        SWT.Toast.show('Cache dieser Seite gelöscht');
+        SWT.Toast.show(chrome.i18n.getMessage('msgPageCacheCleared'));
       } catch (e) {
-        SWT.Toast.show('Fehler: ' + e.message, 'error');
+        SWT.Toast.show(chrome.i18n.getMessage('errGeneric') + ': ' + e.message, 'error');
       }
     });
     
@@ -696,7 +696,7 @@ class SidePanelController {
       resetTokensBtn.addEventListener('click', async () => {
         await chrome.runtime.sendMessage({ action: 'RESET_TOKEN_STATS' });
         this.loadStats();
-        SWT.Toast.show('Token-Zähler zurückgesetzt');
+        SWT.Toast.show(chrome.i18n.getMessage('msgTokensReset'));
       });
     }
     
@@ -898,7 +898,7 @@ class SidePanelController {
               <div class="cache-page-url">${SWT.Utils.escapeHtml(this.truncateUrl(tab.url))}</div>
               ${cacheStatus}
               <div class="cache-page-status">
-                ${pageInfo.isTranslated ? 'Übersetzt' : 'Original'}
+                ${pageInfo.isTranslated ? chrome.i18n.getMessage('statusTranslated') : chrome.i18n.getMessage('statusOriginal')}
               </div>
             </div>
           </div>
@@ -1012,7 +1012,7 @@ class SidePanelController {
           await chrome.tabs.sendMessage(tab.id, { action: 'CLEAR_CACHE', key });
           item.remove();
           this.loadCache();
-          SWT.Toast.show('Cache-Eintrag gelöscht');
+          SWT.Toast.show(chrome.i18n.getMessage('msgCacheEntryDeleted'));
         });
       });
       
@@ -1061,7 +1061,7 @@ class SidePanelController {
           hash
         });
         item.remove();
-        SWT.Toast.show('Server-Cache-Eintrag gelöscht');
+        SWT.Toast.show(chrome.i18n.getMessage('msgServerCacheDeleted'));
         this.loadCache();
       });
     } catch (e) {
@@ -1117,7 +1117,7 @@ class SidePanelController {
 
     const source = result.source || 'api';
     const apiType = result.apiType || 'libretranslate';
-    const apiLabel = apiType === 'lmstudio' ? 'LM Studio' : 'LibreTranslate';
+    const apiLabel = apiType === 'lmstudio' ? chrome.i18n.getMessage('providerLMStudio') : chrome.i18n.getMessage('providerLibre');
 
     const mode = settings?.cacheServerMode || 'server-only';
     const cacheEnabled = settings?.cacheServerEnabled !== false;
@@ -1126,9 +1126,9 @@ class SidePanelController {
 
     // Quelle
     if (source === 'cache') {
-      parts.push({ label: 'Server-Cache', css: 'source-cache' });
+      parts.push({ label: chrome.i18n.getMessage('labelServerCache'), css: 'source-cache' });
     } else if (source === 'buffer') {
-      parts.push({ label: 'Buffer', css: 'source-buffer' });
+      parts.push({ label: chrome.i18n.getMessage('labelBuffer'), css: 'source-buffer' });
     } else {
       let lbl = apiLabel;
       if (result.tokens > 0) lbl += ' (' + result.tokens + ' Tokens)';
@@ -1138,11 +1138,11 @@ class SidePanelController {
     // Cache-Ziel (immer anzeigen wenn Cache aktiv)
     if (cacheEnabled) {
       if (mode === 'local-only') {
-        parts.push({ label: 'Browsercache', css: 'step-save' });
+        parts.push({ label: chrome.i18n.getMessage('labelBrowserCache'), css: 'step-save' });
       } else if (mode === 'server-only') {
-        parts.push({ label: 'Server-Cache', css: 'step-save' });
+        parts.push({ label: chrome.i18n.getMessage('labelServerCache'), css: 'step-save' });
       } else {
-        parts.push({ label: 'Server + Browser', css: 'step-save' });
+        parts.push({ label: chrome.i18n.getMessage('labelHybridCache'), css: 'step-save' });
       }
     }
 

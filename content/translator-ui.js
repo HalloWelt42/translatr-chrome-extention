@@ -33,14 +33,14 @@
           <div class="swt-progress-content">
             <div class="swt-progress-header">
               <div class="swt-progress-title-wrap">
-                <span class="swt-progress-title"><span class="swt-status-dot" id="swtStatusDot"></span>Übersetze...</span>
+                <span class="swt-progress-title"><span class="swt-status-dot" id="swtStatusDot"></span>${chrome.i18n.getMessage('progressTitle')}</span>
                 <span class="swt-progress-meta">
                   <span class="swt-progress-provider"></span>
                   <span class="swt-progress-direction"></span>
                 </span>
                 <span class="swt-progress-eta">
                   ${SWT.Icons.svg('clock', 'swt-eta-icon')}
-                  <span class="swt-eta-text">berechne...</span>
+                  <span class="swt-eta-text">${chrome.i18n.getMessage('progressCalculating')}</span>
                 </span>
               </div>
               <div class="swt-progress-actions">
@@ -87,7 +87,7 @@
         const pauseBtn = this.progressOverlay.querySelector('.swt-progress-pause');
         const setPauseState = (paused) => {
           const icon = paused ? 'play' : 'pause';
-          const label = paused ? 'Fortsetzen' : 'Pausieren';
+          const label = paused ? chrome.i18n.getMessage('btnResume') : chrome.i18n.getMessage('btnPause');
           pauseBtn.innerHTML = SWT.Icons.svg(icon);
           pauseBtn.title = label;
           pauseBtn.classList.toggle('swt-paused', paused);
@@ -181,7 +181,7 @@
       if (eta !== null) {
         etaText.textContent = this.formatETA(eta);
       } else if (current < 3) {
-        etaText.textContent = 'berechne...';
+        etaText.textContent = chrome.i18n.getMessage('progressCalculating');
       }
     }
     
@@ -315,7 +315,7 @@
    * @param {boolean} active - Ob Animation angezeigt werden soll
    */
   const STATUS_TYPES = ['loading', 'cache', 'ai'];
-  const STATUS_LABELS = { loading: 'Lade...', cache: 'Aus Server-Cache', ai: 'KI-Übersetzung' };
+  const STATUS_LABELS = { loading: chrome.i18n.getMessage('statusLoading'), cache: chrome.i18n.getMessage('statusCache'), ai: chrome.i18n.getMessage('statusAI') };
 
   /**
    * Provider-Info und Übersetzungsrichtung im Overlay setzen
@@ -327,12 +327,12 @@
     const directionEl = this.progressOverlay.querySelector('.swt-progress-direction');
 
     if (providerEl) {
-      let label = apiType === 'lmstudio' ? 'LM Studio' : 'LibreTranslate';
+      let label = apiType === 'lmstudio' ? chrome.i18n.getMessage('providerLMStudio') : chrome.i18n.getMessage('providerLibre');
       if (apiType === 'lmstudio' && extra?.model) {
         label += ' -- ' + extra.model.split('/').pop();
       }
       if (apiType === 'lmstudio' && extra?.context && extra.context !== 'general') {
-        const names = { automotive: 'Kfz', technical: 'IT', medical: 'Medizin', legal: 'Recht' };
+        const names = { automotive: chrome.i18n.getMessage('contextShortAutomotive'), technical: chrome.i18n.getMessage('contextShortTechnical'), medical: chrome.i18n.getMessage('contextShortMedical'), legal: chrome.i18n.getMessage('contextShortLegal') };
         label += ' (' + (names[extra.context] || extra.context) + ')';
       }
       providerEl.textContent = label;
@@ -357,7 +357,7 @@
     if (dot) {
       for (const t of STATUS_TYPES) dot.classList.toggle(t, t === type);
       dot.classList.toggle('active', !!type && active);
-      dot.title = STATUS_LABELS[type] || 'Bereit';
+      dot.title = STATUS_LABELS[type] || chrome.i18n.getMessage('statusReady');
     }
 
     // Ring-Farbe

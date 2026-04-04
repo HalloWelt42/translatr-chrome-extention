@@ -140,7 +140,7 @@
     });
 
     this.downloadFile(md, 'translation.md', 'text/markdown');
-    this.showNotification('Markdown exportiert', 'success');
+    this.showNotification(chrome.i18n.getMessage('msgMarkdownExported'), 'success');
   };
 
   /**
@@ -174,7 +174,7 @@
     });
 
     this.downloadFile(txt, 'translation.txt', 'text/plain');
-    this.showNotification('Text exportiert', 'success');
+    this.showNotification(chrome.i18n.getMessage('msgTextExported'), 'success');
   };
 
   /**
