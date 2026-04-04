@@ -104,6 +104,6 @@ Vollständige API-Dokumentation: `docs/CACHE_STORE_API.md`
 
 ## Unterstützen
 
-Gefällt dir Smart Translator? [Sag Danke](pages/donate.html) -- jede Unterstützung hilft bei der Weiterentwicklung.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/HalloWelt42)
 
 Copyright (c) 2025-2026 HalloWelt42

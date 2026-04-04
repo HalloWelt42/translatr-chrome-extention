@@ -1,3 +1,9 @@
+body {
+  background: var(--bg-base, #2b2a27);
+  color: var(--text, #ece8e1);
+  min-height: 100vh;
+}
+
 .legal-page {
   max-width: 680px;
   margin: 0 auto;
