@@ -96,14 +96,12 @@ Vollständige API-Dokumentation: `docs/CACHE_STORE_API.md`
 | StackOverflow | *.stackoverflow.com | Code-Blöcke ausschließen |
 | News | cnn.com, bbc.com, ... | Artikel-Content |
 
-## Rechtliches
-
-- [Lizenz](LICENSE) -- Nicht-kommerzielle Lizenz v1.0
-- [Nutzungsbedingungen](TERMS.md)
-- [Datenschutz](PRIVACY.md)
-
 ## Unterstützen
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/HalloWelt42)
+
+## Lizenz
+
+Nicht-kommerzielle Lizenz v1.0 -- [LICENSE](LICENSE) · [Datenschutz](PRIVACY.md) · [Nutzungsbedingungen](TERMS.md)
 
 Copyright (c) 2025-2026 HalloWelt42
