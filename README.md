@@ -19,8 +19,12 @@ Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTransla
 
 Mindestens eines der folgenden Übersetzungs-Backends wird benötigt (nicht enthalten):
 
-- **[LibreTranslate](https://github.com/LibreTranslate/LibreTranslate)** -- Open-Source Übersetzungsserver, selbst gehostet oder öffentliche Instanz
+- **[LibreTranslate](https://github.com/LibreTranslate/LibreTranslate)** -- Open-Source Übersetzungsserver, selbst gehostet oder öffentliche Instanz ([Installationsanleitung für Raspberry Pi](https://github.com/HalloWelt42/raspberry_pi_projects/tree/main/libretranslate_projekt))
 - **[LM Studio](https://lmstudio.ai/)** -- Lokales LLM mit OpenAI-kompatibler API (für Fachübersetzungen mit Kfz, IT, Medizin, Recht)
+
+Optional:
+
+- **SWT Cache Server** -- Eigener Cache-Server für persistente Übersetzungsspeicherung. Übersetzungen werden serverseitig als Hash-basierte Textdateien abgelegt und stehen so geräte- und browserübergreifend zur Verfügung. Ohne Cache Server werden Übersetzungen nur lokal im Browser gespeichert. Siehe `docs/CACHE_STORE_API.md` für die Server-Spezifikation.
 
 ## Features
 
