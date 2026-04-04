@@ -636,20 +636,13 @@ async function testLMStudio(testInput) {
 function getLanguageName(code) {
   const names = {
     'auto': 'Automatisch',
-    'en': 'Englisch',
-    'de': 'Deutsch',
-    'fr': 'Französisch',
-    'es': 'Spanisch',
-    'it': 'Italienisch',
-    'pt': 'Portugiesisch',
-    'nl': 'Niederländisch',
-    'pl': 'Polnisch',
-    'ru': 'Russisch',
-    'zh': 'Chinesisch',
-    'ja': 'Japanisch',
-    'ko': 'Koreanisch',
-    'ar': 'Arabisch',
-    'tr': 'Türkisch'
+    'de': 'Deutsch', 'en': 'Englisch', 'fr': 'Französisch',
+    'es': 'Spanisch', 'it': 'Italienisch', 'pt': 'Portugiesisch',
+    'nl': 'Niederländisch', 'pl': 'Polnisch', 'ru': 'Russisch',
+    'zh': 'Chinesisch', 'ja': 'Japanisch', 'ko': 'Koreanisch',
+    'ar': 'Arabisch', 'tr': 'Türkisch', 'uk': 'Ukrainisch',
+    'cs': 'Tschechisch', 'sv': 'Schwedisch', 'da': 'Dänisch',
+    'fi': 'Finnisch', 'hi': 'Hindi'
   };
   return names[code] || code;
 }
@@ -679,7 +672,7 @@ function updateCacheServerUI(enabled) {
 }
 
 function updateCacheServerFields() {
-  const mode = document.getElementById('cacheServerMode')?.value || 'local-only';
+  const mode = document.getElementById('cacheServerMode')?.value || 'server-only';
   const needsServer = mode !== 'local-only';
   const serverFields = document.getElementById('cacheServerFields');
   if (serverFields) serverFields.classList.toggle('hidden', !needsServer);

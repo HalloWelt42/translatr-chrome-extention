@@ -63,9 +63,11 @@ window.SWT.Utils = {
     const names = {
       'auto': 'Auto', 'de': 'Deutsch', 'en': 'Englisch', 'fr': 'Französisch',
       'es': 'Spanisch', 'it': 'Italienisch', 'pt': 'Portugiesisch',
-      'ru': 'Russisch', 'zh': 'Chinesisch', 'ja': 'Japanisch',
-      'ko': 'Koreanisch', 'nl': 'Niederländisch', 'pl': 'Polnisch',
-      'tr': 'Türkisch', 'ar': 'Arabisch'
+      'nl': 'Niederländisch', 'pl': 'Polnisch', 'ru': 'Russisch',
+      'zh': 'Chinesisch', 'ja': 'Japanisch', 'ko': 'Koreanisch',
+      'ar': 'Arabisch', 'tr': 'Türkisch', 'uk': 'Ukrainisch',
+      'cs': 'Tschechisch', 'sv': 'Schwedisch', 'da': 'Dänisch',
+      'fi': 'Finnisch', 'hi': 'Hindi'
     };
     return names[code] || code;
   },
