@@ -5,6 +5,16 @@ Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTransla
 ![Bildschirmfoto 2026-04-04 um 03.49.26.png](media/Bildschirmfoto%202026-04-04%20um%2003.49.26.png)
 
 
+## Ergenisse Beispiel mit svelte-Doku
+
+### Original
+
+![Bildschirmfoto 2026-04-04 um 05.12.12.png](media/Bildschirmfoto%202026-04-04%20um%2005.12.12.png)
+
+### mit LM Studio und Qwen3.5 80b
+
+![Bildschirmfoto 2026-04-04 um 05.11.49.png](media/Bildschirmfoto%202026-04-04%20um%2005.11.49.png)
+
 ## Features
 
 - **LibreTranslate** -- Open-Source Übersetzungsserver, selbst gehostet oder öffentliche Instanz
