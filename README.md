@@ -99,8 +99,8 @@ Vollständige API-Dokumentation: `docs/CACHE_STORE_API.md`
 ## Rechtliches
 
 - [Lizenz](LICENSE) -- Nicht-kommerzielle Lizenz v1.0
-- [Nutzungsbedingungen](pages/legal/nutzungsbedingungen.html)
-- [Datenschutz](pages/legal/datenschutz.html)
+- [Nutzungsbedingungen](TERMS.md)
+- [Datenschutz](PRIVACY.md)
 
 ## Unterstützen
 
