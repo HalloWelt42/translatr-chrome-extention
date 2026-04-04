@@ -551,18 +551,6 @@ Content-Type: application/json
   </div>
 
   <script src="../shared/icons.js"></script>
-  <script>
-    // Version anzeigen
-    const v = document.getElementById('appVersion');
-    if (v) v.textContent = chrome.runtime.getManifest().version;
-
-    // Einstellungen-Links
-    document.querySelectorAll('.open-options').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        chrome.runtime.openOptionsPage();
-      });
-    });
-  </script>
+  <script src="guide.js"></script>
 </body>
 </html>
