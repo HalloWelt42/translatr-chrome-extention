@@ -41,6 +41,9 @@ const PageState = {
       },
       loadCache: {
         enabled: !busy && state === 'idle' && hasCache
+      },
+      retranslate: {
+        enabled: !busy && (state === 'translated' || state === 'partial')
       }
     };
   }
@@ -59,6 +62,7 @@ const ActionRenderer = {
       continue: document.getElementById('continuePage'),
       restore: document.getElementById('restorePage'),
       loadCache: document.getElementById('loadCache'),
+      retranslate: document.getElementById('retranslatePage'),
       badge: document.getElementById('cacheProgress')
     };
   },
@@ -68,6 +72,7 @@ const ActionRenderer = {
     this._setButton(this._els.continue, actions.continue);
     this._setButton(this._els.restore, actions.restore);
     this._setButton(this._els.loadCache, actions.loadCache);
+    this._setButton(this._els.retranslate, actions.retranslate);
     this._setBadge(actions.continue.badge);
     // Label des Übersetzen-Buttons dynamisch anpassen
     const labelSpan = this._els.translate.querySelector('span:last-child');
@@ -438,7 +443,8 @@ class SidePanelController {
       translatePage:    { action: 'TRANSLATE_PAGE', data: { mode: 'replace' }, delays: [500] },
       continuePage:     { action: 'TRANSLATE_PAGE', data: { mode: 'continue' }, delays: [500] },
       restorePage:      { action: 'RESTORE_PAGE', data: {}, delays: [500] },
-      loadCache:        { action: 'LOAD_CACHED_TRANSLATION', data: {}, delays: [2000, 5000] }
+      loadCache:        { action: 'LOAD_CACHED_TRANSLATION', data: {}, delays: [2000, 5000] },
+      retranslatePage:  { action: 'RETRANSLATE_PAGE', data: {}, delays: [500, 2000] }
     };
 
     for (const [id, cfg] of Object.entries(actions)) {
