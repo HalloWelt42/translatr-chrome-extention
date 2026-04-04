@@ -62,7 +62,6 @@ shared/
   toast.js                        # Toast-Benachrichtigungen
   utils.js                        # Hilfsfunktionen
   api-badge.js                    # API-Badge Komponente
-  constants.js                    # Konstanten
 background/
   providers/
     libre-translate.js            # LibreTranslate Provider
@@ -97,6 +96,14 @@ Vollständige API-Dokumentation: `docs/CACHE_STORE_API.md`
 | StackOverflow | *.stackoverflow.com | Code-Blöcke ausschließen |
 | News | cnn.com, bbc.com, ... | Artikel-Content |
 
-## Lizenz
+## Rechtliches
 
-MIT License
+- [Lizenz](LICENSE) -- Nicht-kommerzielle Lizenz v1.0
+- [Nutzungsbedingungen](pages/legal/nutzungsbedingungen.html)
+- [Datenschutz](pages/legal/datenschutz.html)
+
+## Unterstützen
+
+Gefällt dir Smart Translator? [Sag Danke](pages/donate.html) -- jede Unterstützung hilft bei der Weiterentwicklung.
+
+Copyright (c) 2025-2026 HalloWelt42
