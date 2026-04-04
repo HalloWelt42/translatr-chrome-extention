@@ -31,11 +31,11 @@
     <div class="cache-status hidden" id="cacheStatus">
       <div class="info">
         <span class="size" id="cacheSize">0 KB</span>
-        <span class="hint" id="cacheHint">Cache für diese Seite verfügbar</span>
+        <span class="hint" id="cacheHint" data-i18n="popupCacheHint">Cache für diese Seite verfügbar</span>
       </div>
       <button id="loadCacheBtn" class="cache-load-btn">
         <span data-swt-icon="download"></span>
-        Cache laden
+        <span data-i18n="popupLoadCache">Cache laden</span>
       </button>
     </div>
 
@@ -47,22 +47,22 @@
       <select id="targetLang"></select>
     </div>
 
-    <textarea id="inputText" placeholder="Text zum Übersetzen eingeben..."></textarea>
+    <textarea id="inputText" data-i18n-placeholder="popupInputPlaceholder" placeholder="Text zum Übersetzen eingeben..."></textarea>
 
     <button class="btn btn-primary fullwidth" id="translateBtn">
       <span data-swt-icon="translate"></span>
-      Übersetzen
+      <span data-i18n="popupTranslate">Übersetzen</span>
     </button>
 
     <div class="result-box" id="resultBox"></div>
     <div class="result-actions hidden" id="resultActions">
       <button class="result-action" id="copyResult">
         <span data-swt-icon="copy"></span>
-        Kopieren
+        <span data-i18n="btnCopy">Kopieren</span>
       </button>
       <button class="result-action" id="speakResult">
         <span data-swt-icon="volumeUp"></span>
-        Vorlesen
+        <span data-i18n="btnReadAloud">Vorlesen</span>
       </button>
     </div>
 
@@ -71,32 +71,33 @@
     <div class="actions-grid">
       <div class="action-card" id="translatePage">
         <span data-swt-icon="document"></span>
-        <span>Seite übersetzen</span>
+        <span data-i18n="btnTranslatePage">Seite übersetzen</span>
       </div>
       <div class="action-card" id="restorePage">
         <span data-swt-icon="refresh"></span>
-        <span>Original</span>
+        <span data-i18n="statusOriginal">Original</span>
       </div>
       <div class="action-card" id="openSidepanel">
         <span data-swt-icon="panel"></span>
-        <span>Panel</span>
+        <span data-i18n="popupPanel">Panel</span>
       </div>
       <div class="action-card donate-card" id="openDonateCard">
         <span data-swt-icon="heart"></span>
-        <span>Danke</span>
+        <span data-i18n="popupThanks">Danke</span>
       </div>
     </div>
 
   </div>
 
   <div class="app-footer">
-    <a href="#" id="openOptions"><span data-swt-icon="gear"></span> Einstellungen</a>
+    <a href="#" id="openOptions"><span data-swt-icon="gear"></span> <span data-i18n="ctxSettings">Einstellungen</span></a>
     &nbsp;·&nbsp;
-    <a href="#" id="manageCache">Cache verwalten</a>
+    <a href="#" id="manageCache"><span data-i18n="popupManageCache">Cache verwalten</span></a>
     &nbsp;·&nbsp;
     <a href="#" id="openGithub" class="github-link"><span data-swt-icon="github"></span></a>
   </div>
 
+  <script src="../shared/i18n.js"></script>
   <script src="../shared/storage.js"></script>
   <script src="../shared/utils.js"></script>
   <script src="../shared/toast.js"></script>

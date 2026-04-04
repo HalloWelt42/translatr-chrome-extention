@@ -25,9 +25,9 @@
     </div>
 
     <div class="tabs">
-      <div class="tab active" data-tab="translate">Übersetzen</div>
-      <div class="tab" data-tab="cache">Cache</div>
-      <div class="tab" data-tab="stats">Statistik</div>
+      <div class="tab active" data-tab="translate" data-i18n="spTabTranslate">Übersetzen</div>
+      <div class="tab" data-tab="cache" data-i18n="spTabCache">Cache</div>
+      <div class="tab" data-tab="stats" data-i18n="spTabStats">Statistik</div>
     </div>
 
     <!-- Translate Tab -->
@@ -45,19 +45,19 @@
         <div class="context-row" id="contextRow">
           <label class="context-label">
             <span data-swt-icon="globe" class="icon-sm"></span>
-            Kontext
+            <span data-i18n="spContext">Kontext</span>
           </label>
           <select id="contextSelect">
-            <option value="general">Allgemein</option>
-            <option value="automotive">Kfz / Automotive</option>
-            <option value="technical">Technisch / IT</option>
-            <option value="medical">Medizin</option>
-            <option value="legal">Recht / Juristisch</option>
+            <option value="general" data-i18n="contextGeneral">Allgemein</option>
+            <option value="automotive" data-i18n="contextAutomotive">Kfz / Automotive</option>
+            <option value="technical" data-i18n="contextTechnical">Technisch / IT</option>
+            <option value="medical" data-i18n="contextMedical">Medizin</option>
+            <option value="legal" data-i18n="contextLegal">Recht / Juristisch</option>
           </select>
         </div>
 
         <div class="text-field-wrapper">
-          <textarea id="sourceText" placeholder="Text eingeben..."></textarea>
+          <textarea id="sourceText" data-i18n-placeholder="spPlaceholderInput" placeholder="Text eingeben..."></textarea>
           <button class="field-clear-btn" id="clearSource">
             <span data-swt-icon="delete"></span>
           </button>
@@ -65,11 +65,11 @@
 
         <button class="btn btn-primary fullwidth" id="translateBtn">
           <span data-swt-icon="translate"></span>
-          Übersetzen
+          <span data-i18n="spTabTranslate">Übersetzen</span>
         </button>
 
         <div class="text-field-wrapper">
-          <div class="result-box" id="resultBox"><span class="placeholder">Übersetzung erscheint hier...</span></div>
+          <div class="result-box" id="resultBox"><span class="placeholder" data-i18n="spPlaceholderResult">Übersetzung erscheint hier...</span></div>
           <button class="field-clear-btn" id="clearResult">
             <span data-swt-icon="delete"></span>
           </button>
@@ -77,61 +77,57 @@
         <div class="result-actions hidden" id="resultActions">
           <button class="result-action" id="copyResult">
             <span data-swt-icon="copy"></span>
-            Kopieren
+            <span data-i18n="btnCopy">Kopieren</span>
           </button>
           <button class="result-action" id="speakResult">
             <span data-swt-icon="volumeUp"></span>
-            Vorlesen
+            <span data-i18n="btnReadAloud">Vorlesen</span>
           </button>
         </div>
         <div class="context-notes hidden" id="contextNotes">
-          <strong>Fachhinweis:</strong>
+          <strong data-i18n="spContextNote">Fachhinweis:</strong>
           <span id="contextNotesText"></span>
         </div>
       </div>
 
       <div class="actions-section">
-        <h3>Seitenaktionen</h3>
+        <h3 data-i18n="spPageActions">Seitenaktionen</h3>
         <div class="actions-grid">
           <div class="action-card" id="translatePage">
             <span data-swt-icon="document"></span>
-            <span>Seite übersetzen</span>
+            <span data-i18n="btnTranslatePage">Seite übersetzen</span>
           </div>
           <div class="action-card" id="continuePage">
             <span data-swt-icon="play"></span>
-            <span>Fortsetzen</span>
+            <span data-i18n="btnResume">Fortsetzen</span>
             <span class="action-badge" id="cacheProgress">–</span>
           </div>
           <div class="action-card" id="restorePage">
             <span data-swt-icon="refresh"></span>
-            <span>Original</span>
+            <span data-i18n="statusOriginal">Original</span>
           </div>
           <div class="action-card" id="loadCache">
             <span data-swt-icon="download"></span>
-            <span>Cache laden</span>
-          </div>
-          <div class="action-card" id="retranslatePage">
-            <span data-swt-icon="sync"></span>
-            <span>Neu übersetzen</span>
+            <span data-i18n="spLoadCache">Cache laden</span>
           </div>
         </div>
 
         <div class="pipeline-view hidden" id="pipelineView">
-          <div class="pipeline-label">Quelle</div>
+          <div class="pipeline-label" data-i18n="spPipelineSource">Quelle</div>
           <div class="pipeline-steps" id="pipelineSteps"></div>
         </div>
 
         <div class="toggle-box mt-sm">
           <div class="toggle-row">
-            <span>Original bei Hover</span>
+            <span data-i18n="spToggleHover">Original bei Hover</span>
             <label class="toggle"><input type="checkbox" id="toggleHoverOriginal" checked><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
-            <span>Markierung anzeigen</span>
+            <span data-i18n="spToggleHighlight">Markierung anzeigen</span>
             <label class="toggle"><input type="checkbox" id="toggleHighlight" checked><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
-            <span>Cache automatisch laden</span>
+            <span data-i18n="spToggleAutoCache">Cache automatisch laden</span>
             <label class="toggle"><input type="checkbox" id="toggleAutoLoadCache"><span class="toggle-slider"></span></label>
           </div>
         </div>
@@ -144,12 +140,12 @@
         <div class="cache-source-tabs">
           <div class="cache-source-tab active" data-source="server" id="cacheTabServer">
             <span data-swt-icon="sync"></span>
-            Server
+            <span data-i18n="cacheServer">Server</span>
             <span class="cache-source-status" id="cacheServerStatus"></span>
           </div>
           <div class="cache-source-tab" data-source="local" id="cacheTabLocal">
             <span data-swt-icon="download"></span>
-            Browsercache
+            <span data-i18n="cacheBrowser">Browsercache</span>
             <span class="cache-source-status" id="cacheLocalStatus"></span>
           </div>
         </div>
@@ -157,31 +153,31 @@
         <div class="cache-stats">
           <div class="cache-stat">
             <div class="value" id="cacheTotalSize">0 KB</div>
-            <div class="label">Gesamtgröße</div>
+            <div class="label" data-i18n="spCacheTotalSize">Gesamtgröße</div>
           </div>
           <div class="cache-stat">
             <div class="value" id="cachePageCount">0</div>
-            <div class="label">Einträge</div>
+            <div class="label" data-i18n="spCacheEntries">Einträge</div>
           </div>
         </div>
 
         <div class="cache-actions">
           <button class="btn btn-outline" id="refreshCache">
             <span data-swt-icon="sync"></span>
-            Aktualisieren
+            <span data-i18n="spCacheRefresh">Aktualisieren</span>
           </button>
           <button class="btn btn-outline" id="clearPageCache">
             <span data-swt-icon="trash"></span>
-            Diese Seite
+            <span data-i18n="spCacheThisPage">Diese Seite</span>
           </button>
           <button class="btn btn-outline" id="clearDomainCache">
             <span data-swt-icon="trash"></span>
-            Domain löschen
+            <span data-i18n="spCacheDeleteDomain">Domain löschen</span>
           </button>
         </div>
 
         <div class="cache-list" id="cacheList">
-          <div class="cache-empty">Kein Cache vorhanden</div>
+          <div class="cache-empty" data-i18n="spCacheEmpty">Kein Cache vorhanden</div>
         </div>
       </div>
     </div>
@@ -192,24 +188,24 @@
         <div class="stats-card">
           <h3>
             <span data-swt-icon="info"></span>
-            Token-Verbrauch
+            <span data-i18n="spTokenUsage">Token-Verbrauch</span>
           </h3>
           <div class="token-stats-grid">
             <div class="token-stat">
               <div class="token-value" id="totalTokens">0</div>
-              <div class="token-label">Gesamt</div>
+              <div class="token-label" data-i18n="spTokenTotal">Gesamt</div>
             </div>
             <div class="token-stat">
               <div class="token-value" id="promptTokens">0</div>
-              <div class="token-label">Prompt</div>
+              <div class="token-label" data-i18n="spTokenPrompt">Prompt</div>
             </div>
             <div class="token-stat">
               <div class="token-value" id="completionTokens">0</div>
-              <div class="token-label">Completion</div>
+              <div class="token-label" data-i18n="spTokenCompletion">Completion</div>
             </div>
             <div class="token-stat">
               <div class="token-value" id="requestCount">0</div>
-              <div class="token-label">Anfragen</div>
+              <div class="token-label" data-i18n="spTokenRequests">Anfragen</div>
             </div>
           </div>
         </div>
@@ -217,23 +213,23 @@
         <div class="stats-actions">
           <button class="btn btn-outline" id="resetTokens">
             <span data-swt-icon="refresh"></span>
-            Tokens zurücksetzen
+            <span data-i18n="spResetTokens">Tokens zurücksetzen</span>
           </button>
         </div>
 
         <div class="stats-footer">
-          <span id="statsLastUpdate">Noch keine Daten</span>
+          <span id="statsLastUpdate" data-i18n="spNoData">Noch keine Daten</span>
         </div>
 
         <div class="history-section">
           <div class="history-header">
-            <h2>Übersetzungsverlauf für Textfeld</h2>
-            <button class="clear-btn" id="clearHistory">Löschen</button>
+            <h2 data-i18n="spHistoryTitle">Übersetzungsverlauf für Textfeld</h2>
+            <button class="clear-btn" id="clearHistory" data-i18n="spHistoryClear">Löschen</button>
           </div>
           <div class="history-list" id="historyList">
             <div class="history-empty">
               <span data-swt-icon="history"></span>
-              <p>Noch keine Übersetzungen</p>
+              <p data-i18n="spHistoryEmpty">Noch keine Übersetzungen</p>
             </div>
           </div>
         </div>
@@ -241,10 +237,11 @@
     </div>
 
     <div class="app-footer">
-      <a href="#" id="openOptions"><span data-swt-icon="gear"></span> Einstellungen</a>
+      <a href="#" id="openOptions"><span data-swt-icon="gear"></span> <span data-i18n="ctxSettings">Einstellungen</span></a>
     </div>
   </div>
 
+  <script src="../shared/i18n.js"></script>
   <script src="../shared/storage.js"></script>
   <script src="../shared/utils.js"></script>
   <script src="../shared/toast.js"></script>

@@ -155,7 +155,8 @@ function setupEventListeners() {
   if (guideBtn) {
     guideBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      chrome.tabs.create({ url: chrome.runtime.getURL('pages/guide.html') });
+      const guidePage = chrome.i18n.getUILanguage().startsWith('de') ? 'guide.html' : 'guide_en.html';
+      chrome.tabs.create({ url: chrome.runtime.getURL('pages/' + guidePage) });
     });
   }
 

@@ -10,16 +10,16 @@
   <div class="donate-page">
     <div class="donate-header">
       <span class="icon">&#x2615;</span>
-      <h1>Mit Liebe gemacht</h1>
-      <p>Open Source. Kein Tracking, keine Werbung, keine Kompromisse.</p>
+      <h1 data-i18n="donateTitle">Mit Liebe gemacht</h1>
+      <p data-i18n="donateSubtitle">Open Source. Kein Tracking, keine Werbung, keine Kompromisse.</p>
     </div>
 
     <a id="kofi-btn" href="" target="_blank" rel="noopener" class="kofi-btn">
       <span class="kofi-icon">&#x2615;</span>
-      <span>Ko-fi - Kauf mir einen Kaffee</span>
+      <span data-i18n="donateKofi">Ko-fi - Kauf mir einen Kaffee</span>
     </a>
 
-    <p class="crypto-label">Oder per Kryptowährung:</p>
+    <p class="crypto-label" data-i18n="donateCryptoLabel">Oder per Kryptowährung:</p>
 
     <div class="crypto-tabs">
       <button class="crypto-tab active" data-crypto="btc">
@@ -39,7 +39,7 @@
         <div class="crypto-details">
           <p class="crypto-name">Bitcoin (BTC)</p>
           <p class="crypto-address" id="btc-address"></p>
-          <button class="copy-btn" data-coin="btc">Adresse kopieren</button>
+          <button class="copy-btn" data-coin="btc"><span data-i18n="donateCopyAddress">Adresse kopieren</span></button>
         </div>
       </div>
     </div>
@@ -50,7 +50,7 @@
         <div class="crypto-details">
           <p class="crypto-name">Dogecoin (DOGE)</p>
           <p class="crypto-address" id="doge-address"></p>
-          <button class="copy-btn" data-coin="doge">Adresse kopieren</button>
+          <button class="copy-btn" data-coin="doge"><span data-i18n="donateCopyAddress">Adresse kopieren</span></button>
         </div>
       </div>
     </div>
@@ -61,14 +61,15 @@
         <div class="crypto-details">
           <p class="crypto-name">Ethereum (ETH)</p>
           <p class="crypto-address" id="eth-address"></p>
-          <button class="copy-btn" data-coin="eth">Adresse kopieren</button>
+          <button class="copy-btn" data-coin="eth"><span data-i18n="donateCopyAddress">Adresse kopieren</span></button>
         </div>
       </div>
     </div>
 
-    <div class="donate-footer">Danke für deine Unterstützung!</div>
+    <div class="donate-footer" data-i18n="donateFooter">Danke für deine Unterstützung!</div>
   </div>
 
+  <script src="../shared/i18n.js"></script>
   <script src="donate-config.js"></script>
   <script src="donate.js"></script>
 </body>
