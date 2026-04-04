@@ -1084,7 +1084,7 @@ select {
 .led-pulse { animation: pulse-dot 2s ease-in-out infinite; }
 
 /* === GLOBALE LÖSCHTONNE === */
-/* Eine einzige Definition fuer alle Loeschbuttons ueberall */
+/* Eine einzige Definition für alle Löschbuttons überall */
 .delete-icon,
 [data-swt-icon="delete"],
 [data-swt-icon="trash"],

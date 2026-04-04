@@ -48,7 +48,7 @@ const PageState = {
 
 // ==========================================================================
 // ActionRenderer: Wendet Zustandsobjekte auf DOM-Elemente an.
-// Keine Logik -- nur Zustand rein, DOM-Aenderungen raus.
+// Keine Logik -- nur Zustand rein, DOM-Änderungen raus.
 // ==========================================================================
 const ActionRenderer = {
   _els: null,
@@ -811,7 +811,7 @@ class SidePanelController {
         }
       }
 
-      // Server-Eintraege fuer aktuelle Seite laden (vor der Anzeige)
+      // Server-Einträge für aktuelle Seite laden (vor der Anzeige)
       let serverEntries = null;
       let entryCount = 0;
       if (serverStats?.success) {
@@ -949,7 +949,7 @@ class SidePanelController {
           }
           html += `</div></div>`;
 
-          // Alle Eintraege fuer spaeteres Nachladen speichern
+          // Alle Einträge für späteres Nachladen speichern
           this._allCacheEntries = allEntries;
           this._cacheOffset = INITIAL_LIMIT;
         }

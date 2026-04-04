@@ -1,6 +1,6 @@
 /**
  * Cache-Mode Tests
- * Testet die saveToCache-Logik und Zustandsuebergaenge bei Cache-Operationen
+ * Testet die saveToCache-Logik und Zustandsübergänge bei Cache-Operationen
  */
 
 const { createChromeMock } = require('./chrome-mock');
@@ -18,7 +18,7 @@ function saveToCacheLogic(translations, mode, pageUrl, settings, runtimeId) {
     results.local = true;
   }
 
-  // Server speichern (nur wenn nicht local-only und runtime gueltig)
+  // Server speichern (nur wenn nicht local-only und runtime gültig)
   if (mode !== 'local-only' && runtimeId) {
     results.server = true;
   }
@@ -148,11 +148,11 @@ describe('translateText Routing-Logik', () => {
 
     // Cache-Check
     if (!bypassCache && cacheServerConfig.enabled && cacheServerConfig.mode !== 'local-only') {
-      // Wuerde Cache pruefen
+      // Würde Cache prüfen
       return { action: 'check-cache-then-translate', provider: settings.apiType };
     }
 
-    // Direkt uebersetzen
+    // Direkt übersetzen
     if (settings.apiType === 'lmstudio') {
       if (!settings.lmStudioUrl) return { action: 'reject', reason: 'not-configured' };
       return { action: 'translate', provider: 'lmstudio' };
@@ -195,7 +195,7 @@ describe('translateText Routing-Logik', () => {
     expect(result.action).toBe('check-cache-then-translate');
   });
 
-  test('Cache aktiviert aber Bypass -> direkt uebersetzen', () => {
+  test('Cache aktiviert aber Bypass -> direkt übersetzen', () => {
     const result = routeTranslation('Hello World', { apiType: 'libretranslate', serviceUrl: 'url' }, true, { enabled: true, mode: 'server-only' });
     expect(result.action).toBe('translate');
   });
@@ -207,8 +207,8 @@ describe('translateText Routing-Logik', () => {
 });
 
 
-describe('State nach Uebersetzung', () => {
-  // Simuliert den Zustandsuebergang nach translatePage()
+describe('State nach Übersetzung', () => {
+  // Simuliert den Zustandsübergang nach translatePage()
   function simulateTranslationComplete(aborted, translatedCount) {
     const state = {
       isTranslated: false,
@@ -237,7 +237,7 @@ describe('State nach Uebersetzung', () => {
     return state;
   }
 
-  test('erfolgreiche Uebersetzung: korrekter Endzustand', () => {
+  test('erfolgreiche Übersetzung: korrekter Endzustand', () => {
     const state = simulateTranslationComplete(false, 20);
 
     expect(state.isTranslated).toBe(true);
@@ -247,7 +247,7 @@ describe('State nach Uebersetzung', () => {
     expect(state.translatedCount).toBe(20);
   });
 
-  test('abgebrochene Uebersetzung: kein translated-State', () => {
+  test('abgebrochene Übersetzung: kein translated-State', () => {
     const state = simulateTranslationComplete(true, 0);
 
     expect(state.isTranslated).toBe(false);
@@ -261,7 +261,7 @@ describe('State nach Uebersetzung', () => {
 
     const state = { isTranslated: false, _cacheAvailable: false };
 
-    // setCacheAvailable wuerde notifyStatusChange aufrufen
+    // setCacheAvailable würde notifyStatusChange aufrufen
     function setCacheAvailable(available) {
       state._cacheAvailable = available;
       // Snapshot zum Zeitpunkt des Notify
@@ -277,7 +277,7 @@ describe('State nach Uebersetzung', () => {
     expect(stateAtNotify._cacheAvailable).toBe(true);
   });
 
-  test('State-Invariante: falsche Reihenfolge wuerde Bug erzeugen', () => {
+  test('State-Invariante: falsche Reihenfolge würde Bug erzeugen', () => {
     let stateAtNotify = null;
 
     const state = { isTranslated: false, _cacheAvailable: false };
@@ -295,13 +295,13 @@ describe('State nach Uebersetzung', () => {
     expect(stateAtNotify.isTranslated).toBe(false);
     expect(stateAtNotify._cacheAvailable).toBe(true);
 
-    // Das Sidepanel wuerde "idle + cacheAvailable" sehen statt "translated"
+    // Das Sidepanel würde "idle + cacheAvailable" sehen statt "translated"
     const derivedState = derivePage(stateAtNotify);
     expect(derivedState).toBe('idle'); // BUG: sollte 'translated' sein
   });
 });
 
-// Hilfs-Funktion fuer den State-Invariante-Test
+// Hilfs-Funktion für den State-Invariante-Test
 function derivePage(state) {
   if (state.isTranslating) return 'translating';
   if (state.isTranslated) return 'translated';

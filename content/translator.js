@@ -214,7 +214,7 @@ class SmartTranslator {
       this.handleUrlChange('hashchange');
     });
     
-    // 4. Fallback: Polling fuer SPAs (nur Pfad, Query-Parameter ignorieren)
+    // 4. Fallback: Polling für SPAs (nur Pfad, Query-Parameter ignorieren)
     this.urlCheckInterval = setInterval(() => {
       if (!chrome.runtime?.id) { clearInterval(this.urlCheckInterval); return; }
       var current = window.location.origin + window.location.pathname;
@@ -1167,10 +1167,10 @@ class SmartTranslator {
         break;
 
       case 'GET_PAGE_INFO':
-        // remaining = uebersetzbare Nodes die NICHT .swt-translated-text sind
+        // remaining = übersetzbare Nodes die NICHT .swt-translated-text sind
         let remaining = 0;
         if (typeof this.findTranslatableTextNodes === 'function') {
-          // Pruefe ob es uebersetzte Spans auf der Seite gibt
+          // Prüfe ob es übersetzte Spans auf der Seite gibt
           const hasTranslated = document.querySelectorAll('.swt-translated-text').length > 0;
           if (hasTranslated) {
             remaining = this.findTranslatableTextNodes().length;

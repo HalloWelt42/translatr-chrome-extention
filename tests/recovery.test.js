@@ -1,6 +1,6 @@
 /**
  * Recovery Tests
- * Testet recoverFromBrokenMigration() mit verschiedenen Storage-Zustaenden
+ * Testet recoverFromBrokenMigration() mit verschiedenen Storage-Zuständen
  */
 
 const { createChromeMock } = require('./chrome-mock');
@@ -72,7 +72,7 @@ describe('recoverFromBrokenMigration', () => {
     expect(result.action).toBe('skip');
     expect(result.reason).toBe('no-bundle');
 
-    // Storage unveraendert
+    // Storage unverändert
     const stored = await chrome.storage.sync.get(null);
     expect(stored.apiType).toBe('libretranslate');
   });
@@ -95,7 +95,7 @@ describe('recoverFromBrokenMigration', () => {
     expect(result.keys).toContain('serviceUrl');
     expect(result.keys).toContain('sourceLang');
 
-    // Individuelle Keys muessen existieren
+    // Individuelle Keys müssen existieren
     const stored = await chrome.storage.sync.get(null);
     expect(stored.apiType).toBe('libretranslate');
     expect(stored.serviceUrl).toBe('https://translate.max');
@@ -120,7 +120,7 @@ describe('recoverFromBrokenMigration', () => {
     const result = await recoverFromBrokenMigration();
     expect(result.action).toBe('cleanup');
 
-    // Individuelle Keys unveraendert (nicht vom Bundle ueberschrieben)
+    // Individuelle Keys unverändert (nicht vom Bundle überschrieben)
     const stored = await chrome.storage.sync.get(null);
     expect(stored.apiType).toBe('lmstudio');
     expect(stored.serviceUrl).toBe('https://my-url');
@@ -144,7 +144,7 @@ describe('recoverFromBrokenMigration', () => {
     const result = await recoverFromBrokenMigration();
 
     // apiType existiert, aber serviceUrl === undefined -> Guard greift nicht
-    // Recovery laeuft und stellt fehlende Keys wieder her
+    // Recovery läuft und stellt fehlende Keys wieder her
     const stored = await chrome.storage.sync.get(null);
     expect(stored.serviceUrl).toBe('https://translate.max');
     expect(stored.sourceLang).toBe('en');
@@ -190,7 +190,7 @@ describe('migrateSettings (nach Recovery)', () => {
     expect(stored.lmStudioContext).toBe('general');
   });
 
-  test('vollstaendiger Update-Flow: Recovery + Migration', async () => {
+  test('vollständiger Update-Flow: Recovery + Migration', async () => {
     // Ausgangszustand: Kaputte Migration hat alles in Bundle gesteckt
     chrome.storage.sync._reset({
       'swt-settings': {

@@ -1,5 +1,5 @@
 /**
- * Chrome API Mock fuer Jest Tests
+ * Chrome API Mock für Jest Tests
  * Simuliert chrome.storage.sync, chrome.storage.local, chrome.runtime
  */
 

@@ -81,7 +81,7 @@ describe('PageState.derive', () => {
     expect(PageState.derive(undefined)).toBe('unavailable');
   });
 
-  test('idle: keine Uebersetzung aktiv', () => {
+  test('idle: keine Übersetzung aktiv', () => {
     expect(PageState.derive({
       isTranslated: false,
       isTranslating: false,
@@ -90,7 +90,7 @@ describe('PageState.derive', () => {
     })).toBe('idle');
   });
 
-  test('translating: Uebersetzung laeuft', () => {
+  test('translating: Übersetzung läuft', () => {
     expect(PageState.derive({
       isTranslated: false,
       isTranslating: true,
@@ -99,7 +99,7 @@ describe('PageState.derive', () => {
     })).toBe('translating');
   });
 
-  test('translated: vollstaendig uebersetzt', () => {
+  test('translated: vollständig übersetzt', () => {
     expect(PageState.derive({
       isTranslated: true,
       isTranslating: false,
@@ -108,7 +108,7 @@ describe('PageState.derive', () => {
     })).toBe('translated');
   });
 
-  test('partial: teilweise uebersetzt (translatedCount > 0)', () => {
+  test('partial: teilweise übersetzt (translatedCount > 0)', () => {
     expect(PageState.derive({
       isTranslated: false,
       isTranslating: false,
@@ -126,8 +126,8 @@ describe('PageState.derive', () => {
     })).toBe('partial');
   });
 
-  test('Prioritaet: translating schlaegt translated', () => {
-    // Waehrend Uebersetzung kann isTranslated kurz true sein (z.B. Neu-Uebersetzen)
+  test('Priorität: translating schlägt translated', () => {
+    // Während Übersetzung kann isTranslated kurz true sein (z.B. Neu-Übersetzen)
     expect(PageState.derive({
       isTranslated: true,
       isTranslating: true,
@@ -280,13 +280,13 @@ describe('PopupState.derivePage', () => {
 
 
 describe('PopupState.deriveLed', () => {
-  test('server-only -> gruen, Server', () => {
+  test('server-only -> grün, Server', () => {
     const led = PopupState.deriveLed({ cacheServerEnabled: true, cacheServerMode: 'server-only' });
     expect(led.led).toBe('led-green');
     expect(led.text).toBe('Server');
   });
 
-  test('local-only -> gruen, Lokal', () => {
+  test('local-only -> grün, Lokal', () => {
     const led = PopupState.deriveLed({ cacheServerEnabled: true, cacheServerMode: 'local-only' });
     expect(led.led).toBe('led-green');
     expect(led.text).toBe('Lokal');
@@ -314,7 +314,7 @@ describe('PopupState.deriveLed', () => {
 
 
 // ==========================================================================
-// KONSISTENZ: Popup und Sidepanel muessen gleiche Zustaende abbilden
+// KONSISTENZ: Popup und Sidepanel müssen gleiche Zustände abbilden
 // ==========================================================================
 
 describe('Konsistenz: Popup <-> Sidepanel', () => {
@@ -334,7 +334,7 @@ describe('Konsistenz: Popup <-> Sidepanel', () => {
       expect(sideActions.translate.enabled).toBe(false);
     }
 
-    // active-Flag muss uebereinstimmen
+    // active-Flag muss übereinstimmen
     expect(popupState.active).toBe(sideActions.translate.active);
   });
 
