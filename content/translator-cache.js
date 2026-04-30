@@ -239,7 +239,7 @@
         this.translationMode = 'replace';
         this.notifyStatusChange();
 
-        this.showNotification(`${applied} von ${allTexts.length} Texten aus Cache geladen`, 'success');
+        console.log(`[SWT] ${applied} von ${allTexts.length} Texten aus Cache geladen`);
         return true;
       }
 
