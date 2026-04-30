@@ -80,7 +80,7 @@ async function loadSettings() {
       'pageBatchSize', 'useCacheFirst',
       // Cache
       'cacheServerEnabled', 'cacheServerUrl', 'cacheServerMode',
-      'cacheServerTimeout', 'autoLoadCache',
+      'cacheServerTimeout',
       // Sprachen
       'languagesLibre', 'languagesLM',
     ]);
@@ -134,7 +134,6 @@ async function loadSettings() {
     setVal('cacheServerUrl', settings.cacheServerUrl || '');
     setVal('cacheServerMode', settings.cacheServerMode || 'server-only');
     setVal('cacheServerTimeout', settings.cacheServerTimeout || 5000);
-    setChecked('autoLoadCache', settings.autoLoadCache || false);
     updateCacheServerUI(settings.cacheServerEnabled !== false);
     updateCacheServerFields();
 
@@ -404,7 +403,7 @@ async function saveSettings() {
       
       // LM Studio
       lmStudioUrl: getVal('lmStudioUrl', '').trim(),
-      lmStudioModel: getVal('lmStudioModel', ''),
+      lmStudioModel: getVal('lmStudioModel', '') || (await chrome.storage.sync.get('lmStudioModel')).lmStudioModel || '',
       lmStudioTemperature: getFloat('lmStudioTemperature', 0.1),
       lmStudioMaxTokens: getInt('lmStudioMaxTokens', 2000),
       
@@ -427,7 +426,6 @@ async function saveSettings() {
       cacheServerUrl: getVal('cacheServerUrl', '').trim(),
       cacheServerMode: getVal('cacheServerMode', 'server-only'),
       cacheServerTimeout: getInt('cacheServerTimeout', 5000),
-      autoLoadCache: getChecked('autoLoadCache', false),
 
       // Sprachenlisten
       languagesLibre,
@@ -461,8 +459,7 @@ async function resetSettings() {
     cacheServerEnabled: true,
     cacheServerUrl: '',
     cacheServerMode: 'server-only',
-    cacheServerTimeout: 5000,
-    autoLoadCache: false
+    cacheServerTimeout: 5000
   };
 
   try {
