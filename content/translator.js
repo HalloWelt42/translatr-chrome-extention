@@ -121,15 +121,17 @@ class SmartTranslator {
     if (!chrome.runtime?.id) return;
 
     await this.loadSettings();
-    
+
     // Debug: Strategie prüfen
     const strategy = this.getActiveStrategy?.();
-    
-    this.setupEventListeners();
-    this.setupUrlTracking();
 
-    // Cache-Check
+    this.setupEventListeners();
+
+    // Warten bis DOM stabil ist (SPA fertig gerendert), dann Cache prüfen
+    await this.waitForDomStable();
     await this.checkForCachedTranslation();
+
+    this.setupUrlTracking();
 
     // Message Listener nur einmal registrieren (global)
     if (!window.__swtMessageListenerAdded) {
@@ -158,6 +160,7 @@ class SmartTranslator {
               'showSelectionIcon', 'enableTTS', 'showOriginalInTooltip',
               'showAlternatives', 'highlightTranslated', 'skipCodeBlocks',
               'skipBlockquotes', 'fixInlineSpacing', 'useCacheFirst',
+              'autoLoadCache', 'navReloadCache',
             ];
             
             if (booleanSettings.includes(key)) {
@@ -214,11 +217,13 @@ class SmartTranslator {
       this.handleUrlChange('hashchange');
     });
     
-    // 4. Fallback: Polling für SPAs (nur Pfad, Query-Parameter ignorieren)
+    // 4. Fallback: Polling für SPAs
+    // Standard: nur Pfad. Mit navReloadCache: auch Query-Parameter
     this.urlCheckInterval = setInterval(() => {
       if (!chrome.runtime?.id) { clearInterval(this.urlCheckInterval); return; }
-      var current = window.location.origin + window.location.pathname;
-      var last = this.lastUrl ? new URL(this.lastUrl).origin + new URL(this.lastUrl).pathname : '';
+      var navMode = this.settings?.navReloadCache;
+      var current = window.location.origin + window.location.pathname + (navMode ? window.location.search : '');
+      var last = this.lastUrl ? (() => { var u = new URL(this.lastUrl); return u.origin + u.pathname + (navMode ? u.search : ''); })() : '';
       if (current !== last) {
         this.handleUrlChange('polling');
       }
@@ -260,29 +265,58 @@ class SmartTranslator {
     
     // Nochmal prüfen ob URL sich wirklich geändert hat
     if (url === this.lastUrl) return;
-    
-    // Bei SPA-Navigation mit aktiver Übersetzung: Seite neu laden
-    // Verhindert "Schatten" von alten Übersetzungen
+
+    // Bei SPA-Navigation mit aktiver Übersetzung:
+    // navReloadCache -> State zurücksetzen und Cache der neuen Seite laden
+    // Sonst -> Seite neu laden um "Schatten" alter Übersetzungen zu verhindern
     if (this.isTranslated && !this._reloadPending) {
-      this._reloadPending = true;
-      window.location.reload();
+      const self = this;
+      chrome.storage.sync.get({ navReloadCache: false }, (s) => {
+        if (s.navReloadCache) {
+          self._applyNavCacheReload(url);
+        } else {
+          self._reloadPending = true;
+          window.location.reload();
+        }
+      });
       return;
     }
-    
+
     this.lastUrl = url;
-    
+
     // State zurücksetzen
     this.resetTranslationState();
-    
+
     // Cache-Key für neue URL generieren
     this.pageUrl = url;
     this.cacheKey = this.generateCacheKey();
-    // Nach kurzer Verzögerung (DOM muss sich aufbauen) Cache prüfen
-    setTimeout(() => {
-      this.checkForCachedTranslation();
-    }, 300);
+
+    // navReloadCache: DOM stabilisieren, Cache laden, Rest übersetzen
+    chrome.storage.sync.get({ navReloadCache: false }, async (s) => {
+      await this.waitForDomStable();
+      if (s.navReloadCache) {
+        await this.loadCachedTranslation();
+        this.translatePage('continue');
+      } else {
+        this.checkForCachedTranslation();
+      }
+    });
   }
   
+  async _applyNavCacheReload(url) {
+    // Alte Übersetzungen zurücksetzen
+    this.restorePage();
+    this.lastUrl = url;
+    this.resetTranslationState();
+    this.pageUrl = url;
+    this.cacheKey = this.generateCacheKey();
+    // Warten bis SPA fertig gerendert hat
+    await this.waitForDomStable();
+    await this.loadCachedTranslation();
+    // Nicht gecachte Texte nachübersetzen
+    this.translatePage('continue');
+  }
+
   resetTranslationState() {
     // Übersetzungs-State zurücksetzen
     this.isTranslated = false;
@@ -334,6 +368,37 @@ class SmartTranslator {
     
   }
 
+  // Wartet bis der DOM stabil ist (keine Mutationen fuer quietMs)
+  waitForDomStable(quietMs = 800, maxMs = 5000) {
+    return new Promise(resolve => {
+      let timer = null;
+      const timeout = setTimeout(() => {
+        if (observer) observer.disconnect();
+        resolve();
+      }, maxMs);
+
+      const observer = new MutationObserver(() => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          observer.disconnect();
+          clearTimeout(timeout);
+          resolve();
+        }, quietMs);
+      });
+
+      observer.observe(document.body || document.documentElement, {
+        childList: true, subtree: true
+      });
+
+      // Falls DOM schon stabil ist (keine Mutation innerhalb quietMs)
+      timer = setTimeout(() => {
+        observer.disconnect();
+        clearTimeout(timeout);
+        resolve();
+      }, quietMs);
+    });
+  }
+
   async loadSettings() {
     this.settings = await chrome.storage.sync.get([
       'serviceUrl', 'apiKey', 'sourceLang', 'targetLang',
@@ -341,7 +406,7 @@ class SmartTranslator {
       'enableTTS', 'highlightTranslated',
       'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
       'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioContext',
-      'cacheServerEnabled', 'cacheServerMode', 'autoLoadCache',
+      'cacheServerEnabled', 'cacheServerMode', 'autoLoadCache', 'navReloadCache',
     ]);
 
     // String-Defaults
@@ -845,7 +910,8 @@ class SmartTranslator {
         return;
       }
 
-      this._plannedNodes = total;
+      // Continue-Modus: Gesamtzahl = verbleibende + bereits übersetzte
+      this._plannedNodes = total + this.originalTexts.size;
 
       const batchSettings = await chrome.storage.sync.get(['pageBatchSize', 'lmBatchSize']);
       const batchSize = Math.max(1, Math.min(50, batchSettings.pageBatchSize || batchSettings.lmBatchSize || 20));
@@ -1176,11 +1242,14 @@ class SmartTranslator {
             remaining = this.findTranslatableTextNodes().length;
           }
         }
+        const translatedCount = this.originalTexts.size;
+        const plannedTotal = this._plannedNodes || 0;
         sendResponse({
           isTranslated: this.isTranslated,
           isTranslating: !!this.progressOverlay,
           mode: this.translationMode,
-          translatedCount: this.originalTexts.size,
+          translatedCount: translatedCount,
+          remainingFromTotal: plannedTotal > 0 ? Math.max(0, plannedTotal - translatedCount) : 0,
           remaining: remaining,
           cacheAvailable: this._cacheAvailable || false,
           cacheSource: this._cacheSource || null,
