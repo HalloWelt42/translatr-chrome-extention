@@ -568,24 +568,74 @@ body {
 }
 
 /* Kompakte Toggle-Box */
-.toggle-box {
+.toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 0 12px;
+  padding: 6px 10px;
 }
 
-.toggle-row {
+.toggle-row-compact {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text);
+  padding: 2px 0;
 }
 
-.toggle-row:not(:last-child) {
-  border-bottom: 1px solid var(--border-subtle);
+.toggle-sm {
+  width: 30px;
+  height: 16px;
+}
+
+.toggle-sm .toggle-slider::before {
+  height: 10px;
+  width: 10px;
+}
+
+.toggle-sm input:checked + .toggle-slider::before {
+  transform: translateX(14px);
+}
+
+/* Einklappbare Sektionen */
+.collapsible {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.collapsible::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--text-secondary);
+  border-bottom: 1.5px solid var(--text-secondary);
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.collapsible.collapsed::before {
+  transform: rotate(-45deg);
+}
+
+.collapsible-content {
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.2s;
+  max-height: 500px;
+  opacity: 1;
+}
+
+.collapsible-content.collapsed {
+  max-height: 0;
+  opacity: 0;
 }
 
 /* Cache-Einträge scrollen innerhalb des verfügbaren Platzes */

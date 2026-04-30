@@ -91,44 +91,50 @@
       </div>
 
       <div class="actions-section">
-        <h3 data-i18n="spPageActions">Seitenaktionen</h3>
-        <div class="actions-grid">
-          <div class="action-card" id="translatePage">
-            <span data-swt-icon="document"></span>
-            <span data-i18n="btnTranslatePage">Seite übersetzen</span>
+        <h3 class="collapsible" id="actionsHeader" data-i18n="spPageActions">Seitenaktionen</h3>
+        <div class="collapsible-content" id="actionsContent">
+          <div class="actions-grid">
+            <div class="action-card" id="translatePage">
+              <span data-swt-icon="document"></span>
+              <span data-i18n="btnTranslatePage">Seite übersetzen</span>
+            </div>
+            <div class="action-card" id="continuePage">
+              <span data-swt-icon="play"></span>
+              <span data-i18n="btnResume">Fortsetzen</span>
+              <span class="action-badge" id="cacheProgress">--</span>
+            </div>
+            <div class="action-card" id="restorePage">
+              <span data-swt-icon="refresh"></span>
+              <span data-i18n="statusOriginal">Original</span>
+            </div>
+            <div class="action-card" id="loadCache">
+              <span data-swt-icon="download"></span>
+              <span data-i18n="spLoadCache">Cache laden</span>
+            </div>
           </div>
-          <div class="action-card" id="continuePage">
-            <span data-swt-icon="play"></span>
-            <span data-i18n="btnResume">Fortsetzen</span>
-            <span class="action-badge" id="cacheProgress">–</span>
-          </div>
-          <div class="action-card" id="restorePage">
-            <span data-swt-icon="refresh"></span>
-            <span data-i18n="statusOriginal">Original</span>
-          </div>
-          <div class="action-card" id="loadCache">
-            <span data-swt-icon="download"></span>
-            <span data-i18n="spLoadCache">Cache laden</span>
+
+          <div class="pipeline-view hidden" id="pipelineView">
+            <div class="pipeline-label" data-i18n="spPipelineSource">Quelle</div>
+            <div class="pipeline-steps" id="pipelineSteps"></div>
           </div>
         </div>
 
-        <div class="pipeline-view hidden" id="pipelineView">
-          <div class="pipeline-label" data-i18n="spPipelineSource">Quelle</div>
-          <div class="pipeline-steps" id="pipelineSteps"></div>
-        </div>
-
-        <div class="toggle-box mt-sm">
-          <div class="toggle-row">
+        <div class="toggle-grid mt-sm">
+          <div class="toggle-row-compact">
             <span data-i18n="spToggleHover">Original bei Hover</span>
-            <label class="toggle"><input type="checkbox" id="toggleHoverOriginal" checked><span class="toggle-slider"></span></label>
+            <label class="toggle toggle-sm"><input type="checkbox" id="toggleHoverOriginal" checked><span class="toggle-slider"></span></label>
           </div>
-          <div class="toggle-row">
+          <div class="toggle-row-compact">
             <span data-i18n="spToggleHighlight">Markierung anzeigen</span>
-            <label class="toggle"><input type="checkbox" id="toggleHighlight" checked><span class="toggle-slider"></span></label>
+            <label class="toggle toggle-sm"><input type="checkbox" id="toggleHighlight" checked><span class="toggle-slider"></span></label>
           </div>
-          <div class="toggle-row">
-            <span data-i18n="spToggleAutoCache">Cache automatisch laden</span>
-            <label class="toggle"><input type="checkbox" id="toggleAutoLoadCache"><span class="toggle-slider"></span></label>
+          <div class="toggle-row-compact">
+            <span data-i18n="spToggleAutoCache">Cache laden</span>
+            <label class="toggle toggle-sm"><input type="checkbox" id="toggleAutoLoadCache"><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row-compact">
+            <span data-i18n="spToggleNavCache">Bei Navigation</span>
+            <label class="toggle toggle-sm"><input type="checkbox" id="toggleNavReloadCache"><span class="toggle-slider"></span></label>
           </div>
         </div>
       </div>

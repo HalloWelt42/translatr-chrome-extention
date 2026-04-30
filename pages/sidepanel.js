@@ -31,13 +31,13 @@ const PageState = {
       continue: {
         enabled: !busy && state === 'partial',
         badge: busy
-          ? { text: response.translatedCount || '', type: 'partial' }
+          ? { text: response.remainingFromTotal || '', type: 'partial' }
           : state === 'partial'
             ? { text: response.remaining, type: 'partial' }
             : { text: '', type: '' }
       },
       restore: {
-        enabled: !busy && !autoLoad && (state === 'translated' || state === 'partial')
+        enabled: !busy && (state === 'translated' || state === 'partial')
       },
       loadCache: {
         enabled: !busy && state === 'idle' && hasCache
@@ -451,11 +451,29 @@ class SidePanelController {
       });
     }
 
+    // Einklappbare Sektionen
+    const actionsHeader = document.getElementById('actionsHeader');
+    const actionsContent = document.getElementById('actionsContent');
+    if (actionsHeader && actionsContent) {
+      chrome.storage.sync.get({ actionsCollapsed: false }, (s) => {
+        if (s.actionsCollapsed) {
+          actionsHeader.classList.add('collapsed');
+          actionsContent.classList.add('collapsed');
+        }
+      });
+      actionsHeader.addEventListener('click', () => {
+        const collapsed = actionsHeader.classList.toggle('collapsed');
+        actionsContent.classList.toggle('collapsed');
+        chrome.storage.sync.set({ actionsCollapsed: collapsed });
+      });
+    }
+
     // Toggles: ID -> { storageKey, default }
     const toggles = {
       toggleHoverOriginal: { key: 'showOriginalInTooltip', default: true },
       toggleHighlight:     { key: 'highlightTranslated',   default: true },
-      toggleAutoLoadCache: { key: 'autoLoadCache',         default: false }
+      toggleAutoLoadCache: { key: 'autoLoadCache',         default: false },
+      toggleNavReloadCache: { key: 'navReloadCache',       default: false }
     };
 
     for (const [id, cfg] of Object.entries(toggles)) {
