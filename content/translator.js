@@ -129,7 +129,14 @@ class SmartTranslator {
 
     // Warten bis DOM stabil ist (SPA fertig gerendert), dann Cache prüfen
     await this.waitForDomStable();
-    await this.checkForCachedTranslation();
+
+    if (this.settings.autoLoadCache) {
+      // Direkt Cache laden ohne Vorcheck (Stichproben können fehlschlagen)
+      const loaded = await this.loadCachedTranslation();
+      if (!loaded) this.notifyStatusChange();
+    } else {
+      await this.checkForCachedTranslation();
+    }
 
     this.setupUrlTracking();
 
@@ -295,7 +302,8 @@ class SmartTranslator {
     chrome.storage.sync.get({ navReloadCache: false }, async (s) => {
       await this.waitForDomStable();
       if (s.navReloadCache) {
-        await this.loadCachedTranslation();
+        const loaded = await this.loadCachedTranslation();
+        if (!loaded) this.notifyStatusChange();
       } else {
         this.checkForCachedTranslation();
       }
@@ -311,7 +319,8 @@ class SmartTranslator {
     this.cacheKey = this.generateCacheKey();
     // Warten bis SPA fertig gerendert hat
     await this.waitForDomStable();
-    await this.loadCachedTranslation();
+    const loaded = await this.loadCachedTranslation();
+    if (!loaded) this.notifyStatusChange();
   }
 
   resetTranslationState() {

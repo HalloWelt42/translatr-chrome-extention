@@ -185,6 +185,7 @@
     // URL-Konsistenz prüfen
     const currentUrl = window.location.href;
     if (this.pageUrl !== currentUrl) {
+      this.setCacheAvailable(false);
       return false;
     }
     
@@ -194,6 +195,7 @@
       const allTexts = textNodes.map(n => n.textContent.trim()).filter(t => t.length >= 2);
       
       if (allTexts.length === 0) {
+        this.setCacheAvailable(false);
         return false;
       }
       
@@ -206,7 +208,7 @@
       );
       
       if (result.translations.size === 0) {
-        this.showNotification(chrome.i18n.getMessage('msgNoCacheFound'), 'info');
+        this.setCacheAvailable(false);
         return false;
       }
       
@@ -228,18 +230,24 @@
       });
       
       if (applied > 0) {
-        this.isTranslated = true;
+        // Cache-Verfügbarkeit setzen BEVOR Status-Change
+        this.setCacheAvailable(true, result.source || 'server', result.translations.size);
+
+        // Vollständig oder teilweise aus Cache geladen?
+        const isComplete = applied >= allTexts.length;
+        this.isTranslated = isComplete;
         this.translationMode = 'replace';
         this.notifyStatusChange();
 
-        const sourceText = result.source === 'server' ? 'Server-Cache' : 'Lokalem Cache';
-        this.showNotification(`${applied} von ${allTexts.length} Texten geladen`, 'success');
+        this.showNotification(`${applied} von ${allTexts.length} Texten aus Cache geladen`, 'success');
         return true;
       }
-      
+
+      this.setCacheAvailable(false);
       return false;
     } catch (e) {
       console.warn('[SWT] Cache load error:', e);
+      this.setCacheAvailable(false);
       return false;
     }
   };

@@ -119,8 +119,10 @@
     this.translatedTexts.clear();
     this.isTranslated = false;
     this.translationMode = null;
+    this._plannedNodes = 0;
 
-    this.notifyStatusChange();
+    // Cache bleibt verfügbar, aber nicht automatisch laden
+    this.setCacheAvailable(this._cacheAvailable, this._cacheSource, this._serverCacheCount);
     this.showNotification(chrome.i18n.getMessage('msgOriginalRestored'), 'info');
   };
 

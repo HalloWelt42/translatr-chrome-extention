@@ -125,7 +125,7 @@
   "spToggleHover": { "message": "Original bei Hover" },
   "spToggleHighlight": { "message": "Markierung anzeigen" },
   "spToggleAutoCache": { "message": "Cache laden" },
-  "spToggleNavCache": { "message": "Bei Navigation" },
+  "spToggleNavCache": { "message": "Nachladen (SPA)" },
   "spCacheTotalSize": { "message": "Gesamtgröße" },
   "spCacheEntries": { "message": "Einträge" },
   "spCacheRefresh": { "message": "Aktualisieren" },

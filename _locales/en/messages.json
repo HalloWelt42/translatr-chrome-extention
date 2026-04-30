@@ -125,7 +125,7 @@
   "spToggleHover": { "message": "Show original on hover" },
   "spToggleHighlight": { "message": "Show highlighting" },
   "spToggleAutoCache": { "message": "Load cache" },
-  "spToggleNavCache": { "message": "On navigation" },
+  "spToggleNavCache": { "message": "Reload (SPA)" },
   "spCacheTotalSize": { "message": "Total size" },
   "spCacheEntries": { "message": "Entries" },
   "spCacheRefresh": { "message": "Refresh" },
