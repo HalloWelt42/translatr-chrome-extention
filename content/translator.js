@@ -291,12 +291,11 @@ class SmartTranslator {
     this.pageUrl = url;
     this.cacheKey = this.generateCacheKey();
 
-    // navReloadCache: DOM stabilisieren, Cache laden, Rest übersetzen
+    // navReloadCache: DOM stabilisieren, dann Cache laden
     chrome.storage.sync.get({ navReloadCache: false }, async (s) => {
       await this.waitForDomStable();
       if (s.navReloadCache) {
         await this.loadCachedTranslation();
-        this.translatePage('continue');
       } else {
         this.checkForCachedTranslation();
       }
@@ -313,8 +312,6 @@ class SmartTranslator {
     // Warten bis SPA fertig gerendert hat
     await this.waitForDomStable();
     await this.loadCachedTranslation();
-    // Nicht gecachte Texte nachübersetzen
-    this.translatePage('continue');
   }
 
   resetTranslationState() {
