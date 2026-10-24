@@ -22,17 +22,16 @@ const CacheServer = {
         cacheServerUrl: '',
         cacheServerMode: 'server-only',  // Default: nur Server
         cacheServerTimeout: 5000,
-        apiType: 'libretranslate',
-        lmStudioModel: ''
+        apiType: SWT.Providers.DEFAULT,
+        lmStudioModel: '',
+        leitstelleModel: ''
       });
       
       this.config.enabled = stored.cacheServerEnabled;
       this.config.serverUrl = stored.cacheServerUrl.replace(/\/$/, '');
       this.config.mode = stored.cacheServerMode;
       this.config.timeout = stored.cacheServerTimeout;
-      this.config.translator = stored.apiType === 'lmstudio' && stored.lmStudioModel
-        ? `lmstudio:${stored.lmStudioModel}`
-        : stored.apiType || 'unknown';
+      this.config.translator = SWT.Providers.translatorId(stored);
       
       // Status zurücksetzen bei Neuinitialisierung
       this.status = { online: null, lastCheck: 0, failCount: 0, lastError: null };
@@ -693,7 +692,7 @@ CacheServer.init();
 // Bei Settings-Änderung neu initialisieren
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && (changes.cacheServerEnabled || changes.cacheServerUrl || 
-      changes.cacheServerMode || changes.apiType || changes.lmStudioModel)) {
+      changes.cacheServerMode || changes.apiType || changes.lmStudioModel || changes.leitstelleModel)) {
     CacheServer.init();
   }
 });

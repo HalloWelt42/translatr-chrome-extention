@@ -1,4 +1,18 @@
-importScripts('background/cache-server-bg.js', 'background/prompts.js', 'background/providers/libre-translate.js', 'background/providers/lm-studio.js');
+importScripts(
+  'shared/providers.js',
+  'background/cache-server-bg.js',
+  'background/prompts.js',
+  'background/providers/chat-provider.js',
+  'background/providers/libre-translate.js',
+  'background/providers/lm-studio.js',
+  'background/providers/leitstelle.js'
+);
+
+// Chat-Anbieter je Weg (Leitstelle ist Vorgabe, LM Studio die Alternative ohne Leitstelle)
+const CHAT_PROVIDERS = {
+  leitstelle: LeitstelleProvider,
+  lmstudio: LMStudioProvider
+};
 
 // ==========================================================================
 // TRANSLATOR BACKGROUND
@@ -7,8 +21,9 @@ importScripts('background/cache-server-bg.js', 'background/prompts.js', 'backgro
 class TranslatorBackground {
   constructor() {
     this.init();
+    LeitstelleTransport.onWait = (state) => this.reportProviderWait(state);
     
-    // Translation Queue für LM Studio Batch-Prefetch
+    // Translation Queue für Sprachmodell-Batch-Prefetch
     this.translationQueue = {
       pending: new Map(),      // text → { resolve, reject, source, target, pageUrl }
       buffer: new Map(),       // text → translation (Cache für bereits übersetzte)
@@ -107,7 +122,7 @@ class TranslatorBackground {
   async migrateSettings() {
     const settings = await chrome.storage.sync.get();
     
-    // Wenn alte Settings, aber kein apiType → Default auf LibreTranslate
+    // Alte Installationen ohne apiType liefen stillschweigend über LibreTranslate: dabei bleiben
     if (!settings.apiType) {
       await chrome.storage.sync.set({
         apiType: 'libretranslate',
@@ -254,6 +269,15 @@ class TranslatorBackground {
           sendResponse(batchResult);
           break;
 
+
+        case 'TEST_LEITSTELLE':
+          sendResponse(await LeitstelleTransport.testConnection({ leitstelleUrl: request.url }));
+          break;
+
+        case 'CANCEL_PROVIDER_WAIT':
+          LeitstelleTransport.cancel();
+          sendResponse({ success: true });
+          break;
 
         case 'GET_HISTORY':
           const history = await this.getHistory();
@@ -431,7 +455,7 @@ class TranslatorBackground {
         const hash = await CacheServer.computeHash(pageUrl, text, langPair);
         const cached = await CacheServer.get(hash, pageUrl);
         if (cached) {
-          const cachedApiType = (await chrome.storage.sync.get('apiType')).apiType || 'libretranslate';
+          const cachedApiType = SWT.Providers.current((await chrome.storage.sync.get('apiType')).apiType);
           return {
             success: true,
             translatedText: cached.translated,
@@ -447,29 +471,20 @@ class TranslatorBackground {
       }
     }
 
-    // 2. Normale Übersetzung -- nur wenn API konfiguriert
-    const settings = await chrome.storage.sync.get([
-      'apiType', 'serviceUrl', 'apiKey',
-      'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
-      'lmStudioMaxTokens', 'lmStudioContext', 'lmStudioCustomPrompt',
-      'enableLLMFallback'
-    ]);
+    // 2. Normale Übersetzung -- nur wenn der Weg eingerichtet ist
+    const settings = await this.loadProviderSettings(['enableLLMFallback']);
+    const apiType = settings.apiType;
 
-    const apiType = settings.apiType || 'libretranslate';
-
-    // Prüfen ob API konfiguriert ist
-    if (apiType === 'libretranslate' && !settings.serviceUrl) {
-      return { success: false, error: chrome.i18n.getMessage('errLibreNotConfigured') };
-    }
-    if (apiType === 'lmstudio' && !settings.lmStudioUrl) {
-      return { success: false, error: 'LM Studio nicht konfiguriert. Bitte URL in den Einstellungen setzen.' };
+    const configError = this.providerConfigError(settings);
+    if (configError) {
+      return { success: false, error: configError };
     }
 
     let result;
 
-    if (apiType === 'lmstudio') {
+    if (SWT.Providers.isLlm(apiType)) {
       // Nutze Queue für Batch-Prefetch (effizienter als Einzel-Requests)
-      result = await this.translateWithLMStudioQueue(text, source, target, pageUrl, settings, bypassCache);
+      result = await this.translateWithLlmQueue(text, source, target, pageUrl, settings, bypassCache);
 
       // Fallback auf LibreTranslate wenn aktiviert und Fehler
       if (!result.success && settings.enableLLMFallback) {
@@ -487,24 +502,66 @@ class TranslatorBackground {
     return result;
   }
 
+  /** Einstellungen des gewählten Wegs; apiType ist immer gesetzt (Vorgabe Leitstelle) */
+  async loadProviderSettings(extraKeys = []) {
+    const settings = await chrome.storage.sync.get([
+      'apiType', 'serviceUrl', 'apiKey',
+      'leitstelleUrl', 'leitstelleModel',
+      'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
+      'lmStudioMaxTokens', 'lmStudioContext', 'lmStudioCustomPrompt',
+      ...extraKeys
+    ]);
+    settings.apiType = SWT.Providers.current(settings.apiType);
+    return settings;
+  }
+
+  chatProvider(settings) {
+    return CHAT_PROVIDERS[settings.apiType];
+  }
+
+  providerConfigError(settings) {
+    if (SWT.Providers.isLlm(settings.apiType)) {
+      return this.chatProvider(settings).configError(settings);
+    }
+    return settings.serviceUrl ? null : chrome.i18n.getMessage('errLibreNotConfigured');
+  }
+
+  /** Wartestand der Leitstelle sichtbar machen: Symbol, Titel und für alle Oberflächen im lokalen Speicher */
+  async reportProviderWait(state) {
+    try {
+      if (state) {
+        await chrome.storage.local.set({ [SWT.Providers.WAIT_KEY]: { ...state, at: Date.now() } });
+        await chrome.action.setBadgeText({ text: '…' });
+        await chrome.action.setBadgeBackgroundColor({ color: '#3b82f6' });
+        await chrome.action.setTitle({ title: state.text });
+      } else {
+        await chrome.storage.local.remove(SWT.Providers.WAIT_KEY);
+        await chrome.action.setBadgeText({ text: '' });
+        await chrome.action.setTitle({ title: chrome.i18n.getMessage('appDefaultTitle') });
+      }
+    } catch (e) {
+      console.warn('[Leitstelle] Wartestand:', e.message);
+    }
+  }
+
   async translateWithLibreTranslate(text, source, target, settings) {
     return LibreTranslateProvider.translate(text, source, target, settings);
   }
 
-  async translateWithLMStudio(text, source, target, settings) {
-    return LMStudioProvider.translate(
+  async translateWithLlm(text, source, target, settings) {
+    return this.chatProvider(settings).translate(
       text, source, target, settings,
       (usage) => this.updateTokenStats(usage)
     );
   }
 
   /**
-   * Translation Queue für LM Studio (v3.11.5)
+   * Translation Queue für die Sprachmodell-Wege (v3.11.5)
    * Sammelt einzelne Übersetzungsanfragen in GEORDNETER Queue
    * Sendet sie als Batch und gibt Ergebnisse in EXAKT gleicher Reihenfolge zurück
    * Index-basierte Zuordnung statt Text-Matching für 100% Reihenfolge-Garantie
    */
-  async translateWithLMStudioQueue(text, source, target, pageUrl, settings, bypassCache = false) {
+  async translateWithLlmQueue(text, source, target, pageUrl, settings, bypassCache = false) {
     const queue = this.translationQueue;
     const normalizedText = text.trim();
     const langPair = `${source || 'auto'}:${target || 'de'}`;
@@ -527,7 +584,7 @@ class TranslatorBackground {
       return {
         success: true,
         translatedText: cached,
-        apiType: 'lmstudio',
+        apiType: settings.apiType,
         source: 'buffer',
         fromBuffer: true,
         tokens: 0
@@ -545,7 +602,7 @@ class TranslatorBackground {
           return {
             success: true,
             translatedText: cached.translated,
-            apiType: 'lmstudio',
+            apiType: settings.apiType,
             source: 'cache',
             fromCache: true,
             tokens: 0
@@ -638,15 +695,21 @@ class TranslatorBackground {
     // Texte in EXAKTER Reihenfolge extrahieren
     const texts = entries.map(entry => entry.text);
     const { source, target, pageUrl, langPair, settings } = entries[0];
+    const apiType = settings.apiType;
     
     // Sammle Übersetzungen für Bulk-Cache-Speicherung
     const toCache = [];
     
     try {
-      // Batch-Übersetzung mit LM Studio
-      const result = await this.batchTranslateWithLMStudio(texts, source, target, settings);
-      
-      if (result.success && result.items && result.items.length === texts.length) {
+      const result = await this.batchTranslateWithLlm(texts, source, target, settings);
+
+      if (result.fatal) {
+        // Schlüssel, Rechte oder Abbruch: Einzelversuche ändern nichts, Meldung an alle Wartenden
+        for (const entry of entries) {
+          entry.resolve({ success: false, error: result.error, fatal: true, apiType });
+          queue.pending.delete(entry.bufferKey);
+        }
+      } else if (result.success && result.items && result.items.length === texts.length) {
         // INDEX-BASIERTE Zuordnung: result.items[i] gehört zu entries[i]
         for (let i = 0; i < entries.length; i++) {
           const entry = entries[i];
@@ -670,7 +733,7 @@ class TranslatorBackground {
           entry.resolve({
             success: true,
             translatedText: translation,
-            apiType: 'lmstudio',
+            apiType,
             tokens: Math.floor((result.tokens || 0) / texts.length)
           });
           
@@ -702,7 +765,7 @@ class TranslatorBackground {
           entry.resolve({
             success: true,
             translatedText: translation,
-            apiType: 'lmstudio',
+            apiType,
             tokens: Math.floor((result.tokens || 0) / texts.length)
           });
           
@@ -713,7 +776,7 @@ class TranslatorBackground {
         // Batch fehlgeschlagen - einzeln übersetzen (in Reihenfolge!)
         for (const entry of entries) {
           try {
-            const singleResult = await this.translateWithLMStudio(entry.text, source, target, settings);
+            const singleResult = await this.translateWithLlm(entry.text, source, target, settings);
             const translation = singleResult.success ? singleResult.translatedText : entry.text;
             
             queue.buffer.set(entry.bufferKey, translation);
@@ -730,11 +793,11 @@ class TranslatorBackground {
             entry.resolve(singleResult.success ? singleResult : {
               success: true,
               translatedText: entry.text,
-              apiType: 'lmstudio',
+              apiType,
               tokens: 0
             });
           } catch (e) {
-            entry.resolve({ success: true, translatedText: entry.text, apiType: 'lmstudio', tokens: 0 });
+            entry.resolve({ success: true, translatedText: entry.text, apiType, tokens: 0 });
           }
           
           queue.pending.delete(entry.bufferKey);
@@ -753,7 +816,7 @@ class TranslatorBackground {
       
       // Alle entries mit Fehler auflösen (nicht ablehnen, damit Content-Script weiterarbeitet)
       for (const entry of entries) {
-        entry.resolve({ success: true, translatedText: entry.text, apiType: 'lmstudio', tokens: 0, error: e.message });
+        entry.resolve({ success: true, translatedText: entry.text, apiType: settings.apiType, tokens: 0, error: e.message });
         queue.pending.delete(entry.bufferKey);
       }
     }
@@ -825,17 +888,13 @@ class TranslatorBackground {
     let totalTokens = 0;
     
     if (textsToTranslate.length > 0) {
-      const settings = await chrome.storage.sync.get([
-        'apiType', 'serviceUrl', 'apiKey',
-        'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature',
-        'lmStudioMaxTokens', 'lmStudioContext', 'lmStudioCustomPrompt',
-        'lmBatchSize', 'lmMaxBatchTokens', 'enableTrueBatch', 'enableSmartChunking'
-      ]);
+      const settings = await this.loadProviderSettings(['lmMaxBatchTokens', 'enableSmartChunking']);
 
-      const apiType = settings.apiType || 'libretranslate';
-
-      if (apiType === 'lmstudio') {
-        const result = await this.batchTranslateWithLMStudio(textsToTranslate, source, target, settings);
+      if (SWT.Providers.isLlm(settings.apiType)) {
+        const result = await this.batchTranslateWithLlm(textsToTranslate, source, target, settings);
+        if (result.fatal) {
+          return { success: false, error: result.error, fatal: true, items: [] };
+        }
         if (result.success) {
           translatedResults = result.items;
           totalTokens = result.tokens || 0;
@@ -886,13 +945,12 @@ class TranslatorBackground {
     };
   }
 
-  async batchTranslateWithLMStudio(texts, source, target, settings) {
+  async batchTranslateWithLlm(texts, source, target, settings) {
+    const provider = this.chatProvider(settings);
     try {
-      const url = settings.lmStudioUrl;
-      const model = settings.lmStudioModel;
-      
-      if (!model) {
-        throw new Error(chrome.i18n.getMessage('errNoModel'));
+      const configError = provider.configError(settings);
+      if (configError) {
+        return { success: false, error: configError, fatal: true, items: [] };
       }
 
       // Batch-Einstellungen laden (v3.5)
@@ -915,11 +973,9 @@ class TranslatorBackground {
         const chunkWithPlaceholders = chunk.map(text => text.replace(/\n/g, NEWLINE_PLACEHOLDER));
         
         // Batch-Prompt mit Sprachplatzhaltern
-        const sourceLabel = source === 'auto' ? 'der Quellsprache' : LMStudioProvider._getLanguageName(source);
-        const targetLabel = LMStudioProvider._getLanguageName(target);
         const systemPrompt = BATCH_PROMPT
-          .replace(/{source}/g, sourceLabel)
-          .replace(/{target}/g, targetLabel)
+          .replace(/{source}/g, provider.sourceLabel(source))
+          .replace(/{target}/g, provider.languageName(target))
           + `\n\nWICHTIG: Das Zeichen "${NEWLINE_PLACEHOLDER}" markiert Zeilenumbrüche. Behalte sie exakt an der gleichen Position in der Übersetzung bei.`;
 
         // Dynamisches Token-Limit basierend auf Chunk-Größe
@@ -931,51 +987,10 @@ class TranslatorBackground {
           maxBatchTokens
         );
 
-        const response = await fetch(`${url}/v1/chat/completions`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: JSON.stringify(chunkWithPlaceholders) }
-            ],
-            temperature: settings.lmStudioTemperature || 0.1,
-            max_tokens: dynamicMaxTokens,
-            response_format: {
-              type: 'json_schema',
-              json_schema: {
-                name: 'translations',
-                strict: true,
-                schema: {
-                  type: 'object',
-                  properties: {
-                    items: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          original: { type: 'string' },
-                          translation: { type: 'string' }
-                        },
-                        required: ['original', 'translation'],
-                        additionalProperties: false
-                      }
-                    }
-                  },
-                  required: ['items'],
-                  additionalProperties: false
-                }
-              }
-            }
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
+        const result = await provider.complete(
+          provider.batchBody(systemPrompt, chunkWithPlaceholders, dynamicMaxTokens, settings),
+          settings
+        );
         const content = result.choices[0].message.content;
         const parsed = JSON.parse(content);
         
@@ -1015,7 +1030,7 @@ class TranslatorBackground {
 
             // Retry: Fehlende Texte einzeln übersetzen (Original ohne Platzhalter)
             for (const missingText of missingTexts) {
-              const retryResult = await this.translateWithLMStudio(missingText, source, target, settings);
+              const retryResult = await this.translateWithLlm(missingText, source, target, settings);
               if (retryResult.success) {
                 receivedItems.push({
                   original: missingText.replace(/\n/g, NEWLINE_PLACEHOLDER), // Für Map-Lookup
@@ -1071,12 +1086,18 @@ class TranslatorBackground {
         }
       };
     } catch (e) {
-      console.warn('LM Studio batch error:', e);
+      if (e.fatal) {
+        return { success: false, error: e.message, fatal: true, items: [] };
+      }
+      console.warn(`[${settings.apiType}] Batch-Fehler:`, e);
       // Fallback: Einzeln übersetzen
       const results = [];
       let fallbackTokens = 0;
       for (const text of texts) {
-        const result = await this.translateWithLMStudio(text, source, target, settings);
+        const result = await this.translateWithLlm(text, source, target, settings);
+        if (result.fatal) {
+          return { success: false, error: result.error, fatal: true, items: [] };
+        }
         results.push({
           original: text,
           translation: result.success ? result.translatedText : text
@@ -1124,10 +1145,6 @@ class TranslatorBackground {
     }
     
     return chunks;
-  }
-
-  buildSystemPrompt(settings, source, target) {
-    return LMStudioProvider.buildSystemPrompt(settings, source, target);
   }
 
   async sendToContentScript(tabId, message) {
@@ -1205,9 +1222,13 @@ class TranslatorBackground {
   async setDefaultSettings() {
     const defaults = {
       // API
-      apiType: 'libretranslate',
+      apiType: SWT.Providers.DEFAULT,
       serviceUrl: '',
       apiKey: '',
+
+      // Leitstelle (Schlüssel nur in chrome.storage.local)
+      leitstelleUrl: SWT.Providers.LEITSTELLE_DEFAULT_URL,
+      leitstelleModel: '',
 
       // LM Studio
       lmStudioUrl: '',

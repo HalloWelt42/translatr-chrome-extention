@@ -19,14 +19,18 @@
 
     <nav class="toc">
       <h3>Inhalt</h3>
-      <p class="toc-part">Teil 1 -- Schnellstart mit LibreTranslate</p>
+      <p class="toc-part">Vorgabe</p>
+      <ul>
+        <li><a href="#leitstelle">Über die eigene Leitstelle</a></li>
+      </ul>
+      <p class="toc-part">Teil 1 -- Schnellstart mit LibreTranslate (ohne eigene Leitstelle)</p>
       <ol>
         <li><a href="#overview">Was ist Smart Translator?</a></li>
         <li><a href="#backends">Übersetzungs-Backends</a></li>
         <li><a href="#libretranslate">LibreTranslate einrichten</a></li>
         <li><a href="#usage">Benutzung</a></li>
       </ol>
-      <p class="toc-part">Teil 2 -- Beste Ergebnisse mit LM Studio</p>
+      <p class="toc-part">Teil 2 -- LM Studio direkt (ohne eigene Leitstelle)</p>
       <ol start="5">
         <li><a href="#lmstudio">LM Studio einrichten</a></li>
         <li><a href="#bestpractice">Best Practice: Mac M4 + Qwen</a></li>
@@ -65,9 +69,42 @@
     </section>
 
     <!-- ================================================================ -->
+    <section id="leitstelle">
+      <h2>Vorgabe: über die eigene Leitstelle</h2>
+      <p>Wer eine eigene Leitstelle betreibt, übersetzt über sie. Die Leitstelle vermittelt jede Anfrage an das passende Sprachmodell im Heimnetz, lädt es bei Bedarf, verteilt die Last und weckt einen schlafenden Rechner. In der Erweiterung ist dafür nichts weiter einzustellen als Adresse und Schlüssel.</p>
+
+      <h3>Schritt 1: Anwendung in der Leitstelle</h3>
+      <p>In der Leitstelle unter Anwendungen die Anwendung "Übersetzer (Browser)" anlegen, mit den Rechten <code>text</code> und <code>uebersetzen</code> und der Zone <code>heim</code>. Für die Wahl des Modells eine Kette für <code>text</code> eintragen (das Übersetzungsmodell zuerst). Den Schlüssel der Anwendung kopieren.</p>
+
+      <h3>Schritt 2: Einstellungen</h3>
+      <p>In den <a href="#" class="open-options">Einstellungen</a> den Abschnitt "Leitstelle" anklicken (er ist dann aktiv) und eintragen:</p>
+      <div class="settings-example">
+        <div class="setting-row">
+          <span class="setting-label">Adresse der Leitstelle</span>
+          <code>http://192.168.178.49:8530</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Schlüssel</span>
+          <code>(Schlüssel der Anwendung einfügen)</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Modell</span>
+          <code>Kette der Leitstelle (empfohlen)</code>
+        </div>
+      </div>
+      <p>"Verbindung prüfen" fragt die Leitstelle nach den erlaubten Modellen (<code>GET /v1/models</code>, lädt kein Modell) und füllt die Modellwahl. Der Schlüssel bleibt nur in diesem Browser und wird nicht synchronisiert.</p>
+
+      <h3>Warten statt Fehler</h3>
+      <p>Ist die Leitstelle ausgelastet oder schläft der Rechner mit dem Modell, meldet die Leitstelle das mit einer Wartezeit. Die Erweiterung wartet dann geduldig, zeigt den Grund in der Seite, im Side Panel und am Symbol der Erweiterung und versucht es danach erneut. Der Stopp-Knopf der Seitenübersetzung bricht das Warten ab.</p>
+      <div class="info-box">
+        <strong>Ohne eigene Leitstelle:</strong> LibreTranslate und LM Studio direkt bleiben als Alternative wählbar, siehe die folgenden Abschnitte.
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
     <section id="backends">
       <h2>2. Übersetzungs-Backends</h2>
-      <p>Smart Translator unterstützt zwei verschiedene Übersetzungs-Backends. Du kannst in den Einstellungen zwischen beiden wechseln.</p>
+      <p>Ohne eigene Leitstelle stehen zwei Übersetzungs-Backends zur Wahl. Du kannst in den Einstellungen jederzeit zwischen Leitstelle und beiden wechseln.</p>
 
       <div class="compare-table">
         <div class="compare-col">

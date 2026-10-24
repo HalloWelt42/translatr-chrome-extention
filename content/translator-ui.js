@@ -109,6 +109,7 @@
         stopBtn.addEventListener('click', () => {
           self.translationAborted = true;
           self.abortController?.abort();
+          chrome.runtime.sendMessage({ action: 'CANCEL_PROVIDER_WAIT' }).catch(() => {});
           self.showProgress(false);
           self.showNotification('Übersetzung abgebrochen', 'error');
         });
@@ -284,6 +285,19 @@
   };
 
   /**
+   * Wartestand der Leitstelle zeigen: in der Fortschrittsanzeige, sonst als Hinweis im sichtbaren Tab
+   */
+  SmartTranslator.prototype.showProviderWait = function(state) {
+    if (!state || document.visibilityState !== 'visible') return;
+    const etaText = this.progressOverlay?.querySelector('.swt-eta-text');
+    if (etaText) {
+      etaText.textContent = state.text;
+    } else {
+      this.showNotification(state.text, 'info');
+    }
+  };
+
+  /**
    * Text vorlesen (TTS)
    */
   SmartTranslator.prototype.speak = function(text, onEnd = null) {
@@ -327,11 +341,12 @@
     const directionEl = this.progressOverlay.querySelector('.swt-progress-direction');
 
     if (providerEl) {
-      let label = apiType === 'lmstudio' ? chrome.i18n.getMessage('providerLMStudio') : chrome.i18n.getMessage('providerLibre');
-      if (apiType === 'lmstudio' && extra?.model) {
-        label += ' -- ' + extra.model.split('/').pop();
+      const isLlm = SWT.Providers.isLlm(apiType);
+      let label = SWT.Providers.label(apiType);
+      if (isLlm && extra?.model) {
+        label += ' - ' + extra.model.split('/').pop();
       }
-      if (apiType === 'lmstudio' && extra?.context && extra.context !== 'general') {
+      if (isLlm && extra?.context && extra.context !== 'general') {
         const names = { automotive: chrome.i18n.getMessage('contextShortAutomotive'), technical: chrome.i18n.getMessage('contextShortTechnical'), medical: chrome.i18n.getMessage('contextShortMedical'), legal: chrome.i18n.getMessage('contextShortLegal') };
         label += ' (' + (names[extra.context] || extra.context) + ')';
       }

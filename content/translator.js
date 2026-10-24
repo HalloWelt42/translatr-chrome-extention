@@ -156,6 +156,9 @@ class SmartTranslator {
     // Storage Listener auch nur einmal
     if (!window.__swtStorageListenerAdded) {
       window.__swtStorageListenerAdded = true;
+
+      // Wartestand der Leitstelle (ausgelastet, Rechner schläft) statt Fehler zeigen
+      SWT.Providers.onWait((state) => window.swtInstance?.showProviderWait(state));
       chrome.storage.onChanged.addListener((changes, areaName) => {
         if (areaName !== 'sync' || !chrome.runtime?.id) return;
 
@@ -411,7 +414,7 @@ class SmartTranslator {
       'showSelectionIcon', 'showOriginalInTooltip', 'showAlternatives',
       'enableTTS', 'highlightTranslated',
       'skipCodeBlocks', 'skipBlockquotes', 'fixInlineSpacing',
-      'apiType', 'lmStudioUrl', 'lmStudioModel', 'lmStudioContext',
+      'apiType', 'lmStudioContext',
       'cacheServerEnabled', 'cacheServerMode', 'autoLoadCache', 'navReloadCache',
     ]);
 
@@ -419,7 +422,7 @@ class SmartTranslator {
     this.settings.serviceUrl = this.settings.serviceUrl;
     this.settings.targetLang = this.settings.targetLang || 'de';
     this.settings.sourceLang = this.settings.sourceLang || 'auto';
-    this.settings.apiType = this.settings.apiType || 'libretranslate';
+    this.settings.apiType = SWT.Providers.current(this.settings.apiType);
 
     // Hardcoded Defaults (keine UI, nicht änderbar)
     this.settings.selectionIconDelay = 200;
@@ -874,10 +877,11 @@ class SmartTranslator {
     }
 
     const apiSettings = await chrome.storage.sync.get([
-      'apiType', 'lmStudioContext', 'lmStudioModel', 'useCacheFirst',
+      'apiType', 'lmStudioContext', 'lmStudioModel', 'leitstelleModel', 'useCacheFirst',
       'sourceLang', 'targetLang'
     ]);
-    this.settings.apiType = apiSettings.apiType || 'libretranslate';
+    this.settings.apiType = SWT.Providers.current(apiSettings.apiType);
+    const modelName = this.settings.apiType === 'leitstelle' ? apiSettings.leitstelleModel : apiSettings.lmStudioModel;
     this.settings.lmStudioContext = apiSettings.lmStudioContext || 'general';
     this.settings.useCacheFirst = mode === 'continue' ? true : apiSettings.useCacheFirst !== false;
 
@@ -890,7 +894,7 @@ class SmartTranslator {
         this.settings.apiType,
         apiSettings.sourceLang || this.settings.sourceLang || 'auto',
         apiSettings.targetLang || this.settings.targetLang || 'de',
-        { model: apiSettings.lmStudioModel, context: apiSettings.lmStudioContext }
+        { model: modelName, context: apiSettings.lmStudioContext }
       );
     }
 
@@ -963,6 +967,16 @@ class SmartTranslator {
         // Ergebnisse in EXAKTER Reihenfolge (sortiert nach index) anwenden
         batchResults.sort((a, b) => a.index - b.index);
         
+        // Schlüssel, Rechte oder Abbruch: weitere Texte ändern nichts, Meldung zeigen
+        const fatal = batchResults.find(r => r.result && r.result.fatal);
+        if (fatal) {
+          this.translationAborted = true;
+          this.showProgress(false);
+          this.showNotification(fatal.result.error, 'error');
+          chrome.runtime.sendMessage({ action: 'BADGE_ERROR' }).catch(() => {});
+          break;
+        }
+
         for (const { node, originalText, result, skipped, error } of batchResults) {
           if (this.translationAborted) break;
 
@@ -1261,7 +1275,7 @@ class SmartTranslator {
           cacheSource: this._cacheSource || null,
           serverCacheCount: this._serverCacheCount || 0,
           pageUrl: this.pageUrl,
-          apiType: this.settings.apiType || 'libretranslate',
+          apiType: SWT.Providers.current(this.settings.apiType),
           lastSource: this._lastSource || null,
           lastTokens: this._lastTokens || 0
         });

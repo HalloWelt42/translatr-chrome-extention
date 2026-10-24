@@ -21,9 +21,61 @@
     </header>
 
     <!-- ================================================================ -->
+    <!-- SECTION: Leitstelle (Vorgabe) -->
+    <!-- ================================================================ -->
+    <section class="settings-section provider-section" data-provider="leitstelle">
+      <div class="section-header">
+        <span data-swt-icon="compass"></span>
+        <h2 data-i18n="providerLeitstelle">Leitstelle</h2>
+        <span class="api-status" id="leitstelleStatus"></span>
+        <span class="active-badge hidden" id="leitstelleBadge" data-i18n="optActiveBadge">Aktiv</span>
+      </div>
+      <div class="section-body">
+        <div class="section-settings">
+          <div class="form-group">
+            <label for="leitstelleUrl" data-i18n="optLeitstelleUrl">Adresse der Leitstelle</label>
+            <input type="url" id="leitstelleUrl" placeholder="http://192.168.178.49:8530">
+            <small class="form-hint" data-i18n="optLeitstelleUrlHint">Basisadresse der eigenen Leitstelle, mit oder ohne /v1.</small>
+          </div>
+          <div class="form-group">
+            <label for="leitstelleKey" data-i18n="optLeitstelleKey">Schlüssel</label>
+            <input type="password" id="leitstelleKey" autocomplete="off" spellcheck="false">
+            <small class="form-hint" data-i18n="optLeitstelleKeyHint">Schlüssel der Anwendung aus der Leitstelle. Bleibt nur in diesem Browser, wird nicht synchronisiert.</small>
+          </div>
+          <div class="form-group">
+            <label for="leitstelleModel" data-i18n="optModel">Modell</label>
+            <select id="leitstelleModel">
+              <option value="" data-i18n="optLeitstelleChain">Kette der Leitstelle (empfohlen)</option>
+            </select>
+            <small class="form-hint" data-i18n="optLeitstelleModelHint">Ohne Auswahl wählt die Leitstelle das Modell über die Kette dieser Anwendung. Die Liste füllt "Verbindung prüfen".</small>
+          </div>
+          <div class="test-connection">
+            <button class="btn btn-secondary" id="testLeitstelle" data-i18n="btnCheckConnection">Verbindung prüfen</button>
+            <span class="test-result hidden" id="leitstelleTestResult"></span>
+          </div>
+        </div>
+        <div class="section-docs">
+          <h4 data-i18n="providerLeitstelle">Leitstelle</h4>
+          <p data-i18n="optLeitstelleDesc">Die eigene Leitstelle vermittelt die Übersetzung an das passende Sprachmodell im Heimnetz: sie lädt Modelle, verteilt die Last und weckt schlafende Rechner.</p>
+          <dl>
+            <dt data-i18n="optLeitstelleKey">Schlüssel</dt>
+            <dd data-i18n="optLeitstelleKeyDoc">In der Leitstelle unter Anwendungen die Anwendung anlegen (Rechte text und uebersetzen) und ihren Schlüssel hier einfügen.</dd>
+            <dt data-i18n="optLeitstelleWaitTitle">Warten statt Fehler</dt>
+            <dd data-i18n="optLeitstelleWaitDoc">Ist die Leitstelle ausgelastet oder schläft der Rechner mit dem Modell, wartet die Erweiterung geduldig und zeigt den Grund an. Der Stopp-Knopf der Seitenübersetzung bricht das Warten ab.</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <div class="provider-group">
+      <h3 data-i18n="optWithoutLeitstelle">Ohne eigene Leitstelle</h3>
+      <p data-i18n="optWithoutLeitstelleHint">Wer keine eigene Leitstelle betreibt, spricht einen Übersetzungsserver oder einen Modell-Läufer direkt an.</p>
+    </div>
+
+    <!-- ================================================================ -->
     <!-- SECTION: LibreTranslate -->
     <!-- ================================================================ -->
-    <section class="settings-section provider-section active" data-provider="libretranslate">
+    <section class="settings-section provider-section" data-provider="libretranslate">
       <div class="section-header">
         <span data-swt-icon="globe"></span>
         <h2>LibreTranslate</h2>
@@ -128,31 +180,9 @@ HTTP 500: Server-Fehler</code></pre>
               </button>
             </div>
           </div>
-          <div class="row">
-            <div class="form-group">
-              <label for="lmStudioTemperature" data-i18n="optTemperature">Temperatur</label>
-              <input type="number" id="lmStudioTemperature" min="0" max="2" step="0.1" value="0.1">
-              <small class="form-hint" data-i18n="optTemperatureHint">0.1 = präzise, 0.3 = natürlich, 0.5+ = kreativ</small>
-            </div>
-            <div class="form-group">
-              <label for="lmStudioMaxTokens" data-i18n="optMaxTokens">Max Tokens</label>
-              <input type="number" id="lmStudioMaxTokens" min="100" max="32000" step="100" value="2000">
-              <small class="form-hint" data-i18n="optMaxTokensHint">2000 für normale Texte, 4000 für lange Absätze</small>
-            </div>
-          </div>
           <div class="test-connection">
             <button class="btn btn-secondary" id="testLmStudio" data-i18n="btnTestConnection">Verbindung testen</button>
             <span class="test-result hidden" id="lmTestResult"></span>
-          </div>
-          <div class="form-group">
-            <label data-i18n="optLanguages">Sprachen</label>
-            <div class="language-list" id="languagesLMList"></div>
-            <div class="language-add-row">
-              <input type="text" id="languagesLMCode" data-i18n-placeholder="optLangCodePlaceholder" placeholder="Code (z.B. hi)" maxlength="5" class="lang-code-input">
-              <input type="text" id="languagesLMName" data-i18n-placeholder="optLangNamePlaceholder" placeholder="Name (z.B. Hindi)" class="lang-name-input">
-              <button type="button" class="btn btn-secondary btn-sm" id="languagesLMAdd">+</button>
-            </div>
-            <small class="form-hint" data-i18n="optLmLanguagesHint">LLMs können prinzipiell jede Sprache -- hier die Auswahlliste konfigurieren</small>
           </div>
         </div>
         <div class="section-docs">
@@ -244,6 +274,45 @@ Antwort als JSON mit optionalem context_notes Feld</code></pre>
 }</code></pre>
             </div>
           </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- SECTION: Sprachmodell (Leitstelle und LM Studio) -->
+    <!-- ================================================================ -->
+    <section class="settings-section">
+      <div class="section-header">
+        <span data-swt-icon="robot"></span>
+        <h2 data-i18n="optLlmTitle">Übersetzung mit Sprachmodell</h2>
+      </div>
+      <div class="section-body">
+        <div class="section-settings">
+          <div class="row">
+            <div class="form-group">
+              <label for="lmStudioTemperature" data-i18n="optTemperature">Temperatur</label>
+              <input type="number" id="lmStudioTemperature" min="0" max="2" step="0.1" value="0.1">
+              <small class="form-hint" data-i18n="optTemperatureHint">0.1 = präzise, 0.3 = natürlich, 0.5+ = kreativ</small>
+            </div>
+            <div class="form-group">
+              <label for="lmStudioMaxTokens" data-i18n="optMaxTokens">Max Tokens</label>
+              <input type="number" id="lmStudioMaxTokens" min="100" max="32000" step="100" value="2000">
+              <small class="form-hint" data-i18n="optMaxTokensHint">2000 für normale Texte, 4000 für lange Absätze</small>
+            </div>
+          </div>
+          <div class="form-group">
+            <label data-i18n="optLanguages">Sprachen</label>
+            <div class="language-list" id="languagesLMList"></div>
+            <div class="language-add-row">
+              <input type="text" id="languagesLMCode" data-i18n-placeholder="optLangCodePlaceholder" placeholder="Code (z.B. hi)" maxlength="5" class="lang-code-input">
+              <input type="text" id="languagesLMName" data-i18n-placeholder="optLangNamePlaceholder" placeholder="Name (z.B. Hindi)" class="lang-name-input">
+              <button type="button" class="btn btn-secondary btn-sm" id="languagesLMAdd">+</button>
+            </div>
+            <small class="form-hint" data-i18n="optLmLanguagesHint">LLMs können prinzipiell jede Sprache -- hier die Auswahlliste konfigurieren</small>
+          </div>
+        </div>
+        <div class="section-docs">
+          <p data-i18n="optLlmDesc">Gilt für die Leitstelle und für LM Studio direkt: Temperatur, Länge der Antwort und die Sprachen in den Auswahllisten.</p>
         </div>
       </div>
     </section>
@@ -561,6 +630,7 @@ Fallback bei HTTP: djb2-Hash (kein crypto.subtle)</code></pre>
   </div>
 
   <script src="../shared/i18n.js"></script>
+  <script src="../shared/providers.js"></script>
   <script src="../shared/storage.js"></script>
   <script src="../shared/utils.js"></script>
   <script src="../shared/toast.js"></script>

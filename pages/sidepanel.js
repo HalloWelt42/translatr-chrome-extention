@@ -129,9 +129,9 @@ class SidePanelController {
     ]);
 
     // Sprachenlisten dynamisch befüllen
-    const apiType = settings.apiType || 'libretranslate';
+    const apiType = SWT.Providers.current(settings.apiType);
     const defaults = SWT.Storage.defaultSettings;
-    const languages = apiType === 'lmstudio'
+    const languages = SWT.Providers.isLlm(apiType)
       ? (settings.languagesLM || defaults.languagesLM)
       : (settings.languagesLibre || defaults.languagesLibre);
     this.populateLanguageSelects(languages, settings.sourceLang || 'auto', settings.targetLang || 'de');
@@ -145,7 +145,7 @@ class SidePanelController {
     
     if (contextRow && contextSelect) {
       // Nur bei LLM anzeigen
-      if (apiType === 'lmstudio') {
+      if (SWT.Providers.isLlm(apiType)) {
         contextRow.classList.remove('hidden');
         contextSelect.value = settings.lmStudioContext || 'general';
       } else {
@@ -204,7 +204,7 @@ class SidePanelController {
       if (changes.apiType) {
         const contextRow = document.getElementById('contextRow');
         if (contextRow) {
-          if (changes.apiType.newValue === 'lmstudio') {
+          if (SWT.Providers.isLlm(changes.apiType.newValue)) {
             contextRow.classList.remove('hidden');
           } else {
             contextRow.classList.add('hidden');
@@ -544,13 +544,13 @@ class SidePanelController {
       const pipelineSettings = await chrome.storage.sync.get(['apiType', 'cacheServerMode', 'cacheServerEnabled']);
       if (state === 'translated' || state === 'partial') {
         this.showPipeline({
-          apiType: response.apiType || pipelineSettings.apiType || 'libretranslate',
+          apiType: SWT.Providers.current(response.apiType || pipelineSettings.apiType),
           source: response.lastSource || 'api',
           tokens: response.lastTokens || 0
         }, pipelineSettings);
       } else {
         this.showPipeline({
-          apiType: pipelineSettings.apiType || 'libretranslate',
+          apiType: SWT.Providers.current(pipelineSettings.apiType),
           source: 'config'
         }, pipelineSettings);
       }
@@ -1135,8 +1135,7 @@ class SidePanelController {
     if (!view || !steps) return;
 
     const source = result.source || 'api';
-    const apiType = result.apiType || 'libretranslate';
-    const apiLabel = apiType === 'lmstudio' ? chrome.i18n.getMessage('providerLMStudio') : chrome.i18n.getMessage('providerLibre');
+    const apiLabel = SWT.Providers.label(result.apiType);
 
     const mode = settings?.cacheServerMode || 'server-only';
     const cacheEnabled = settings?.cacheServerEnabled !== false;
@@ -1179,3 +1178,8 @@ class SidePanelController {
 }
 
 new SidePanelController();
+
+// Wartestand der Leitstelle (ausgelastet, Rechner schläft) als Hinweis statt Fehler
+SWT.Providers.onWait((state) => {
+  if (state) SWT.Toast.show(state.text, 'info', 5000);
+});

@@ -616,3 +616,21 @@ footer a:hover { text-decoration: underline; }
   font-size: 14px !important;
   min-width: 32px;
 }
+
+/* Gruppe der Alternativen ohne eigene Leitstelle */
+.provider-group {
+  margin: var(--spacing-xl) 0 var(--spacing-lg);
+}
+
+.provider-group h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--text-secondary);
+}
+
+.provider-group p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}

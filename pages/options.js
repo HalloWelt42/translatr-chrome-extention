@@ -3,6 +3,7 @@
 
 // Validierungsstatus der Provider
 const providerState = {
+  leitstelle: { configured: false, tested: null },
   libretranslate: { configured: false, tested: null },  // tested: true/false/null
   lmstudio: { configured: false, tested: null },
   cacheServer: { configured: false, tested: null }
@@ -71,6 +72,7 @@ async function loadSettings() {
     const settings = await chrome.storage.sync.get([
       // API
       'apiType', 'serviceUrl', 'apiKey',
+      'leitstelleUrl', 'leitstelleModel',
       'lmStudioUrl', 'lmStudioModel', 'lmStudioTemperature', 'lmStudioMaxTokens',
       // Anzeige
       'showSelectionIcon', 'enableTTS', 'showAlternatives',
@@ -95,6 +97,16 @@ async function loadSettings() {
       if (el) el.checked = value;
     };
 
+    // Leitstelle (Schlüssel liegt nur im lokalen Speicher der Erweiterung)
+    setVal('leitstelleUrl', settings.leitstelleUrl ?? SWT.Storage.defaultSettings.leitstelleUrl);
+    const { leitstelleKey } = await chrome.storage.local.get('leitstelleKey');
+    setVal('leitstelleKey', leitstelleKey || '');
+    const leitstelleModelEl = document.getElementById('leitstelleModel');
+    if (leitstelleModelEl) {
+      setModelSelectOptions(leitstelleModelEl, settings.leitstelleModel ? [settings.leitstelleModel] : []);
+      leitstelleModelEl.value = settings.leitstelleModel || '';
+    }
+
     // LibreTranslate Werte
     setVal('serviceUrl', settings.serviceUrl || '');
     setVal('apiKey', settings.apiKey || '');
@@ -116,8 +128,7 @@ async function loadSettings() {
     setChecked('useCacheFirst', settings.useCacheFirst !== false);
     
     // API-Typ setzen und UI aktualisieren
-    const apiType = settings.apiType || 'libretranslate';
-    setApiType(apiType);
+    setApiType(SWT.Providers.current(settings.apiType));
     
     // UI Optionen
     setChecked('showSelectionIcon', settings.showSelectionIcon !== false);
@@ -169,7 +180,8 @@ function setupEventListeners() {
     el.addEventListener('input', () => {
       autoSave();
       // URL-Felder: Status zurücksetzen und Provider-State aktualisieren
-      if (el.id === 'serviceUrl' || el.id === 'lmStudioUrl' || el.id === 'cacheServerUrl') {
+      if (el.id === 'serviceUrl' || el.id === 'lmStudioUrl' || el.id === 'leitstelleUrl' || el.id === 'cacheServerUrl') {
+        if (el.id === 'leitstelleUrl') providerState.leitstelle.tested = null;
         if (el.id === 'serviceUrl') providerState.libretranslate.tested = null;
         if (el.id === 'lmStudioUrl') providerState.lmstudio.tested = null;
         if (el.id === 'cacheServerUrl') providerState.cacheServer.tested = null;
@@ -185,6 +197,22 @@ function setupEventListeners() {
   const resetBtn = document.getElementById('resetBtn');
   if (resetBtn) {
     resetBtn.addEventListener('click', resetSettings);
+  }
+
+  // Leitstelle: Schlüssel nur lokal speichern (nie sync), dann Verbindung prüfen
+  const leitstelleKeyEl = document.getElementById('leitstelleKey');
+  if (leitstelleKeyEl) {
+    let keyTimer = null;
+    leitstelleKeyEl.addEventListener('input', () => {
+      providerState.leitstelle.tested = null;
+      updateProviderStates();
+      clearTimeout(keyTimer);
+      keyTimer = setTimeout(saveLeitstelleKey, 400);
+    });
+  }
+  const testLeitstelleBtn = document.getElementById('testLeitstelle');
+  if (testLeitstelleBtn) {
+    testLeitstelleBtn.addEventListener('click', () => checkLeitstelle(false));
   }
 
   // Testen - LibreTranslate
@@ -279,12 +307,15 @@ function setApiType(type, save = false) {
   });
 
   // Aktiv-Badges umschalten
-  const libreBadge = document.getElementById('libreBadge');
-  const lmBadge = document.getElementById('lmBadge');
-  if (libreBadge) libreBadge.classList.toggle('hidden', type !== 'libretranslate');
-  if (lmBadge) lmBadge.classList.toggle('hidden', type !== 'lmstudio');
+  const badges = { leitstelle: 'leitstelleBadge', libretranslate: 'libreBadge', lmstudio: 'lmBadge' };
+  for (const [provider, id] of Object.entries(badges)) {
+    document.getElementById(id)?.classList.toggle('hidden', type !== provider);
+  }
 
-  // Wenn LM Studio ausgewählt, Modelle laden
+  // Gewählten Weg gleich prüfen, damit der Status stimmt (lädt kein Modell)
+  if (type === 'leitstelle') {
+    checkLeitstelle(true);
+  }
   if (type === 'lmstudio') {
     loadLMStudioModels();
   }
@@ -352,6 +383,7 @@ async function loadLMStudioModels() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
 
+    setProviderTested('lmstudio', true);
     if (data.data && data.data.length > 0) {
       setModelSelectState(modelSelect, 'loaded', data.data);
       SWT.Toast.show(`${data.data.length} Modell(e) geladen`, 'success');
@@ -360,6 +392,7 @@ async function loadLMStudioModels() {
     }
   } catch (error) {
     console.warn('LM Studio:', error);
+    setProviderTested('lmstudio', false);
     setModelSelectState(modelSelect, 'error');
     if (error.name === 'AbortError') {
       SWT.Toast.show(chrome.i18n.getMessage('errTimeout'));
@@ -367,6 +400,69 @@ async function loadLMStudioModels() {
   }
 
   setRefreshBtnState(refreshBtn, false);
+}
+
+// ============================================================================
+// Leitstelle
+// ============================================================================
+
+async function saveLeitstelleKey() {
+  const key = document.getElementById('leitstelleKey')?.value.trim() || '';
+  if (key) {
+    await chrome.storage.local.set({ leitstelleKey: key });
+  } else {
+    await chrome.storage.local.remove('leitstelleKey');
+  }
+}
+
+/** Optionen der Modellwahl: erste Option bleibt "Kette der Leitstelle" */
+function setModelSelectOptions(select, models) {
+  const chain = select.options[0];
+  select.replaceChildren(chain);
+  for (const id of models) {
+    select.appendChild(new Option(id.split('/').pop(), id));
+  }
+}
+
+/**
+ * Verbindung prüfen: GET /v1/models mit Schlüssel über den Service Worker (dort liegt der Anbieter).
+ * silent: beim Öffnen der Seite ohne Hinweise, nur Status und Modellliste
+ */
+async function checkLeitstelle(silent) {
+  const url = document.getElementById('leitstelleUrl')?.value.trim();
+  const key = document.getElementById('leitstelleKey')?.value.trim();
+  const btn = document.getElementById('testLeitstelle');
+  const resultEl = document.getElementById('leitstelleTestResult');
+  const select = document.getElementById('leitstelleModel');
+  if (!url || !key || !select) {
+    if (!silent) showTestResult(resultEl, false, chrome.i18n.getMessage(url ? 'errLeitstelleNoKey' : 'errLeitstelleNoUrl'));
+    return;
+  }
+
+  await saveLeitstelleKey();
+  if (btn) btn.disabled = true;
+  if (!silent) showTestResult(resultEl, null, '...');
+
+  const result = await chrome.runtime.sendMessage({ action: 'TEST_LEITSTELLE', url })
+    .catch(e => ({ success: false, error: e.message }));
+
+  if (result.success) {
+    const chosen = select.value;
+    setModelSelectOptions(select, result.models);
+    select.value = result.models.includes(chosen) ? chosen : '';
+    if (!silent) showTestResult(resultEl, true, chrome.i18n.getMessage('msgLeitstelleConnected', [String(result.models.length)]));
+  } else if (!silent) {
+    showTestResult(resultEl, false, result.error);
+  }
+  setProviderTested('leitstelle', result.success);
+  if (btn) btn.disabled = false;
+}
+
+function showTestResult(el, success, text) {
+  if (!el) return;
+  el.style.display = 'inline-block';
+  el.className = 'test-result' + (success === true ? ' success' : success === false ? ' error' : '');
+  el.textContent = success === true ? `✓ ${text}` : success === false ? `✗ ${text}` : text;
 }
 
 async function saveSettings() {
@@ -391,11 +487,15 @@ async function saveSettings() {
 
     // Aktiven API-Typ ermitteln
     const activeSection = document.querySelector('.provider-section.active');
-    const apiType = activeSection ? activeSection.dataset.provider : 'libretranslate';
-    
+    const apiType = SWT.Providers.current(activeSection?.dataset.provider);
+
     const settings = {
       // API-Typ
       apiType: apiType,
+
+      // Leitstelle (ohne Schlüssel: der liegt nur in chrome.storage.local)
+      leitstelleUrl: getVal('leitstelleUrl', '').trim(),
+      leitstelleModel: getVal('leitstelleModel', ''),
       
       // LibreTranslate
       serviceUrl: getVal('serviceUrl', '').trim(),
@@ -441,7 +541,9 @@ async function saveSettings() {
 
 async function resetSettings() {
   const defaultSettings = {
-    apiType: 'libretranslate',
+    apiType: SWT.Providers.DEFAULT,
+    leitstelleUrl: SWT.Storage.defaultSettings.leitstelleUrl,
+    leitstelleModel: '',
     serviceUrl: '',
     apiKey: '',
     lmStudioUrl: '',
@@ -690,15 +792,19 @@ function updateCacheServerFields() {
 // === Provider-Status ===
 
 function updateProviderStates() {
+  const leitstelleUrl = document.getElementById('leitstelleUrl')?.value.trim();
+  const leitstelleKey = document.getElementById('leitstelleKey')?.value.trim();
   const libreUrl = document.getElementById('serviceUrl')?.value.trim();
   const lmUrl = document.getElementById('lmStudioUrl')?.value.trim();
   const cacheUrl = document.getElementById('cacheServerUrl')?.value.trim();
 
+  providerState.leitstelle.configured = !!(leitstelleUrl && leitstelleKey);
   providerState.libretranslate.configured = !!libreUrl;
   providerState.lmstudio.configured = !!lmUrl;
   providerState.cacheServer.configured = !!cacheUrl;
 
   // URL geändert -> Test-Status zurücksetzen
+  updateStatusBadge('leitstelleStatus', providerState.leitstelle);
   updateStatusBadge('libreStatus', providerState.libretranslate);
   updateStatusBadge('lmStatus', providerState.lmstudio);
 
@@ -726,6 +832,7 @@ function updateStatusBadge(id, state) {
 
 function setProviderTested(provider, success) {
   providerState[provider].tested = success;
+  if (provider === 'leitstelle') updateStatusBadge('leitstelleStatus', providerState.leitstelle);
   if (provider === 'libretranslate') updateStatusBadge('libreStatus', providerState.libretranslate);
   if (provider === 'lmstudio') updateStatusBadge('lmStatus', providerState.lmstudio);
 }

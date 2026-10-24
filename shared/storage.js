@@ -16,9 +16,13 @@ SWT.Storage = {
 
   defaultSettings: {
     // API
-    apiType: 'libretranslate',
+    apiType: SWT.Providers.DEFAULT,
     serviceUrl: '',
     apiKey: '',
+
+    // Leitstelle (Schlüssel nur in chrome.storage.local)
+    leitstelleUrl: SWT.Providers.LEITSTELLE_DEFAULT_URL,
+    leitstelleModel: '',
 
     // LM Studio
     lmStudioUrl: '',

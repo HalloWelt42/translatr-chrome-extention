@@ -49,8 +49,9 @@ SWT.CacheServer = {
         
         // Translator-ID aus API-Einstellungen
         const apiSettings = await chrome.storage.sync.get({
-          apiType: 'libretranslate',
-          lmStudioModel: ''
+          apiType: SWT.Providers.DEFAULT,
+          lmStudioModel: '',
+          leitstelleModel: ''
         });
         this.config.translator = this._buildTranslatorId(apiSettings);
         
@@ -79,10 +80,7 @@ SWT.CacheServer = {
    * Baut Translator-ID aus Einstellungen
    */
   _buildTranslatorId(settings) {
-    if (settings.apiType === 'lmstudio' && settings.lmStudioModel) {
-      return `lmstudio:${settings.lmStudioModel}`;
-    }
-    return settings.apiType || 'unknown';
+    return SWT.Providers.translatorId(settings);
   },
 
   // ==========================================================================

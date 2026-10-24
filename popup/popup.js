@@ -132,21 +132,25 @@ async function updateActionStates() {
 async function loadSettings() {
   const settings = await chrome.storage.sync.get([
     'sourceLang', 'targetLang', 'apiType',
-    'serviceUrl', 'lmStudioUrl',
+    'serviceUrl', 'lmStudioUrl', 'leitstelleUrl',
     'cacheServerEnabled', 'cacheServerMode',
     'languagesLibre', 'languagesLM'
   ]);
 
   // Sprachenlisten dynamisch befüllen
-  const apiType = settings.apiType || 'libretranslate';
+  const apiType = SWT.Providers.current(settings.apiType);
   const defaults = SWT.Storage.defaultSettings;
-  const languages = apiType === 'lmstudio'
+  const languages = SWT.Providers.isLlm(apiType)
     ? (settings.languagesLM || defaults.languagesLM)
     : (settings.languagesLibre || defaults.languagesLibre);
   populateLanguageSelects(languages, settings.sourceLang || 'auto', settings.targetLang || 'de');
 
-  const apiConfigured = (apiType === 'libretranslate' && settings.serviceUrl)
-    || (apiType === 'lmstudio' && settings.lmStudioUrl);
+  const configuredUrl = {
+    leitstelle: settings.leitstelleUrl ?? defaults.leitstelleUrl,
+    lmstudio: settings.lmStudioUrl,
+    libretranslate: settings.serviceUrl
+  };
+  const apiConfigured = !!configuredUrl[apiType];
 
   document.querySelectorAll('#translateBtn, #translatePage').forEach(el => {
     if (!apiConfigured) {
@@ -365,3 +369,8 @@ function populateLanguageSelects(languages, selectedSource, selectedTarget) {
   if (!sourceEl.value) sourceEl.value = 'auto';
   if (!targetEl.value) targetEl.value = 'de';
 }
+
+// Wartestand der Leitstelle (ausgelastet, Rechner schläft) als Hinweis statt Fehler
+SWT.Providers.onWait((state) => {
+  if (state) SWT.Toast.show(state.text, 'info', 5000);
+});

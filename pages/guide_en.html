@@ -19,14 +19,18 @@
 
     <nav class="toc">
       <h3>Contents</h3>
-      <p class="toc-part">Part 1 -- Quick Start with LibreTranslate</p>
+      <p class="toc-part">Default</p>
+      <ul>
+        <li><a href="#leitstelle">Via your own Leitstelle</a></li>
+      </ul>
+      <p class="toc-part">Part 1 -- Quick Start with LibreTranslate (without your own Leitstelle)</p>
       <ol>
         <li><a href="#overview">What is Smart Translator?</a></li>
         <li><a href="#backends">Translation Backends</a></li>
         <li><a href="#libretranslate">Setting up LibreTranslate</a></li>
         <li><a href="#usage">Usage</a></li>
       </ol>
-      <p class="toc-part">Part 2 -- Best Results with LM Studio</p>
+      <p class="toc-part">Part 2 -- LM Studio directly (without your own Leitstelle)</p>
       <ol start="5">
         <li><a href="#lmstudio">Setting up LM Studio</a></li>
         <li><a href="#bestpractice">Best Practice: Mac M4 + Qwen</a></li>
@@ -61,6 +65,39 @@
           <strong>Cache</strong>
           <span>Store and reuse translations centrally</span>
         </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="leitstelle">
+      <h2>Default: via your own Leitstelle</h2>
+      <p>If you run your own Leitstelle, translations go through it. The Leitstelle routes each request to the right language model in your home network, loads it when needed, balances the load and wakes a sleeping computer. The extension only needs the address and a key.</p>
+
+      <h3>Step 1: Application in the Leitstelle</h3>
+      <p>In the Leitstelle under Applications, create the application "Übersetzer (Browser)" with the rights <code>text</code> and <code>uebersetzen</code> and the zone <code>heim</code>. Add a chain for <code>text</code> (translation model first) so the Leitstelle can pick the model. Copy the application key.</p>
+
+      <h3>Step 2: Settings</h3>
+      <p>In the <a href="#" class="open-options">settings</a>, click the "Leitstelle" section (it becomes active) and enter:</p>
+      <div class="settings-example">
+        <div class="setting-row">
+          <span class="setting-label">Leitstelle address</span>
+          <code>http://192.168.178.49:8530</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Key</span>
+          <code>(paste the application key)</code>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Model</span>
+          <code>Leitstelle chain (recommended)</code>
+        </div>
+      </div>
+      <p>"Check connection" asks the Leitstelle for the allowed models (<code>GET /v1/models</code>, loads no model) and fills the model list. The key stays in this browser and is never synced.</p>
+
+      <h3>Waiting instead of errors</h3>
+      <p>If the Leitstelle is busy or the computer with the model is asleep, the Leitstelle answers with a waiting time. The extension waits patiently, shows the reason on the page, in the side panel and on the extension icon, and then retries. The stop button of the page translation cancels the wait.</p>
+      <div class="info-box">
+        <strong>Without your own Leitstelle:</strong> LibreTranslate and LM Studio directly remain available as alternatives, see the following sections.
       </div>
     </section>
 
