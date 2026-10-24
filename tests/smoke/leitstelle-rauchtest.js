@@ -15,7 +15,18 @@ const { loadBackground, i18nMock } = require('../load-background');
 
 const KEY_FILE = process.env.LEITSTELLE_SCHLUESSEL_DATEI
   || path.join(os.homedir(), '.config', 'uebersetzer', 'leitstelle-schluessel');
-const ADDRESS = process.argv[2] || 'http://192.168.178.49:8530';
+// Adresse: Angabe, LEITSTELLE_ADRESSE oder die private Wahrheit des Hauses (handbuch ziel leitstelle adresse)
+function leitstelleAdresse() {
+  if (process.argv[2]) return process.argv[2];
+  if (process.env.LEITSTELLE_ADRESSE) return process.env.LEITSTELLE_ADRESSE;
+  try {
+    return require('child_process').execFileSync('handbuch', ['ziel', 'leitstelle', 'adresse'], { encoding: 'utf8' }).trim();
+  } catch {
+    console.error('Adresse der Leitstelle fehlt: node tests/smoke/leitstelle-rauchtest.js http://<leitstelle>:8530');
+    process.exit(2);
+  }
+}
+const ADDRESS = leitstelleAdresse();
 const FALLBACK_MODEL = process.argv[3] || 'qwen/qwen3-next-80b';
 const SENTENCE = 'The weather is lovely today, so we are going for a walk in the park.';
 

@@ -34,7 +34,7 @@
         <div class="section-settings">
           <div class="form-group">
             <label for="leitstelleUrl" data-i18n="optLeitstelleUrl">Adresse der Leitstelle</label>
-            <input type="url" id="leitstelleUrl" placeholder="http://192.168.178.49:8530">
+            <input type="url" id="leitstelleUrl" placeholder="http://192.168.1.20:8530">
             <small class="form-hint" data-i18n="optLeitstelleUrlHint">Basisadresse der eigenen Leitstelle, mit oder ohne /v1.</small>
           </div>
           <div class="form-group">
@@ -166,8 +166,8 @@ HTTP 500: Server-Fehler</code></pre>
         <div class="section-settings">
           <div class="form-group">
             <label for="lmStudioUrl" data-i18n="optServerUrl">Server-URL</label>
-            <input type="url" id="lmStudioUrl" placeholder="http://192.168.178.45:1234">
-            <small class="form-hint" data-i18n="optLmUrlHint">IP und Port des LM Studio Servers -- z.B. http://192.168.178.45:1234 oder http://localhost:1234</small>
+            <input type="url" id="lmStudioUrl" placeholder="http://192.168.1.30:1234">
+            <small class="form-hint" data-i18n="optLmUrlHint">IP und Port des LM Studio Servers -- z.B. http://192.168.1.30:1234 oder http://localhost:1234</small>
           </div>
           <div class="form-group">
             <label for="lmStudioModel" data-i18n="optModel">Modell</label>
@@ -190,7 +190,7 @@ HTTP 500: Server-Fehler</code></pre>
           <p data-i18n="optLmApiDesc">Lokales LLM mit OpenAI-kompatibler API. Ideal für kontextbezogene Fachübersetzungen mit voller Datenkontrolle.</p>
           <dl>
             <dt data-i18n="optServerUrl">Server-URL</dt>
-            <dd data-i18n-html="optLmUrlDoc">Basis-URL des LM Studio Servers, z.B. <code>http://192.168.178.45:1234</code> oder <code>http://localhost:1234</code>. Der Pfad <code>/v1/chat/completions</code> wird automatisch angehängt.</dd>
+            <dd data-i18n-html="optLmUrlDoc">Basis-URL des LM Studio Servers, z.B. <code>http://192.168.1.30:1234</code> oder <code>http://localhost:1234</code>. Der Pfad <code>/v1/chat/completions</code> wird automatisch angehängt.</dd>
             <dt data-i18n="optModel">Modell</dt>
             <dd data-i18n="optLmModelDoc">Muss in LM Studio geladen sein. Klicke auf den Aktualisieren-Button um verfügbare Modelle abzurufen.</dd>
             <dt data-i18n="optRecommendedModels">Empfohlene Modelle</dt>
@@ -502,8 +502,8 @@ Antwort als JSON mit optionalem context_notes Feld</code></pre>
             <div id="cacheServerFields">
               <div class="form-group">
                 <label for="cacheServerUrl" data-i18n="optCacheServerUrl">Cache Server URL</label>
-                <input type="url" id="cacheServerUrl" placeholder="http://192.168.178.49:8083">
-                <small class="form-hint" data-i18n="optCacheServerUrlHint">Adresse des SWT Cache Servers -- z.B. http://192.168.178.49:8083 oder http://localhost:8083</small>
+                <input type="url" id="cacheServerUrl" placeholder="http://192.168.1.20:8083">
+                <small class="form-hint" data-i18n="optCacheServerUrlHint">Adresse des SWT Cache Servers -- z.B. http://192.168.1.20:8083 oder http://localhost:8083</small>
               </div>
               <div class="form-group">
                 <label for="cacheServerTimeout" data-i18n="optTimeout">Timeout (ms)</label>

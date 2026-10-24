@@ -16,8 +16,8 @@
     DEFAULT: 'leitstelle',
     LLM_TYPES: ['leitstelle', 'lmstudio'],
     WAIT_KEY: 'providerWait',
-    // Änderbare Vorgabe; die Leitstelle nimmt die Basis mit oder ohne /v1
-    LEITSTELLE_DEFAULT_URL: 'http://192.168.178.49:8530',
+    // Ohne Vorgabe: die Adresse der eigenen Leitstelle steht in den Einstellungen (mit oder ohne /v1)
+    LEITSTELLE_DEFAULT_URL: '',
 
     LABEL_KEYS: {
       leitstelle: 'providerLeitstelle',
