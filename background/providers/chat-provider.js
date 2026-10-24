@@ -116,7 +116,7 @@ function createChatProvider(transport) {
           const parsed = JSON.parse(content);
           return {
             success: true,
-            translatedText: parsed.translation.replace(/\\n/g, '\n'),
+            translatedText: parsed.translation,
             alternatives: parsed.alternatives || [],
             contextNotes: parsed.context_notes,
             apiType: transport.apiType,
@@ -126,7 +126,7 @@ function createChatProvider(transport) {
         } catch (parseError) {
           return {
             success: true,
-            translatedText: content.trim().replace(/\\n/g, '\n'),
+            translatedText: content.trim(),
             alternatives: [],
             apiType: transport.apiType,
             tokens,

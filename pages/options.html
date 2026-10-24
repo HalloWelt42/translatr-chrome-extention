@@ -194,7 +194,7 @@ HTTP 500: Server-Fehler</code></pre>
             <dt data-i18n="optModel">Modell</dt>
             <dd data-i18n="optLmModelDoc">Muss in LM Studio geladen sein. Klicke auf den Aktualisieren-Button um verfügbare Modelle abzurufen.</dd>
             <dt data-i18n="optRecommendedModels">Empfohlene Modelle</dt>
-            <dd data-i18n-html="optLmRecommendedDoc">Qwen 3 liefert exzellente Übersetzungsqualität mit zuverlässigem JSON-Output. Empfohlen: <code>qwen3-next-80b-a3b-instruct-mlx</code> (Apple Silicon) oder andere Qwen 3 Instruct-Varianten ab 12B+. Alternativ: Gemma 3 12B.</dd>
+            <dd data-i18n-html="optLmRecommendedDoc">Übersetzungsmodell ist <code>qwen/qwen3-next-80b</code> (dasselbe, das die Leitstelle nutzt). Auf schwächerer Hardware ein aktuelles kleineres Instruct-Modell wählen; Modelle mit Denkmodus sind unnötig langsam.</dd>
             <dt data-i18n="optTemperature">Temperatur</dt>
             <dd data-i18n-html="optLmTemperatureDoc"><code>0.1</code> = wörtlich und konsistent (Standard). <code>0.3</code> = natürlicher Stil. <code>0.5+</code> = kreativ, aber weniger vorhersagbar. Für Fachübersetzungen unter 0.3 bleiben.</dd>
             <dt data-i18n="optMaxTokens">Max Tokens</dt>
@@ -246,7 +246,7 @@ Antwort als JSON mit optionalem context_notes Feld</code></pre>
               <h5>POST /v1/chat/completions</h5>
               <div class="api-label" data-i18n="optApiRequest">Request</div>
               <pre><code>{
-  "model": "gemma-3-12b",
+  "model": "qwen/qwen3-next-80b",
   "messages": [
     {"role": "system", "content": "..."},
     {"role": "user", "content": "Hello"}
@@ -268,8 +268,7 @@ Antwort als JSON mit optionalem context_notes Feld</code></pre>
               <div class="api-label" data-i18n="optQueryLoadedModels">Geladene Modelle abfragen</div>
               <pre><code>{
   "data": [
-    {"id": "gemma-3-12b-it"},
-    {"id": "qwen2.5-14b-instruct"}
+    {"id": "qwen/qwen3-next-80b"}
   ]
 }</code></pre>
             </div>

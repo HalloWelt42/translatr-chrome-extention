@@ -42,7 +42,7 @@ REGELN:
 - Verwende exakte juristische Terminologie des Zielrechtssystems
 - Beachte länderspezifische Rechtsbegriffe (deutsches Recht)
 - Gesetzesnamen und Paragraphen korrekt übertragen
-- Im Zweifel: wörtliche Übersetzung mit erklärende Anmerkung
+- Im Zweifel: wörtliche Übersetzung mit erklärender Anmerkung
 Antworte NUR mit JSON: {"translation": "...", "alternatives": ["..."], "context_notes": "Rechtliche Anmerkungen"}`,
 
   custom: ''

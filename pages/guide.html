@@ -235,9 +235,7 @@ Content-Type: application/json
       <p>Lade <a href="https://lmstudio.ai" target="_blank">LM Studio</a> herunter und installiere es. Lade dann ein Sprachmodell -- empfohlen für Übersetzungen:</p>
       <ul>
         <li><strong>Qwen3-Next 80B-A3B (MLX)</strong> -- beste Qualität auf Apple Silicon, MoE-Modell (nur 3B aktive Parameter)</li>
-        <li><strong>Gemma 3 12B</strong> -- gute Balance aus Qualität und Geschwindigkeit</li>
-        <li><strong>Qwen 2.5 14B</strong> -- stark bei mehrsprachigen Texten</li>
-        <li><strong>Llama 3.1 8B</strong> -- schnell, für ältere Hardware</li>
+        <li><strong>Kleinere Hardware</strong>: ein aktuelles kleineres Instruct-Modell ohne Denkmodus</li>
       </ul>
 
       <h3>Schritt 2: Server starten</h3>
@@ -273,7 +271,7 @@ Content-Type: application/json
 Content-Type: application/json
 
 {
-  "model": "gemma-3-12b-it",
+  "model": "qwen/qwen3-next-80b",
   "messages": [
     {
       "role": "system",

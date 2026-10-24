@@ -177,7 +177,7 @@
   "optLmUrlDoc": { "message": "Base URL of the LM Studio server, e.g. <code>http://192.168.178.45:1234</code> or <code>http://localhost:1234</code>. The path <code>/v1/chat/completions</code> is appended automatically." },
   "optLmModelDoc": { "message": "Must be loaded in LM Studio. Click the refresh button to fetch available models." },
   "optRecommendedModels": { "message": "Recommended Models" },
-  "optLmRecommendedDoc": { "message": "Qwen 3 delivers excellent translation quality with reliable JSON output. Recommended: <code>qwen3-next-80b-a3b-instruct-mlx</code> (Apple Silicon) or other Qwen 3 Instruct variants 12B+. Alternative: Gemma 3 12B." },
+  "optLmRecommendedDoc": { "message": "The translation model is <code>qwen/qwen3-next-80b</code> (the same one the Leitstelle uses). On weaker hardware choose a current smaller instruct model; models with a thinking mode are needlessly slow." },
   "optLmTemperatureDoc": { "message": "<code>0.1</code> = literal and consistent (default). <code>0.3</code> = more natural style. <code>0.5+</code> = creative but less predictable. Stay below 0.3 for specialized translations." },
   "optLmMaxTokensDoc": { "message": "<code>2000</code> is sufficient for most texts. Increase to <code>4000</code> for long paragraphs. The model must support at least that much context." },
   "optLmCorsDoc": { "message": "Enable \"Enable CORS\" in LM Studio settings, otherwise the browser blocks requests." },
@@ -295,5 +295,9 @@
   "optWithoutLeitstelle": { "message": "Without your own Leitstelle" },
   "optWithoutLeitstelleHint": { "message": "Without your own Leitstelle, connect directly to a translation server or a model runner." },
   "optLlmTitle": { "message": "Translation with a language model" },
-  "optLlmDesc": { "message": "Applies to the Leitstelle and to LM Studio directly: temperature, answer length and the languages in the selection lists." }
+  "optLlmDesc": { "message": "Applies to the Leitstelle and to LM Studio directly: temperature, answer length and the languages in the selection lists." },
+  "statusUnconfigured": { "message": "not set up" },
+  "statusConnected": { "message": "connected" },
+  "statusUnreachable": { "message": "unreachable" },
+  "statusConfigured": { "message": "configured" }
 }

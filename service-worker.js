@@ -1,5 +1,6 @@
 importScripts(
   'shared/providers.js',
+  'shared/storage.js',
   'background/cache-server-bg.js',
   'background/prompts.js',
   'background/providers/chat-provider.js',
@@ -7,6 +8,9 @@ importScripts(
   'background/providers/lm-studio.js',
   'background/providers/leitstelle.js'
 );
+
+// Obergrenze geschätzter Token je Batch-Anfrage (Smart Chunking)
+const MAX_BATCH_TOKENS = 128000;
 
 // Chat-Anbieter je Weg (Leitstelle ist Vorgabe, LM Studio die Alternative ohne Leitstelle)
 const CHAT_PROVIDERS = {
@@ -26,7 +30,8 @@ class TranslatorBackground {
     // Translation Queue für Sprachmodell-Batch-Prefetch
     this.translationQueue = {
       pending: new Map(),      // text → { resolve, reject, source, target, pageUrl }
-      buffer: new Map(),       // text → translation (Cache für bereits übersetzte)
+      buffer: new Map(),       // text → translation (Cache für bereits übersetzte, begrenzt)
+      maxBufferEntries: 5000,  // älteste Einträge fallen heraus, der Service Worker wächst nicht unbegrenzt
       // NEU v3.11.5: Geordnete Queue für exakte Reihenfolge
       orderedQueue: [],        // Array von { index, text, source, target, pageUrl, resolve, reject }
       nextIndex: 0,            // Sequenznummer für strikte Reihenfolge
@@ -41,8 +46,8 @@ class TranslatorBackground {
     
     // Bei Settings-Änderungen aktualisieren
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'sync' && (changes.pageBatchSize || changes.lmBatchSize)) {
-        const newSize = changes.pageBatchSize?.newValue || changes.lmBatchSize?.newValue || 20;
+      if (area === 'sync' && changes.pageBatchSize) {
+        const newSize = changes.pageBatchSize.newValue || 20;
         this.translationQueue.maxBatchSize = Math.max(1, Math.min(50, newSize));
       }
     });
@@ -50,8 +55,8 @@ class TranslatorBackground {
   
   async loadBatchSettings() {
     try {
-      const settings = await chrome.storage.sync.get(['pageBatchSize', 'lmBatchSize']);
-      const batchSize = settings.pageBatchSize || settings.lmBatchSize || 20;
+      const { pageBatchSize } = await chrome.storage.sync.get('pageBatchSize');
+      const batchSize = pageBatchSize || 20;
       this.translationQueue.maxBatchSize = Math.max(1, Math.min(50, batchSize));
     } catch (e) {
       console.warn('[Queue] Settings-Laden fehlgeschlagen:', e);
@@ -270,6 +275,10 @@ class TranslatorBackground {
           break;
 
 
+        case 'TEST_TRANSLATE':
+          sendResponse(await this.testTranslate(request.text, request.settings));
+          break;
+
         case 'TEST_LEITSTELLE':
           sendResponse(await LeitstelleTransport.testConnection({ leitstelleUrl: request.url }));
           break;
@@ -472,7 +481,7 @@ class TranslatorBackground {
     }
 
     // 2. Normale Übersetzung -- nur wenn der Weg eingerichtet ist
-    const settings = await this.loadProviderSettings(['enableLLMFallback']);
+    const settings = await this.loadProviderSettings();
     const apiType = settings.apiType;
 
     const configError = this.providerConfigError(settings);
@@ -485,12 +494,6 @@ class TranslatorBackground {
     if (SWT.Providers.isLlm(apiType)) {
       // Nutze Queue für Batch-Prefetch (effizienter als Einzel-Requests)
       result = await this.translateWithLlmQueue(text, source, target, pageUrl, settings, bypassCache);
-
-      // Fallback auf LibreTranslate wenn aktiviert und Fehler
-      if (!result.success && settings.enableLLMFallback) {
-        result = await this.translateWithLibreTranslate(text, source, target, settings);
-        result.fallbackUsed = true;
-      }
     } else {
       result = await this.translateWithLibreTranslate(text, source, target, settings);
     }
@@ -544,6 +547,17 @@ class TranslatorBackground {
     }
   }
 
+  /** Probeübersetzung aus den Einstellungen mit den Werten des Formulars (ohne Zwischenspeicher) */
+  async testTranslate(text, settings) {
+    if (SWT.Providers.isLlm(settings.apiType)) {
+      return this.chatProvider(settings).translate(text, 'en', 'de', settings);
+    }
+    if (!settings.serviceUrl) {
+      return { success: false, error: chrome.i18n.getMessage('errLibreNotConfigured') };
+    }
+    return LibreTranslateProvider.translate(text, 'en', 'de', settings);
+  }
+
   async translateWithLibreTranslate(text, source, target, settings) {
     return LibreTranslateProvider.translate(text, source, target, settings);
   }
@@ -591,28 +605,8 @@ class TranslatorBackground {
       };
     }
 
-    // 2. Cache-Server prüfen (nur wenn nicht bypass)
-    if (!bypassCache && CacheServer.config.enabled && CacheServer.config.mode !== 'local-only' && pageUrl) {
-      try {
-        const hash = await CacheServer.computeHash(pageUrl, normalizedText, langPair);
-        const cached = await CacheServer.get(hash, pageUrl);
+    // 2. Cache-Server hat translateText schon gefragt, hier nicht noch einmal
 
-        if (cached && cached.translated) {
-          queue.buffer.set(bufferKey, cached.translated);
-          return {
-            success: true,
-            translatedText: cached.translated,
-            apiType: settings.apiType,
-            source: 'cache',
-            fromCache: true,
-            tokens: 0
-          };
-        }
-      } catch (e) {
-        console.warn('[Queue] Cache-Check Fehler:', e.message);
-      }
-    }
-    
     // 3. Bereits in der (alten) pending Map? → Auf selbes Promise warten
     if (queue.pending.has(bufferKey)) {
       return queue.pending.get(bufferKey).promise;
@@ -648,6 +642,16 @@ class TranslatorBackground {
     this.scheduleQueueProcessing();
     
     return promise;
+  }
+
+  /** Übersetzung im Puffer merken; Map hält die Einfügereihenfolge, also fliegt der älteste Eintrag */
+  rememberTranslation(key, translation) {
+    const buffer = this.translationQueue.buffer;
+    buffer.delete(key);
+    buffer.set(key, translation);
+    if (buffer.size > this.translationQueue.maxBufferEntries) {
+      buffer.delete(buffer.keys().next().value);
+    }
   }
 
   /**
@@ -717,7 +721,7 @@ class TranslatorBackground {
           const translation = resultItem?.translation || entry.text;
           
           // In lokalen Buffer speichern
-          queue.buffer.set(entry.bufferKey, translation);
+          this.rememberTranslation(entry.bufferKey, translation);
           
           // Für Cache-Server sammeln (nur wenn unterschiedlich)
           if (entry.text.trim() !== translation.trim() && entry.pageUrl) {
@@ -751,7 +755,7 @@ class TranslatorBackground {
         for (const entry of entries) {
           let translation = resultMap.get(entry.text) || entry.text;
           
-          queue.buffer.set(entry.bufferKey, translation);
+          this.rememberTranslation(entry.bufferKey, translation);
           
           if (entry.text.trim() !== translation.trim() && entry.pageUrl) {
             toCache.push({
@@ -779,7 +783,7 @@ class TranslatorBackground {
             const singleResult = await this.translateWithLlm(entry.text, source, target, settings);
             const translation = singleResult.success ? singleResult.translatedText : entry.text;
             
-            queue.buffer.set(entry.bufferKey, translation);
+            this.rememberTranslation(entry.bufferKey, translation);
             
             if (entry.text.trim() !== translation.trim() && entry.pageUrl) {
               toCache.push({
@@ -888,7 +892,7 @@ class TranslatorBackground {
     let totalTokens = 0;
     
     if (textsToTranslate.length > 0) {
-      const settings = await this.loadProviderSettings(['lmMaxBatchTokens', 'enableSmartChunking']);
+      const settings = await this.loadProviderSettings();
 
       if (SWT.Providers.isLlm(settings.apiType)) {
         const result = await this.batchTranslateWithLlm(textsToTranslate, source, target, settings);
@@ -953,14 +957,9 @@ class TranslatorBackground {
         return { success: false, error: configError, fatal: true, items: [] };
       }
 
-      // Batch-Einstellungen laden (v3.5)
-      const maxBatchTokens = settings.lmMaxBatchTokens || 128000;
-      const enableSmartChunking = settings.enableSmartChunking !== false;
-      
-      // Smart Chunking: Texte in optimale Sub-Batches aufteilen
-      const chunks = enableSmartChunking 
-        ? this.createSmartChunks(texts, maxBatchTokens)
-        : [texts];
+      // Smart Chunking: Texte in Sub-Batches unter der Token-Grenze aufteilen
+      const maxBatchTokens = MAX_BATCH_TOKENS;
+      const chunks = this.createSmartChunks(texts, maxBatchTokens);
       
       const allResults = [];
       let totalTokensUsed = 0;  // Token-Summe über alle Chunks
@@ -1062,8 +1061,6 @@ class TranslatorBackground {
           correctedOriginal = correctedOriginal.replace(new RegExp(NEWLINE_PLACEHOLDER, 'g'), '\n');
           // Translation: Platzhalter → echte Newlines
           correctedTranslation = correctedTranslation.replace(new RegExp(NEWLINE_PLACEHOLDER, 'g'), '\n');
-          // Auch escaped variants behandeln
-          correctedTranslation = correctedTranslation.replace(/\\n/g, '\n');
           
           return { 
             original: correctedOriginal, 
@@ -1220,107 +1217,7 @@ class TranslatorBackground {
   }
 
   async setDefaultSettings() {
-    const defaults = {
-      // API
-      apiType: SWT.Providers.DEFAULT,
-      serviceUrl: '',
-      apiKey: '',
-
-      // Leitstelle (Schlüssel nur in chrome.storage.local)
-      leitstelleUrl: SWT.Providers.LEITSTELLE_DEFAULT_URL,
-      leitstelleModel: '',
-
-      // LM Studio
-      lmStudioUrl: '',
-      lmStudioModel: '',
-      lmStudioTemperature: 0.1,
-      lmStudioMaxTokens: 2000,
-      lmStudioContext: 'general',
-      lmStudioCustomPrompt: '',
-
-      // Sprachen
-      sourceLang: 'auto',
-      targetLang: 'de',
-      languagesLibre: [
-        { code: 'auto', name: 'Automatisch' },
-        { code: 'en', name: 'Englisch' },
-        { code: 'de', name: 'Deutsch' },
-        { code: 'fr', name: 'Französisch' },
-        { code: 'es', name: 'Spanisch' },
-        { code: 'it', name: 'Italienisch' },
-        { code: 'pt', name: 'Portugiesisch' },
-        { code: 'nl', name: 'Niederländisch' },
-        { code: 'pl', name: 'Polnisch' },
-        { code: 'ru', name: 'Russisch' },
-        { code: 'zh', name: 'Chinesisch' },
-        { code: 'ja', name: 'Japanisch' },
-        { code: 'ko', name: 'Koreanisch' },
-        { code: 'ar', name: 'Arabisch' },
-        { code: 'tr', name: 'Türkisch' }
-      ],
-      languagesLM: [
-        { code: 'auto', name: 'Automatisch' },
-        { code: 'en', name: 'Englisch' },
-        { code: 'de', name: 'Deutsch' },
-        { code: 'fr', name: 'Französisch' },
-        { code: 'es', name: 'Spanisch' },
-        { code: 'it', name: 'Italienisch' },
-        { code: 'pt', name: 'Portugiesisch' },
-        { code: 'nl', name: 'Niederländisch' },
-        { code: 'pl', name: 'Polnisch' },
-        { code: 'ru', name: 'Russisch' },
-        { code: 'zh', name: 'Chinesisch' },
-        { code: 'ja', name: 'Japanisch' },
-        { code: 'ko', name: 'Koreanisch' },
-        { code: 'ar', name: 'Arabisch' },
-        { code: 'tr', name: 'Türkisch' },
-        { code: 'uk', name: 'Ukrainisch' },
-        { code: 'cs', name: 'Tschechisch' },
-        { code: 'sv', name: 'Schwedisch' },
-        { code: 'da', name: 'Dänisch' },
-        { code: 'fi', name: 'Finnisch' },
-        { code: 'hi', name: 'Hindi' }
-      ],
-
-      // UI
-      showSelectionIcon: true,
-      selectionIconDelay: 300,
-      showOriginalInTooltip: true,
-      showAlternatives: true,
-      tooltipPosition: 'auto',
-      highlightTranslated: false,
-      enableTTS: true,
-      ttsLanguage: 'auto',
-
-      // Inhaltsfilter
-      skipCodeBlocks: true,
-      skipBlockquotes: true,
-      fixInlineSpacing: true,
-      useTabsForAlternatives: false,
-      tabWordThreshold: 5,
-      excludedDomains: '',
-
-      // Batch
-      lmBatchSize: 20,
-      lmMaxBatchTokens: 128000,
-      pageBatchSize: 20,
-      enableTrueBatch: true,
-      enableSmartChunking: true,
-      useCacheFirst: true,
-
-      // Cache
-      autoLoadCache: false,
-      cacheServerEnabled: true,
-      cacheServerUrl: '',
-      cacheServerMode: 'server-only',
-      cacheServerTimeout: 5000,
-
-      // Sonstiges
-      filterEmbeddingModels: true,
-      enableAbortTranslation: true,
-      enableLLMFallback: false
-    };
-    await chrome.storage.sync.set(defaults);
+    await chrome.storage.sync.set(SWT.Storage.defaultSettings);
   }
 
   // ========================================================================

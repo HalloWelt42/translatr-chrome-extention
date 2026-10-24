@@ -21,52 +21,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateProviderStates();
 });
 
-// Fachkontext System-Prompts
-const CONTEXT_PROMPTS = {
-  general: `Du bist ein präziser Übersetzer. Übersetze den folgenden Text von {source} nach {target}.
-Gib eine natürliche, flüssige Übersetzung. Behalte die Formatierung bei.
-Antworte NUR mit einem JSON-Objekt im Format: {"translation": "deine Übersetzung", "alternatives": ["alternative1", "alternative2"]}`,
-
-  automotive: `Du bist ein Kfz-Fachübersetzer für {source} nach {target}.
-WICHTIGE REGELN:
-- NIEMALS übersetzen: Teilenummern, OE-Nummern, Codes, Abkürzungen (ABS, ESP, etc.), Markennamen
-- Verwende korrekte deutsche Kfz-Fachbegriffe:
-  • Control arm → Querlenker
-  • Tie rod end → Spurstangenkopf
-  • Ball joint → Traggelenk
-  • Wheel bearing → Radlager
-  • Brake caliper → Bremssattel
-  • Strut mount → Domlager
-- Bei Unsicherheit: technisch korrekte Variante bevorzugen
-Antworte NUR mit JSON: {"translation": "...", "alternatives": ["...", "..."], "context_notes": "Fachhinweise falls relevant"}`,
-
-  technical: `Du bist ein technischer Fachübersetzer {source} → {target}.
-REGELN:
-- Bewahre absolute technische Präzision
-- Belasse etablierte englische Fachbegriffe (API, Cache, Backend, Framework, etc.)
-- Verwende korrekte deutsche IT-Terminologie wo üblich
-- Code-Beispiele und Variablennamen NIEMALS übersetzen
-Antworte NUR mit JSON: {"translation": "...", "alternatives": ["..."]}`,
-
-  medical: `Du bist ein medizinischer Fachübersetzer {source} → {target}.
-REGELN:
-- Verwende exakte medizinische Terminologie
-- Lateinische/griechische Fachbegriffe beibehalten wenn in der Medizin üblich
-- Höchste Präzision bei Dosierungen, Maßeinheiten und Anweisungen
-- Anatomische Begriffe korrekt übersetzen
-Antworte NUR mit JSON: {"translation": "...", "alternatives": ["..."], "context_notes": "Medizinische Hinweise"}`,
-
-  legal: `Du bist ein juristischer Fachübersetzer {source} → {target}.
-REGELN:
-- Verwende exakte juristische Terminologie des Zielrechtssystems
-- Beachte länderspezifische Rechtsbegriffe (deutsches Recht)
-- Gesetzesnamen und Paragraphen korrekt übertragen
-- Im Zweifel: wörtliche Übersetzung mit erklärender Anmerkung
-Antworte NUR mit JSON: {"translation": "...", "alternatives": ["..."], "context_notes": "Rechtliche Anmerkungen"}`,
-
-  custom: '' // Wird vom Benutzer definiert
-};
-
 async function loadSettings() {
   try {
     const settings = await chrome.storage.sync.get([
@@ -540,29 +494,8 @@ async function saveSettings() {
 }
 
 async function resetSettings() {
-  const defaultSettings = {
-    apiType: SWT.Providers.DEFAULT,
-    leitstelleUrl: SWT.Storage.defaultSettings.leitstelleUrl,
-    leitstelleModel: '',
-    serviceUrl: '',
-    apiKey: '',
-    lmStudioUrl: '',
-    lmStudioModel: '',
-    lmStudioTemperature: 0.1,
-    lmStudioMaxTokens: 2000,
-    pageBatchSize: 20,
-    useCacheFirst: true,
-    showSelectionIcon: true,
-    enableTTS: true,
-    showAlternatives: true,
-    skipCodeBlocks: true,
-    skipBlockquotes: true,
-    fixInlineSpacing: true,
-    cacheServerEnabled: true,
-    cacheServerUrl: '',
-    cacheServerMode: 'server-only',
-    cacheServerTimeout: 5000
-  };
+  // Wie nach der Installation: alle Vorgaben aus einer Quelle (der Schlüssel der Leitstelle bleibt)
+  const defaultSettings = SWT.Storage.defaultSettings;
 
   try {
     await chrome.storage.sync.set(defaultSettings);
@@ -597,11 +530,7 @@ async function testConnection(apiType) {
   try {
     let result;
     
-    if (apiType === 'libretranslate') {
-      result = await testLibreTranslate(testInput);
-    } else {
-      result = await testLMStudio(testInput);
-    }
+    result = await testTranslate(apiType, testInput);
 
     if (result.success) {
       testResultEl.textContent = `✓ OK: "${result.translation}"`;
@@ -621,141 +550,24 @@ async function testConnection(apiType) {
   testBtn.textContent = chrome.i18n.getMessage('btnTestConnection');
 }
 
-async function testLibreTranslate(testInput) {
-  const rawUrl = document.getElementById('serviceUrl').value.trim();
-  const serviceUrl = rawUrl.replace(/\/translate\/?$/, '') + '/translate';
-  const apiKey = document.getElementById('apiKey').value.trim();
+/**
+ * Probeübersetzung über den Service Worker: derselbe Anbieter-Code wie beim echten Übersetzen
+ */
+async function testTranslate(apiType, testInput) {
+  const getVal = (id) => document.getElementById(id)?.value.trim() || '';
+  const settings = apiType === 'libretranslate'
+    ? { apiType, serviceUrl: getVal('serviceUrl'), apiKey: getVal('apiKey') }
+    : {
+        apiType,
+        lmStudioUrl: getVal('lmStudioUrl'),
+        lmStudioModel: getVal('lmStudioModel'),
+        lmStudioTemperature: parseFloat(getVal('lmStudioTemperature')) || 0.1,
+        lmStudioMaxTokens: parseInt(getVal('lmStudioMaxTokens')) || 2000
+      };
 
-  const response = await fetch(serviceUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      q: testInput,
-      source: 'auto',
-      target: 'de',
-      format: 'text',
-      api_key: apiKey
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  const result = await response.json();
-
-  if (result.translatedText) {
-    return {
-      success: true,
-      translation: result.translatedText,
-      alternatives: result.alternatives || []
-    };
-  } else {
-    throw new Error(chrome.i18n.getMessage('errNoTranslation'));
-  }
-}
-
-async function testLMStudio(testInput) {
-  const url = document.getElementById('lmStudioUrl').value.trim();
-  const model = document.getElementById('lmStudioModel').value;
-  const temperature = parseFloat(document.getElementById('lmStudioTemperature').value);
-  const maxTokens = parseInt(document.getElementById('lmStudioMaxTokens').value);
-  
-  if (!url) throw new Error('LM Studio URL fehlt');
-  if (!model) throw new Error(chrome.i18n.getMessage('errNoModelSelected'));
-  
-  const systemPrompt = CONTEXT_PROMPTS.general
-    .replace(/{source}/g, 'Englisch')
-    .replace(/{target}/g, 'Deutsch');
-
-  const response = await fetch(`${url}/v1/chat/completions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: testInput }
-      ],
-      temperature: temperature,
-      max_tokens: maxTokens,
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'translation',
-          strict: true,
-          schema: {
-            type: 'object',
-            properties: {
-              translation: { type: 'string' },
-              alternatives: { 
-                type: 'array',
-                items: { type: 'string' }
-              },
-              context_notes: { type: 'string' }
-            },
-            required: ['translation'],
-            additionalProperties: false
-          }
-        }
-      }
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`HTTP ${response.status}: ${errorText}`);
-  }
-
-  const result = await response.json();
-  
-  if (!result.choices || !result.choices[0]) {
-    throw new Error('Ungültige Antwort vom Server');
-  }
-  
-  const content = result.choices[0].message.content;
-  
-  try {
-    const parsed = JSON.parse(content);
-    return {
-      success: true,
-      translation: parsed.translation,
-      alternatives: parsed.alternatives || [],
-      contextNotes: parsed.context_notes
-    };
-  } catch (e) {
-    // Fallback: Wenn kein JSON, nutze die rohe Antwort
-    return {
-      success: true,
-      translation: content.trim(),
-      alternatives: []
-    };
-  }
-}
-
-function getLanguageName(code) {
-  const names = {
-    'auto': 'Automatisch',
-    'de': 'Deutsch', 'en': 'Englisch', 'fr': 'Französisch',
-    'es': 'Spanisch', 'it': 'Italienisch', 'pt': 'Portugiesisch',
-    'nl': 'Niederländisch', 'pl': 'Polnisch', 'ru': 'Russisch',
-    'zh': 'Chinesisch', 'ja': 'Japanisch', 'ko': 'Koreanisch',
-    'ar': 'Arabisch', 'tr': 'Türkisch', 'uk': 'Ukrainisch',
-    'cs': 'Tschechisch', 'sv': 'Schwedisch', 'da': 'Dänisch',
-    'fi': 'Finnisch', 'hi': 'Hindi'
-  };
-  return names[code] || code;
-}
-
-function showStatus(message, type) {
-  const status = document.getElementById('status');
-  if (status) {
-    status.textContent = message;
-    status.className = 'status ' + type;
-    setTimeout(() => {
-      status.className = 'status';
-    }, 4000);
-  }
+  const result = await chrome.runtime.sendMessage({ action: 'TEST_TRANSLATE', text: testInput, settings });
+  if (!result?.success) throw new Error(result?.error || chrome.i18n.getMessage('errNoTranslation'));
+  return { success: true, translation: result.translatedText };
 }
 
 // ============================================================================
@@ -815,19 +627,13 @@ function updateStatusBadge(id, state) {
   const el = document.getElementById(id);
   if (!el) return;
 
-  if (!state.configured) {
-    el.textContent = 'nicht konfiguriert';
-    el.className = 'api-status unconfigured';
-  } else if (state.tested === true) {
-    el.textContent = 'verbunden';
-    el.className = 'api-status ok';
-  } else if (state.tested === false) {
-    el.textContent = chrome.i18n.getMessage('errGeneric');
-    el.className = 'api-status error';
-  } else {
-    el.textContent = 'nicht getestet';
-    el.className = 'api-status pending';
-  }
+  // Gewählte Wege werden beim Öffnen geprüft; eingetragene, aber nicht geprüfte zeigen nur "eingetragen"
+  const status = !state.configured ? ['statusUnconfigured', 'unconfigured']
+    : state.tested === true ? ['statusConnected', 'ok']
+    : state.tested === false ? ['statusUnreachable', 'error']
+    : ['statusConfigured', 'pending'];
+  el.textContent = chrome.i18n.getMessage(status[0]);
+  el.className = `api-status ${status[1]}`;
 }
 
 function setProviderTested(provider, success) {

@@ -471,7 +471,7 @@ class SidePanelController {
     // Toggles: ID -> { storageKey, default }
     const toggles = {
       toggleHoverOriginal: { key: 'showOriginalInTooltip', default: true },
-      toggleHighlight:     { key: 'highlightTranslated',   default: true },
+      toggleHighlight:     { key: 'highlightTranslated',   default: false },
       toggleAutoLoadCache: { key: 'autoLoadCache',         default: false },
       toggleNavReloadCache: { key: 'navReloadCache',       default: false }
     };

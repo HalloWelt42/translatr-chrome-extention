@@ -1,6 +1,6 @@
 # Smart Web Translator
 
-Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTranslate und LM Studio.
+Browser-Erweiterung (Manifest V3) für Übersetzungen über die eigene Leitstelle; ohne eigene Leitstelle alternativ mit LM Studio direkt oder LibreTranslate.
 
 ![Bildschirmfoto 2026-04-04 um 03.49.26.png](media/Bildschirmfoto%202026-04-04%20um%2003.49.26.png)
 
@@ -17,7 +17,9 @@ Chrome Extension (Manifest V3) für intelligente Übersetzungen mit LibreTransla
 
 ## Voraussetzungen
 
-Mindestens eines der folgenden Übersetzungs-Backends wird benötigt (nicht enthalten):
+Vorgabe ist die eigene **Leitstelle**: sie vermittelt die Übersetzung an das passende Sprachmodell im Heimnetz (Fassade im OpenAI-Format, Schlüssel der Anwendung als Bearer). In der Erweiterung werden nur Adresse und Schlüssel eingetragen; der Schlüssel bleibt im lokalen Speicher des Browsers.
+
+Ohne eigene Leitstelle wird eines der folgenden Übersetzungs-Backends benötigt (nicht enthalten):
 
 - **[LibreTranslate](https://github.com/LibreTranslate/LibreTranslate)** -- Open-Source Übersetzungsserver, selbst gehostet oder öffentliche Instanz ([Installationsanleitung für Raspberry Pi](https://github.com/HalloWelt42/raspberry_pi_projects/tree/main/libretranslate_projekt))
 - **[LM Studio](https://lmstudio.ai/)** -- Lokales LLM mit OpenAI-kompatibler API (für Fachübersetzungen mit Kfz, IT, Medizin, Recht)
@@ -49,10 +51,12 @@ Optional:
 
 ### Übersetzungs-Backend
 
-LibreTranslate und LM Studio werden als Accordion-Panels konfiguriert. Das aktive Backend ist aufgeklappt, das inaktive eingeklappt. Klick auf den Header wechselt.
+Leitstelle, LibreTranslate und LM Studio werden als Accordion-Panels konfiguriert. Das aktive Backend ist aufgeklappt, die anderen eingeklappt. Klick auf den Header wechselt.
 
+- **Leitstelle** (Vorgabe): Adresse und Schlüssel eintragen, "Verbindung prüfen"; Modell leer lassen, dann wählt die Leitstelle über ihre Kette. Ist sie ausgelastet oder schläft der Rechner mit dem Modell, wartet die Erweiterung und zeigt den Grund an.
 - **LibreTranslate**: Server-URL eingeben, optional API-Key
-- **LM Studio**: Server-URL eingeben, Modell auswählen, Temperatur und Max Tokens einstellen
+- **LM Studio**: Server-URL eingeben, Modell auswählen
+- Temperatur, Max Tokens und Sprachliste gelten für beide Sprachmodell-Wege (Leitstelle und LM Studio)
 
 ### Übersetzungs-Cache
 
@@ -76,7 +80,8 @@ content/
   domain-strategies.js            # Domain-spezifische Filter
   translator.css                  # Content-Styles
 shared/
-  storage.js                      # Storage-Abstraction (sync + local)
+  providers.js                    # Übersetzungswege (Vorgabe, Sprachmodell-Wege, Wartestand)
+  storage.js                      # Vorgaben der Einstellungen
   cache-server.js                 # Cache Server API Client
   cache-local.js                  # LocalStorage Cache-Backend
   cache-manager.js                # Cache-Orchestrierung (lokal + Server)
@@ -86,8 +91,10 @@ shared/
   api-badge.js                    # API-Badge Komponente
 background/
   providers/
-    libre-translate.js            # LibreTranslate Provider
-    lm-studio.js                  # LM Studio Provider
+    chat-provider.js              # Gemeinsamer Kern der Chat-Anbieter (Prompts, Antwortschema)
+    leitstelle.js                 # Leitstelle (Vorgabe, Warten bei 429/503)
+    lm-studio.js                  # LM Studio direkt
+    libre-translate.js            # LibreTranslate
 popup/
   popup.html/js/css               # Browser-Action Popup
 pages/

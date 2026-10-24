@@ -1,6 +1,6 @@
 {
   "name": "smart-translator",
-  "version": "1.45.0",
+  "version": "1.46.0",
   "description": "Browser-Erweiterung (Manifest V3) für Übersetzungen über die eigene Leitstelle, alternativ LM Studio oder LibreTranslate.",
   "main": "service-worker.js",
   "directories": {

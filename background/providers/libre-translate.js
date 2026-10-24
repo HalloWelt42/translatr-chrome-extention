@@ -42,24 +42,5 @@ const LibreTranslateProvider = {
       console.warn('[LibreTranslate]', e.message);
       return { success: false, error: e.message };
     }
-  },
-
-  /**
-   * Testet die Verbindung zum LibreTranslate-Server
-   * @returns {{ success, languages?, error? }}
-   */
-  async testConnection(url) {
-    try {
-      const response = await fetch(`${url.replace(/\/translate$/, '')}/languages`, {
-        signal: AbortSignal.timeout(5000)
-      });
-      if (!response.ok) {
-        return { success: false, error: `HTTP ${response.status}` };
-      }
-      const languages = await response.json();
-      return { success: true, languages };
-    } catch (e) {
-      return { success: false, error: e.message };
-    }
   }
 };

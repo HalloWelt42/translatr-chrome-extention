@@ -43,7 +43,8 @@ async function main() {
   let result = await provider.translate(SENTENCE, 'en', 'de', settings);
   if (!result.success && result.error === 'errLeitstelleNoChain') {
     console.log('Keine Kette für Text eingerichtet; zweiter Versuch mit Modell', FALLBACK_MODEL);
-    result = await provider.translate(SENTENCE, 'en', 'de', { ...settings, leitstelleModel: FALLBACK_MODEL });
+    settings.leitstelleModel = FALLBACK_MODEL;
+    result = await provider.translate(SENTENCE, 'en', 'de', settings);
   }
 
   const seconds = ((Date.now() - started) / 1000).toFixed(1);
@@ -54,6 +55,14 @@ async function main() {
   console.log('Englisch:', SENTENCE);
   console.log('Deutsch: ', result.translatedText);
   console.log(`Dauer ${seconds} s, ${result.tokens} Token`);
+
+  // Seitenübersetzung: Batch im gleichen Format wie der Service Worker (Antwortschema mit items)
+  const texts = ['Sign in', 'Read more about our privacy policy.'];
+  const prompt = run('BATCH_PROMPT').replace(/{source}/g, 'Englisch').replace(/{target}/g, 'Deutsch');
+  const batch = await provider.complete(provider.batchBody(prompt, texts, 2000, settings), settings);
+  const items = JSON.parse(batch.choices[0].message.content).items;
+  console.log('Batch:', items.map(i => `${i.original} => ${i.translation}`).join(' | '));
+  if (items.length !== texts.length) process.exit(1);
 }
 
 main().catch((e) => {

@@ -177,7 +177,7 @@
   "optLmUrlDoc": { "message": "Basis-URL des LM Studio Servers, z.B. <code>http://192.168.178.45:1234</code> oder <code>http://localhost:1234</code>. Der Pfad <code>/v1/chat/completions</code> wird automatisch angehängt." },
   "optLmModelDoc": { "message": "Muss in LM Studio geladen sein. Klicke auf den Aktualisieren-Button um verfügbare Modelle abzurufen." },
   "optRecommendedModels": { "message": "Empfohlene Modelle" },
-  "optLmRecommendedDoc": { "message": "Qwen 3 liefert exzellente Übersetzungsqualität mit zuverlässigem JSON-Output. Empfohlen: <code>qwen3-next-80b-a3b-instruct-mlx</code> (Apple Silicon) oder andere Qwen 3 Instruct-Varianten ab 12B+. Alternativ: Gemma 3 12B." },
+  "optLmRecommendedDoc": { "message": "Übersetzungsmodell ist <code>qwen/qwen3-next-80b</code> (dasselbe, das die Leitstelle nutzt). Auf schwächerer Hardware ein aktuelles kleineres Instruct-Modell wählen; Modelle mit Denkmodus sind unnötig langsam." },
   "optLmTemperatureDoc": { "message": "<code>0.1</code> = wörtlich und konsistent (Standard). <code>0.3</code> = natürlicher Stil. <code>0.5+</code> = kreativ, aber weniger vorhersagbar. Für Fachübersetzungen unter 0.3 bleiben." },
   "optLmMaxTokensDoc": { "message": "<code>2000</code> reicht für die meisten Texte. Bei langen Absätzen auf <code>4000</code> erhöhen. Das Modell muss mindestens so viel Kontext unterstützen." },
   "optLmCorsDoc": { "message": "In LM Studio unter Einstellungen \"Enable CORS\" aktivieren, sonst blockiert der Browser die Anfragen." },
@@ -295,5 +295,9 @@
   "optWithoutLeitstelle": { "message": "Ohne eigene Leitstelle" },
   "optWithoutLeitstelleHint": { "message": "Wer keine eigene Leitstelle betreibt, spricht einen Übersetzungsserver oder einen Modell-Läufer direkt an." },
   "optLlmTitle": { "message": "Übersetzung mit Sprachmodell" },
-  "optLlmDesc": { "message": "Gilt für die Leitstelle und für LM Studio direkt: Temperatur, Länge der Antwort und die Sprachen in den Auswahllisten." }
+  "optLlmDesc": { "message": "Gilt für die Leitstelle und für LM Studio direkt: Temperatur, Länge der Antwort und die Sprachen in den Auswahllisten." },
+  "statusUnconfigured": { "message": "nicht eingerichtet" },
+  "statusConnected": { "message": "verbunden" },
+  "statusUnreachable": { "message": "nicht erreichbar" },
+  "statusConfigured": { "message": "eingetragen" }
 }

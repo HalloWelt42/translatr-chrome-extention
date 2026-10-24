@@ -429,8 +429,6 @@ class SmartTranslator {
     this.settings.tooltipPosition = 'below';
     this.settings.useTabsForAlternatives = true;
     this.settings.tabWordThreshold = 20;
-    this.settings.enableAbortTranslation = true;
-    this.settings.enableLLMFallback = false;
     this.settings.ttsLanguage = 'auto';
 
     // Boolean-Defaults (true)
@@ -923,8 +921,8 @@ class SmartTranslator {
       // Continue-Modus: Gesamtzahl = verbleibende + bereits übersetzte
       this._plannedNodes = total + this.originalTexts.size;
 
-      const batchSettings = await chrome.storage.sync.get(['pageBatchSize', 'lmBatchSize']);
-      const batchSize = Math.max(1, Math.min(50, batchSettings.pageBatchSize || batchSettings.lmBatchSize || 20));
+      const { pageBatchSize } = await chrome.storage.sync.get('pageBatchSize');
+      const batchSize = Math.max(1, Math.min(50, pageBatchSize || 20));
 
       // Batch-weise Übersetzung: Requests gleichzeitig abfeuern, Ergebnisse in Reihenfolge anwenden
       for (let i = 0; i < textNodes.length; i += batchSize) {
